@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:gerenciador_de_projetos/ui/projects/widgets/Projects.dart';
+import 'package:gerenciador_de_projetos/ui/app/widgets/app.dart';
 import '/ui/core/themes/theme.dart';
 
 void main() {
@@ -12,12 +12,12 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Flutter Demo',
+      title: 'Gerenciador de Projetos',
       theme: AppTheme.lightTheme,
       darkTheme: AppTheme.darkTheme,
       themeMode: ThemeMode.dark,
 
-      home: Projects(),
+      home: AppGDP(),
     );
   }
 }

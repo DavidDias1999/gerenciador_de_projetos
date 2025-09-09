@@ -11,11 +11,14 @@ class _ProjectsState extends State<Projects> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text("Test titulo"),
-        backgroundColor: Colors.indigo,
+      body: ListView(
+        children: [
+          Card(
+            color: Colors.amber,
+            child: Text("Test", style: TextStyle(color: Colors.black)),
+          ),
+        ],
       ),
-      body: ListView(),
     );
   }
 }
