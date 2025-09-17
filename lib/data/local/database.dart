@@ -104,7 +104,7 @@ class AppDatabase extends _$AppDatabase {
         ),
       );
 
-      final defaultSteps = createDefaultSteps();
+      final defaultSteps = await createDefaultSteps();
       for (final step in defaultSteps) {
         await into(this.steps).insert(
           StepsCompanion.insert(

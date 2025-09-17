@@ -1,0 +1,158 @@
+[
+  {
+    "step_name": "Levantamento",
+    "tasks": [
+      { "task_name": "Cliente - Dados - Nome" },
+      { "task_name": "Cliente - Dados - Endereço" },
+      { "task_name": "Cliente - Dados - Cópia do RG/CPF" },
+      { "task_name": "Cliente - Briefing - Questionário" }
+      
+    ]
+  },
+  {
+    "step_name": "Estudo Preliminar - Projeto de interiores",
+    "tasks": [
+      { "task_name": "Briefing do cliente" },
+      { "task_name": "Layout" },
+      { "task_name": "Modelo tridimensional 3D" },
+      { "task_name": "Vídeo do modelo tridimensional" }
+      
+    ]
+  },
+  {
+    "step_name": "Projeto Legal - LTA",
+    "tasks": [
+      { "task_name": "Colocar tudo em layer" },
+      { "task_name": "Estacionamento (indicar vagas, dimensões, PNE)" },
+      { "task_name": "1 Fachada" },
+      { "task_name": "Corte Longitudinal" }
+      
+    ]
+  },
+  {
+    "step_name": "Projeto Executivo - Referência",
+    "tasks": [
+      { "task_name": "DESENHAR PLANTAS NO PONTO DE ORIGEM (  selecionar o desenho; comando mover; seleção do ponto; digitar  0,0,0 )" },
+      { "task_name": "Mobiliário" },
+      { "task_name": "Eletrodomésticos (geladeira, microondas, máquina de lavar, tanquinho)" },
+      { "task_name": "Higiene (tanque, pia, vaso sanitário, cuba)" }
+      
+    ]
+  },
+  {
+    "step_name": "Projeto Executivo - Demolição",
+    "tasks": [
+      { "task_name": "Deixar ligados somente os layers desnível, escada, rampa, estrutura, alvenaria e área a construir e  a demolir ligados (layers da estrutura geral da planta)" },
+      { "task_name": "Cotar áreas a demolir" },
+      { "task_name": "Cotar distância até a área a demolir" },
+      { "task_name": "Fazer detalhes de vão pass through" }
+    
+    ]
+  },
+  {
+    "step_name": "Projeto Executivo - Construção",
+    "tasks": [
+      { "task_name": "Deixar ligados somente os layers desnível, escada, rampa, estrutura, alvenaria e área a construir ligados (layers da estrutura geral da planta)" },
+      { "task_name": "Cotar áreas a construir" },
+      { "task_name": "Cotar distância até a área a construir" },
+      { "task_name": "Detalhes de banheiros, wc pne, abrigo de resíduos" }
+      
+    ]
+  },
+  {
+    "step_name": "Projeto Executivo - Divisórias",
+    "tasks": [
+      { "task_name": "Posicionamento de divisórias" },
+      { "task_name": "Posicionamento de visores" },
+      { "task_name": "Posicionamento das portas" },
+      { "task_name": "Especificação de porta (Largura x espessura – material - abertura)" }
+      
+    ]
+  },
+  {
+    "step_name": "Projeto Executivo - Arquitetura",
+    "tasks": [
+      { "task_name": "Acabamentos (Piso, Forro e Revestimento)" },
+      { "task_name": "Cotas Gerais (todos ambientes)" },
+      { "task_name": "Detalhamento do banheiro PCD" }
+      
+    ]
+  },
+  {
+    "step_name": "Projeto Executivo - Tampos",
+    "tasks": [
+      { "task_name": "Hachurar tampos de acordo com o material que será aplicado (granito, inox, madeira, etc.)" },
+      { "task_name": "Hachurar área úmida do tampo" },
+      { "task_name": "Cotar tampos (cota geral + cota de área úmida + cota de cuba)" }
+      
+    ]
+  },
+  {
+    "step_name": "Projeto Executivo - Mobiliário",
+    "tasks": [
+      { "task_name": "Posicionar mobiliário em 3D" },
+      { "task_name": "Cotar mobiliário em planta" },
+      { "task_name": "Fazer vistas laterais" }
+      
+    ]
+  },
+  {
+    "step_name": "Projeto Executivo - Forro",
+    "tasks": [
+      { "task_name": "Pé direito" },
+      { "task_name": "Legenda dos forros" },
+      { "task_name": "Cotar forro (cotar a partir de alvenaria)" }
+
+    ]
+  },
+  {
+    "step_name": "Projeto Executivo - Piso",
+    "tasks": [
+      { "task_name": "Paginação de piso" },
+      { "task_name": "Tipos de piso que serão aplicados" },
+      { "task_name": "Tipos de rodapé ou canto arredondado" }
+
+    ]
+  },
+  {
+    "step_name": "Projeto Executivo - Elétrica",
+    "tasks": [
+      { "task_name": "Verificar se é 110/220, 110 ou 220 ( De acordo com a cidade )" },
+      { "task_name": "Símbolos da tabela em planta diminuir a escala em 0.5" },
+      { "task_name": "Posicionamento dos pontos" }
+
+    ]
+  },
+  {
+    "step_name": "Projeto Executivo - Hidráulica",
+    "tasks": [
+      { "task_name": "Posicionamento dos pontos - Obs: Pontos hidráulicos da pia da paramentação: Ponto de piso, distanciar 15 cm da parede proposta e cotar a partir da alvenaria mais próxima. Verificar ponto hidráulico da osmose reversa para fazer reforço na planta de divisórias caso o mesmo seja instalado em divisória de PVC  " },
+      { "task_name": "Ponto de ralo nos banheiros, DML, abrigo de resíduos" },
+      { "task_name": "Ponto de água no abrigo de resíduos a 45cm, torneira com engate para mangueira (especificar torneira em nota)" }
+
+    ]
+  },
+  {
+    "step_name": "Projeto Executivo - Iluminação",
+    "tasks": [
+      { "task_name": "Fazer cálculo" },
+      { "task_name": "Congelar layer de mobiliário" },
+      { "task_name": "Posicionar interruptores" }
+    ]
+  },
+  {
+    "step_name": "Projeto Executivo - Exaustão",
+    "tasks": [
+      { "task_name": "Colocar tudo em layer" },
+      { "task_name": "Marcar duto dos exaustores" }
+    ]
+  },
+  {
+    "step_name": "Projeto Executivo - Ar Condicionado",
+    "tasks": [
+      { "task_name": "Posicionamento do aparelho de ar condicionado (em planta) para estoque de matéria prima ( insuflamento e ar condicionado) estoque de embalagens (insuflamento)" },
+      { "task_name": "Cotas (A partir do meio do equipamento de Ar condicionado até qualquer parede ou divisória)" },
+      { "task_name": "Caso haja representação da tubulação, cota se dá a partir do centro da mesma" }
+    ]
+  }
+]
