@@ -8,7 +8,6 @@ import 'package:uuid/uuid.dart';
 
 part 'database.g.dart';
 
-// 1. DEFINIÇÃO DAS TABELAS
 @DataClassName('ProjectData')
 class Projects extends Table {
   TextColumn get id => text()();
@@ -37,22 +36,18 @@ class Tasks extends Table {
   Set<Column> get primaryKey => {id};
 }
 
-// Classes para agrupar resultados das queries
 class FullProject {
-  // CORREÇÃO: Usa o tipo de dado gerado pelo Drift.
   final ProjectData project;
   final List<FullStep> steps;
   FullProject({required this.project, required this.steps});
 }
 
 class FullStep {
-  // CORREÇÃO: Usa os tipos de dados gerados pelo Drift.
   final StepData step;
   final List<TaskData> tasks;
   FullStep({required this.step, required this.tasks});
 }
 
-// 2. CLASSE DO BANCO DE DADOS
 @DriftDatabase(tables: [Projects, Steps, Tasks])
 class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(_openConnection());
@@ -93,7 +88,6 @@ class AppDatabase extends _$AppDatabase {
         ),
       );
 
-      // CORREÇÃO: Nome da função do template estava incorreto.
       final defaultSteps = createDefaultSteps();
       for (final step in defaultSteps) {
         await into(this.steps).insert(
@@ -123,7 +117,6 @@ class AppDatabase extends _$AppDatabase {
   }
 }
 
-// Função helper para abrir a conexão
 LazyDatabase _openConnection() {
   return LazyDatabase(() async {
     final dbFolder = await getApplicationDocumentsDirectory();
