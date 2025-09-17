@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../../../domain/models/project_model.dart';
 import '../../app/widgets/app.dart';
 import '../view_models/project_viewmodel.dart';
 
@@ -86,6 +87,37 @@ class _ProjectListScreenState extends State<ProjectListScreen> {
     );
   }
 
+  void _showMoveToCompletedDialog(Project project) {
+    final viewModel = Provider.of<ProjectViewModel>(context, listen: false);
+
+    showDialog(
+      context: context,
+      builder: (BuildContext dialogContext) {
+        return AlertDialog(
+          title: const Text('Projeto Finalizado!'),
+          content: Text(
+            'Deseja mover o projeto "${project.projectName}" para a área de finalizados?',
+          ),
+          actions: [
+            TextButton(
+              child: const Text('Não'),
+              onPressed: () {
+                Navigator.of(dialogContext).pop();
+              },
+            ),
+            ElevatedButton(
+              child: const Text('Sim, Mover'),
+              onPressed: () {
+                viewModel.refreshProjectLists();
+                Navigator.of(dialogContext).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final title = widget.projectType == ProjectType.active
@@ -114,11 +146,50 @@ class _ProjectListScreenState extends State<ProjectListScreen> {
                 margin: const EdgeInsets.all(8.0),
                 child: ExpansionTile(
                   key: ValueKey(project.id),
-                  title: Text(
-                    project.clientName,
-                    style: const TextStyle(fontWeight: FontWeight.bold),
+                  title: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              project.clientName,
+                              style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            Text(
+                              project.projectName,
+                              style: Theme.of(context).textTheme.bodySmall,
+                            ),
+                          ],
+                        ),
+                      ),
+                      PopupMenuButton<String>(
+                        onSelected: (String result) {
+                          if (result == 'complete') {
+                            viewModel.completeProject(project.id);
+                          } else if (result == 'activate') {
+                            viewModel.activateProject(project.id);
+                          }
+                        },
+                        itemBuilder: (BuildContext context) =>
+                            <PopupMenuEntry<String>>[
+                              if (widget.projectType == ProjectType.active)
+                                const PopupMenuItem<String>(
+                                  value: 'complete',
+                                  child: Text('Finalizar projeto'),
+                                ),
+                              if (widget.projectType == ProjectType.completed)
+                                const PopupMenuItem<String>(
+                                  value: 'activate',
+                                  child: Text('Ativar projeto'),
+                                ),
+                            ],
+                      ),
+                    ],
                   ),
-                  subtitle: Text(project.projectName),
                   children: project.steps.map((step) {
                     return Padding(
                       padding: const EdgeInsets.only(left: 16.0),
@@ -131,9 +202,8 @@ class _ProjectListScreenState extends State<ProjectListScreen> {
                               value: task.isCompleted,
                               onChanged: (bool? value) {
                                 viewModel.toggleTaskStatus(
-                                  project,
-                                  step.id,
                                   task.id,
+                                  task.isCompleted,
                                 );
                               },
                             ),

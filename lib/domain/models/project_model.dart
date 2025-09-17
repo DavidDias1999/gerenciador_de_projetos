@@ -5,15 +5,12 @@ class Project {
   String clientName;
   String projectName;
   List<Step> steps;
+  bool isCompleted;
   Project({
     required this.id,
     required this.clientName,
     required this.projectName,
     required this.steps,
+    required this.isCompleted,
   });
-
-  bool get isCompleted {
-    if (steps.isEmpty) return false;
-    return steps.every((step) => step.tasks.every((task) => task.isCompleted));
-  }
 }

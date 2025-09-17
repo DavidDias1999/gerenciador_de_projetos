@@ -13,6 +13,7 @@ class Projects extends Table {
   TextColumn get id => text()();
   TextColumn get clientName => text()();
   TextColumn get projectName => text()();
+  BoolColumn get isCompleted => boolean().withDefault(const Constant(false))();
   @override
   Set<Column> get primaryKey => {id};
 }
@@ -53,7 +54,22 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(_openConnection());
 
   @override
-  int get schemaVersion => 1;
+  int get schemaVersion => 2;
+
+  @override
+  MigrationStrategy get migration {
+    return MigrationStrategy(
+      onCreate: (Migrator m) async {
+        await m.createAll();
+      },
+      onUpgrade: (Migrator m, int from, int to) async {
+        if (from == 1) {
+          // Se estamos vindo da versão 1, adicionamos a nova coluna.
+          await m.addColumn(projects, projects.isCompleted);
+        }
+      },
+    );
+  }
 
   Future<List<FullProject>> getAllProjects() async {
     final projectsData = await select(projects).get();
@@ -113,6 +129,12 @@ class AppDatabase extends _$AppDatabase {
   Future<void> updateTaskStatus(String taskId, bool isCompleted) {
     return (update(tasks)..where((tbl) => tbl.id.equals(taskId))).write(
       TasksCompanion(isCompleted: Value(isCompleted)),
+    );
+  }
+
+  Future<void> setProjectCompletionStatus(String projectId, bool isCompleted) {
+    return (update(projects)..where((tbl) => tbl.id.equals(projectId))).write(
+      ProjectsCompanion(isCompleted: Value(isCompleted)),
     );
   }
 }

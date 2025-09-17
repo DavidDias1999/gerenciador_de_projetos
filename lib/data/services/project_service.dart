@@ -8,11 +8,13 @@ class ProjectService {
   final AppDatabase _db;
 
   ProjectService({required AppDatabase dataBase}) : _db = dataBase;
+
   domain.Project _mapFullProjectToDomain(FullProject fullProject) {
     return domain.Project(
       id: fullProject.project.id,
       clientName: fullProject.project.clientName,
       projectName: fullProject.project.projectName,
+      isCompleted: fullProject.project.isCompleted,
       steps: fullProject.steps.map((fullStep) {
         return domain.Step(
           id: fullStep.step.id,
@@ -40,5 +42,9 @@ class ProjectService {
 
   Future<void> updateTask(String taskId, bool isCompleted) async {
     await _db.updateTaskStatus(taskId, isCompleted);
+  }
+
+  Future<void> setProjectStatus(String projectId, bool isCompleted) async {
+    await _db.setProjectCompletionStatus(projectId, isCompleted);
   }
 }

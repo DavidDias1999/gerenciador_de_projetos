@@ -14,4 +14,7 @@ class ProjectRepository {
 
   Future<void> updateTask(String taskId, bool isCompleted) =>
       _projectService.updateTask(taskId, isCompleted);
+
+  Future<void> setProjectStatus(String projectId, bool isCompleted) =>
+      _projectService.setProjectStatus(projectId, isCompleted);
 }

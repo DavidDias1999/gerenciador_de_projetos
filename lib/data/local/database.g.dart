@@ -40,8 +40,28 @@ class $ProjectsTable extends Projects
     type: DriftSqlType.string,
     requiredDuringInsert: true,
   );
+  static const VerificationMeta _isCompletedMeta = const VerificationMeta(
+    'isCompleted',
+  );
   @override
-  List<GeneratedColumn> get $columns => [id, clientName, projectName];
+  late final GeneratedColumn<bool> isCompleted = GeneratedColumn<bool>(
+    'is_completed',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("is_completed" IN (0, 1))',
+    ),
+    defaultValue: const Constant(false),
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    clientName,
+    projectName,
+    isCompleted,
+  ];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
@@ -78,6 +98,15 @@ class $ProjectsTable extends Projects
     } else if (isInserting) {
       context.missing(_projectNameMeta);
     }
+    if (data.containsKey('is_completed')) {
+      context.handle(
+        _isCompletedMeta,
+        isCompleted.isAcceptableOrUnknown(
+          data['is_completed']!,
+          _isCompletedMeta,
+        ),
+      );
+    }
     return context;
   }
 
@@ -99,6 +128,10 @@ class $ProjectsTable extends Projects
         DriftSqlType.string,
         data['${effectivePrefix}project_name'],
       )!,
+      isCompleted: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}is_completed'],
+      )!,
     );
   }
 
@@ -112,10 +145,12 @@ class ProjectData extends DataClass implements Insertable<ProjectData> {
   final String id;
   final String clientName;
   final String projectName;
+  final bool isCompleted;
   const ProjectData({
     required this.id,
     required this.clientName,
     required this.projectName,
+    required this.isCompleted,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -123,6 +158,7 @@ class ProjectData extends DataClass implements Insertable<ProjectData> {
     map['id'] = Variable<String>(id);
     map['client_name'] = Variable<String>(clientName);
     map['project_name'] = Variable<String>(projectName);
+    map['is_completed'] = Variable<bool>(isCompleted);
     return map;
   }
 
@@ -131,6 +167,7 @@ class ProjectData extends DataClass implements Insertable<ProjectData> {
       id: Value(id),
       clientName: Value(clientName),
       projectName: Value(projectName),
+      isCompleted: Value(isCompleted),
     );
   }
 
@@ -143,6 +180,7 @@ class ProjectData extends DataClass implements Insertable<ProjectData> {
       id: serializer.fromJson<String>(json['id']),
       clientName: serializer.fromJson<String>(json['clientName']),
       projectName: serializer.fromJson<String>(json['projectName']),
+      isCompleted: serializer.fromJson<bool>(json['isCompleted']),
     );
   }
   @override
@@ -152,15 +190,21 @@ class ProjectData extends DataClass implements Insertable<ProjectData> {
       'id': serializer.toJson<String>(id),
       'clientName': serializer.toJson<String>(clientName),
       'projectName': serializer.toJson<String>(projectName),
+      'isCompleted': serializer.toJson<bool>(isCompleted),
     };
   }
 
-  ProjectData copyWith({String? id, String? clientName, String? projectName}) =>
-      ProjectData(
-        id: id ?? this.id,
-        clientName: clientName ?? this.clientName,
-        projectName: projectName ?? this.projectName,
-      );
+  ProjectData copyWith({
+    String? id,
+    String? clientName,
+    String? projectName,
+    bool? isCompleted,
+  }) => ProjectData(
+    id: id ?? this.id,
+    clientName: clientName ?? this.clientName,
+    projectName: projectName ?? this.projectName,
+    isCompleted: isCompleted ?? this.isCompleted,
+  );
   ProjectData copyWithCompanion(ProjectsCompanion data) {
     return ProjectData(
       id: data.id.present ? data.id.value : this.id,
@@ -170,6 +214,9 @@ class ProjectData extends DataClass implements Insertable<ProjectData> {
       projectName: data.projectName.present
           ? data.projectName.value
           : this.projectName,
+      isCompleted: data.isCompleted.present
+          ? data.isCompleted.value
+          : this.isCompleted,
     );
   }
 
@@ -178,37 +225,42 @@ class ProjectData extends DataClass implements Insertable<ProjectData> {
     return (StringBuffer('ProjectData(')
           ..write('id: $id, ')
           ..write('clientName: $clientName, ')
-          ..write('projectName: $projectName')
+          ..write('projectName: $projectName, ')
+          ..write('isCompleted: $isCompleted')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode => Object.hash(id, clientName, projectName);
+  int get hashCode => Object.hash(id, clientName, projectName, isCompleted);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
       (other is ProjectData &&
           other.id == this.id &&
           other.clientName == this.clientName &&
-          other.projectName == this.projectName);
+          other.projectName == this.projectName &&
+          other.isCompleted == this.isCompleted);
 }
 
 class ProjectsCompanion extends UpdateCompanion<ProjectData> {
   final Value<String> id;
   final Value<String> clientName;
   final Value<String> projectName;
+  final Value<bool> isCompleted;
   final Value<int> rowid;
   const ProjectsCompanion({
     this.id = const Value.absent(),
     this.clientName = const Value.absent(),
     this.projectName = const Value.absent(),
+    this.isCompleted = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   ProjectsCompanion.insert({
     required String id,
     required String clientName,
     required String projectName,
+    this.isCompleted = const Value.absent(),
     this.rowid = const Value.absent(),
   }) : id = Value(id),
        clientName = Value(clientName),
@@ -217,12 +269,14 @@ class ProjectsCompanion extends UpdateCompanion<ProjectData> {
     Expression<String>? id,
     Expression<String>? clientName,
     Expression<String>? projectName,
+    Expression<bool>? isCompleted,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
       if (clientName != null) 'client_name': clientName,
       if (projectName != null) 'project_name': projectName,
+      if (isCompleted != null) 'is_completed': isCompleted,
       if (rowid != null) 'rowid': rowid,
     });
   }
@@ -231,12 +285,14 @@ class ProjectsCompanion extends UpdateCompanion<ProjectData> {
     Value<String>? id,
     Value<String>? clientName,
     Value<String>? projectName,
+    Value<bool>? isCompleted,
     Value<int>? rowid,
   }) {
     return ProjectsCompanion(
       id: id ?? this.id,
       clientName: clientName ?? this.clientName,
       projectName: projectName ?? this.projectName,
+      isCompleted: isCompleted ?? this.isCompleted,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -253,6 +309,9 @@ class ProjectsCompanion extends UpdateCompanion<ProjectData> {
     if (projectName.present) {
       map['project_name'] = Variable<String>(projectName.value);
     }
+    if (isCompleted.present) {
+      map['is_completed'] = Variable<bool>(isCompleted.value);
+    }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
     }
@@ -265,6 +324,7 @@ class ProjectsCompanion extends UpdateCompanion<ProjectData> {
           ..write('id: $id, ')
           ..write('clientName: $clientName, ')
           ..write('projectName: $projectName, ')
+          ..write('isCompleted: $isCompleted, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -863,6 +923,7 @@ typedef $$ProjectsTableCreateCompanionBuilder =
       required String id,
       required String clientName,
       required String projectName,
+      Value<bool> isCompleted,
       Value<int> rowid,
     });
 typedef $$ProjectsTableUpdateCompanionBuilder =
@@ -870,6 +931,7 @@ typedef $$ProjectsTableUpdateCompanionBuilder =
       Value<String> id,
       Value<String> clientName,
       Value<String> projectName,
+      Value<bool> isCompleted,
       Value<int> rowid,
     });
 
@@ -918,6 +980,11 @@ class $$ProjectsTableFilterComposer
 
   ColumnFilters<String> get projectName => $composableBuilder(
     column: $table.projectName,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get isCompleted => $composableBuilder(
+    column: $table.isCompleted,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -970,6 +1037,11 @@ class $$ProjectsTableOrderingComposer
     column: $table.projectName,
     builder: (column) => ColumnOrderings(column),
   );
+
+  ColumnOrderings<bool> get isCompleted => $composableBuilder(
+    column: $table.isCompleted,
+    builder: (column) => ColumnOrderings(column),
+  );
 }
 
 class $$ProjectsTableAnnotationComposer
@@ -991,6 +1063,11 @@ class $$ProjectsTableAnnotationComposer
 
   GeneratedColumn<String> get projectName => $composableBuilder(
     column: $table.projectName,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<bool> get isCompleted => $composableBuilder(
+    column: $table.isCompleted,
     builder: (column) => column,
   );
 
@@ -1051,11 +1128,13 @@ class $$ProjectsTableTableManager
                 Value<String> id = const Value.absent(),
                 Value<String> clientName = const Value.absent(),
                 Value<String> projectName = const Value.absent(),
+                Value<bool> isCompleted = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => ProjectsCompanion(
                 id: id,
                 clientName: clientName,
                 projectName: projectName,
+                isCompleted: isCompleted,
                 rowid: rowid,
               ),
           createCompanionCallback:
@@ -1063,11 +1142,13 @@ class $$ProjectsTableTableManager
                 required String id,
                 required String clientName,
                 required String projectName,
+                Value<bool> isCompleted = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => ProjectsCompanion.insert(
                 id: id,
                 clientName: clientName,
                 projectName: projectName,
+                isCompleted: isCompleted,
                 rowid: rowid,
               ),
           withReferenceMapper: (p0) => p0

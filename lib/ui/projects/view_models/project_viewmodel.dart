@@ -36,26 +36,33 @@ class ProjectViewModel extends ChangeNotifier {
     await loadProjects();
   }
 
-  Future<void> toggleTaskStatus(
-    Project project,
-    String stepId,
-    String taskId,
-  ) async {
-    final step = project.steps.firstWhere((s) => s.id == stepId);
-    final task = step.tasks.firstWhere((t) => t.id == taskId);
+  Future<void> completeProject(String projectId) async {
+    await _repository.setProjectStatus(projectId, true);
+    await loadProjects();
+  }
 
-    final wasProjectCompleted = project.isCompleted;
+  Future<void> activateProject(String projectId) async {
+    await _repository.setProjectStatus(projectId, false);
+    await loadProjects();
+  }
 
-    task.isCompleted = !task.isCompleted;
+  Future<void> refreshProjectLists() async {
+    await loadProjects();
+  }
 
-    final isProjectNowCompleted = project.isCompleted;
+  Future<void> toggleTaskStatus(String taskId, bool currentStatus) async {
+    await _repository.updateTask(taskId, !currentStatus);
 
-    await _repository.updateTask(taskId, task.isCompleted);
-
-    if (wasProjectCompleted != isProjectNowCompleted) {
-      await loadProjects();
-    } else {
-      notifyListeners();
-    }
+    final project = _activeProjects.firstWhere(
+      (p) => p.steps.any((s) => s.tasks.any((t) => t.id == taskId)),
+      orElse: () => _completedProjects.firstWhere(
+        (p) => p.steps.any((s) => s.tasks.any((t) => t.id == taskId)),
+      ),
+    );
+    final task = project.steps
+        .expand((s) => s.tasks)
+        .firstWhere((t) => t.id == taskId);
+    task.isCompleted = !currentStatus;
+    notifyListeners();
   }
 }
