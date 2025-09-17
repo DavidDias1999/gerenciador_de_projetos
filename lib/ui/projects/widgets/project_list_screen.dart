@@ -179,7 +179,7 @@ class _ProjectListScreenState extends State<ProjectListScreen> {
                       ),
                       const SizedBox(width: 16),
                       SizedBox(
-                        width: 200,
+                        width: 80,
                         child: LinearProgressIndicator(
                           value: project.progress,
                           backgroundColor: Theme.of(
@@ -244,7 +244,7 @@ class _ProjectListScreenState extends State<ProjectListScreen> {
                             ),
                             const SizedBox(width: 16),
                             SizedBox(
-                              width: 200,
+                              width: 80,
                               child: LinearProgressIndicator(
                                 value: step.progress,
                                 backgroundColor: Theme.of(
