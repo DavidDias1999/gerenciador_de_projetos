@@ -29,7 +29,7 @@ class _ProjectListScreenState extends State<ProjectListScreen> {
 
   void _showCreateProjectDialog(BuildContext context) {
     final viewModel = Provider.of<ProjectViewModel>(context, listen: false);
-    final clienteNameController = TextEditingController();
+    final clientNameController = TextEditingController();
     final projectNameController = TextEditingController();
     final formKey = GlobalKey<FormState>();
 
@@ -44,12 +44,12 @@ class _ProjectListScreenState extends State<ProjectListScreen> {
               mainAxisSize: MainAxisSize.min,
               children: [
                 TextFormField(
-                  controller: clienteNameController,
+                  controller: clientNameController,
                   decoration: const InputDecoration(
                     labelText: 'Nome do Cliente',
                   ),
                   validator: (value) => value == null || value.isEmpty
-                      ? 'Campo Obrigatório'
+                      ? 'Campo obrigatório'
                       : null,
                 ),
                 TextFormField(
@@ -58,7 +58,7 @@ class _ProjectListScreenState extends State<ProjectListScreen> {
                     labelText: 'Nome do Projeto',
                   ),
                   validator: (value) => value == null || value.isEmpty
-                      ? 'Campo Obrigatório'
+                      ? 'Campo obrigatório'
                       : null,
                 ),
               ],
@@ -73,44 +73,13 @@ class _ProjectListScreenState extends State<ProjectListScreen> {
               onPressed: () {
                 if (formKey.currentState!.validate()) {
                   viewModel.createNewProject(
-                    clienteNameController.text,
+                    clientNameController.text,
                     projectNameController.text,
                   );
                   Navigator.of(context).pop();
                 }
               },
               child: const Text('Salvar'),
-            ),
-          ],
-        );
-      },
-    );
-  }
-
-  void _showMoveToCompletedDialog(Project project) {
-    final viewModel = Provider.of<ProjectViewModel>(context, listen: false);
-
-    showDialog(
-      context: context,
-      builder: (BuildContext dialogContext) {
-        return AlertDialog(
-          title: const Text('Projeto Finalizado!'),
-          content: Text(
-            'Deseja mover o projeto "${project.projectName}" para a área de finalizados?',
-          ),
-          actions: [
-            TextButton(
-              child: const Text('Não'),
-              onPressed: () {
-                Navigator.of(dialogContext).pop();
-              },
-            ),
-            ElevatedButton(
-              child: const Text('Sim, Mover'),
-              onPressed: () {
-                viewModel.refreshProjectLists();
-                Navigator.of(dialogContext).pop();
-              },
             ),
           ],
         );
@@ -135,7 +104,6 @@ class _ProjectListScreenState extends State<ProjectListScreen> {
               onPressed: () => Navigator.of(dialogContext).pop(),
             ),
             FilledButton.tonal(
-              // Usando um botão com mais destaque para a ação destrutiva
               style: FilledButton.styleFrom(
                 backgroundColor: Theme.of(context).colorScheme.errorContainer,
                 foregroundColor: Theme.of(context).colorScheme.onErrorContainer,
@@ -165,39 +133,66 @@ class _ProjectListScreenState extends State<ProjectListScreen> {
           final projects = widget.projectType == ProjectType.active
               ? viewModel.activeProjects
               : viewModel.completedProjects;
+
           if (viewModel.isLoading) {
+            return const Center(child: CircularProgressIndicator());
+          }
+          if (projects.isEmpty) {
             return Center(
               child: Text(
-                'Nenhum Projeto ${widget.projectType == ProjectType.active ? 'ativo' : 'finalizado'} encontrado',
+                'Nenhum projeto ${widget.projectType == ProjectType.active ? 'ativo' : 'finalizado'} encontrado.',
               ),
             );
           }
+
           return ListView.builder(
+            padding: const EdgeInsets.all(8),
             itemCount: projects.length,
             itemBuilder: (context, index) {
               final project = projects[index];
               return Card(
-                margin: const EdgeInsets.all(8.0),
+                clipBehavior: Clip.antiAlias,
+                margin: const EdgeInsets.symmetric(vertical: 8.0),
                 child: ExpansionTile(
                   key: ValueKey(project.id),
                   title: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisAlignment: MainAxisAlignment.center,
                           children: [
                             Text(
                               project.clientName,
                               style: const TextStyle(
                                 fontWeight: FontWeight.bold,
                               ),
+                              overflow: TextOverflow.ellipsis,
                             ),
                             Text(
                               project.projectName,
                               style: Theme.of(context).textTheme.bodySmall,
+                              overflow: TextOverflow.ellipsis,
                             ),
                           ],
+                        ),
+                      ),
+                      const SizedBox(width: 16),
+                      SizedBox(
+                        width: 200,
+                        child: LinearProgressIndicator(
+                          value: project.progress,
+                          backgroundColor: Theme.of(
+                            context,
+                          ).colorScheme.surfaceContainerHighest,
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      SizedBox(
+                        width: 40,
+                        child: Text(
+                          '${(project.progress * 100).toStringAsFixed(0)}%',
+                          style: Theme.of(context).textTheme.labelSmall,
                         ),
                       ),
                       PopupMenuButton<String>(
@@ -207,7 +202,6 @@ class _ProjectListScreenState extends State<ProjectListScreen> {
                           } else if (result == 'activate') {
                             viewModel.activateProject(project.id);
                           } else if (result == 'delete') {
-                            // Chama o novo diálogo de confirmação
                             _showDeleteConfirmationDialog(context, project);
                           }
                         },
@@ -223,7 +217,7 @@ class _ProjectListScreenState extends State<ProjectListScreen> {
                                   value: 'activate',
                                   child: Text('Ativar projeto'),
                                 ),
-                              const PopupMenuDivider(), // Adiciona um divisor visual
+                              const PopupMenuDivider(),
                               const PopupMenuItem<String>(
                                 value: 'delete',
                                 child: Text(
@@ -237,10 +231,37 @@ class _ProjectListScreenState extends State<ProjectListScreen> {
                   ),
                   children: project.steps.map((step) {
                     return Padding(
-                      padding: const EdgeInsets.only(left: 16.0),
+                      padding: const EdgeInsets.fromLTRB(16.0, 8.0, 16.0, 8.0),
                       child: ExpansionTile(
                         key: ValueKey(step.id),
-                        title: Text(step.title),
+                        title: Row(
+                          children: [
+                            Expanded(
+                              child: Text(
+                                step.title,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                            const SizedBox(width: 16),
+                            SizedBox(
+                              width: 200,
+                              child: LinearProgressIndicator(
+                                value: step.progress,
+                                backgroundColor: Theme.of(
+                                  context,
+                                ).colorScheme.surfaceContainerHighest,
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            SizedBox(
+                              width: 40,
+                              child: Text(
+                                '${(step.progress * 100).toStringAsFixed(0)}%',
+                                style: Theme.of(context).textTheme.labelSmall,
+                              ),
+                            ),
+                          ],
+                        ),
                         children: step.tasks.map((task) {
                           return ListTile(
                             leading: Checkbox(
