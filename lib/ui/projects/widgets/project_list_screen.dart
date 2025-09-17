@@ -118,6 +118,40 @@ class _ProjectListScreenState extends State<ProjectListScreen> {
     );
   }
 
+  void _showDeleteConfirmationDialog(BuildContext context, Project project) {
+    final viewModel = Provider.of<ProjectViewModel>(context, listen: false);
+
+    showDialog(
+      context: context,
+      builder: (BuildContext dialogContext) {
+        return AlertDialog(
+          title: const Text('Confirmar Exclusão'),
+          content: Text(
+            'Você tem certeza que deseja deletar o projeto "${project.projectName}"? Esta ação não pode ser desfeita.',
+          ),
+          actions: [
+            TextButton(
+              child: const Text('Cancelar'),
+              onPressed: () => Navigator.of(dialogContext).pop(),
+            ),
+            FilledButton.tonal(
+              // Usando um botão com mais destaque para a ação destrutiva
+              style: FilledButton.styleFrom(
+                backgroundColor: Theme.of(context).colorScheme.errorContainer,
+                foregroundColor: Theme.of(context).colorScheme.onErrorContainer,
+              ),
+              child: const Text('Deletar'),
+              onPressed: () {
+                viewModel.deleteProject(project.id);
+                Navigator.of(dialogContext).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final title = widget.projectType == ProjectType.active
@@ -172,6 +206,9 @@ class _ProjectListScreenState extends State<ProjectListScreen> {
                             viewModel.completeProject(project.id);
                           } else if (result == 'activate') {
                             viewModel.activateProject(project.id);
+                          } else if (result == 'delete') {
+                            // Chama o novo diálogo de confirmação
+                            _showDeleteConfirmationDialog(context, project);
                           }
                         },
                         itemBuilder: (BuildContext context) =>
@@ -186,6 +223,14 @@ class _ProjectListScreenState extends State<ProjectListScreen> {
                                   value: 'activate',
                                   child: Text('Ativar projeto'),
                                 ),
+                              const PopupMenuDivider(), // Adiciona um divisor visual
+                              const PopupMenuItem<String>(
+                                value: 'delete',
+                                child: Text(
+                                  'Deletar projeto',
+                                  style: TextStyle(color: Colors.red),
+                                ),
+                              ),
                             ],
                       ),
                     ],

@@ -65,4 +65,9 @@ class ProjectViewModel extends ChangeNotifier {
     task.isCompleted = !currentStatus;
     notifyListeners();
   }
+
+  Future<void> deleteProject(String projectId) async {
+    await _repository.deleteProject(projectId);
+    await loadProjects();
+  }
 }

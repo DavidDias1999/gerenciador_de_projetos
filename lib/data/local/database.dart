@@ -137,6 +137,23 @@ class AppDatabase extends _$AppDatabase {
       ProjectsCompanion(isCompleted: Value(isCompleted)),
     );
   }
+
+  Future<void> deleteProject(String projectId) async {
+    await transaction(() async {
+      final associatedSteps = await (select(
+        steps,
+      )..where((s) => s.projectId.equals(projectId))).get();
+      final stepIds = associatedSteps.map((s) => s.id).toList();
+
+      if (stepIds.isNotEmpty) {
+        await (delete(tasks)..where((t) => t.stepId.isIn(stepIds))).go();
+      }
+
+      await (delete(steps)..where((s) => s.projectId.equals(projectId))).go();
+
+      await (delete(projects)..where((p) => p.id.equals(projectId))).go();
+    });
+  }
 }
 
 LazyDatabase _openConnection() {

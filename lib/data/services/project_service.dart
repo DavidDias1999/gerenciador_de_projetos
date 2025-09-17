@@ -47,4 +47,8 @@ class ProjectService {
   Future<void> setProjectStatus(String projectId, bool isCompleted) async {
     await _db.setProjectCompletionStatus(projectId, isCompleted);
   }
+
+  Future<void> deleteProject(String projectId) async {
+    await _db.deleteProject(projectId);
+  }
 }

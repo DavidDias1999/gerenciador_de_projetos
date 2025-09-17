@@ -17,4 +17,7 @@ class ProjectRepository {
 
   Future<void> setProjectStatus(String projectId, bool isCompleted) =>
       _projectService.setProjectStatus(projectId, isCompleted);
+
+  Future<void> deleteProject(String projectId) =>
+      _projectService.deleteProject(projectId);
 }
