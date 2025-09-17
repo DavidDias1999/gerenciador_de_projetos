@@ -43,10 +43,19 @@ class ProjectViewModel extends ChangeNotifier {
   ) async {
     final step = project.steps.firstWhere((s) => s.id == stepId);
     final task = step.tasks.firstWhere((t) => t.id == taskId);
-    final currentStatus = task.isCompleted;
 
-    await _repository.updateTask(taskId, !currentStatus);
+    final wasProjectCompleted = project.isCompleted;
 
-    await loadProjects();
+    task.isCompleted = !task.isCompleted;
+
+    final isProjectNowCompleted = project.isCompleted;
+
+    await _repository.updateTask(taskId, task.isCompleted);
+
+    if (wasProjectCompleted != isProjectNowCompleted) {
+      await loadProjects();
+    } else {
+      notifyListeners();
+    }
   }
 }

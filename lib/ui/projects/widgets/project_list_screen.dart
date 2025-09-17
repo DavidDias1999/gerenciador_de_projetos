@@ -111,7 +111,9 @@ class _ProjectListScreenState extends State<ProjectListScreen> {
             itemBuilder: (context, index) {
               final project = projects[index];
               return Card(
+                margin: const EdgeInsets.all(8.0),
                 child: ExpansionTile(
+                  key: ValueKey(project.id),
                   title: Text(
                     project.clientName,
                     style: const TextStyle(fontWeight: FontWeight.bold),
@@ -121,6 +123,7 @@ class _ProjectListScreenState extends State<ProjectListScreen> {
                     return Padding(
                       padding: const EdgeInsets.only(left: 16.0),
                       child: ExpansionTile(
+                        key: ValueKey(step.id),
                         title: Text(step.title),
                         children: step.tasks.map((task) {
                           return ListTile(
@@ -134,6 +137,7 @@ class _ProjectListScreenState extends State<ProjectListScreen> {
                                 );
                               },
                             ),
+                            title: Text(task.title),
                           );
                         }).toList(),
                       ),
