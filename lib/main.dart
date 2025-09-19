@@ -20,6 +20,7 @@ void main() async {
       size: Size(800, 900),
       minimumSize: Size(600, 500),
       maximumSize: Size(1920, 1080),
+      center: true,
       title: 'Gerenciador de Projetos',
     );
 

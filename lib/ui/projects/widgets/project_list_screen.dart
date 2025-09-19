@@ -179,12 +179,14 @@ class _ProjectListScreenState extends State<ProjectListScreen> {
                       ),
                       const SizedBox(width: 16),
                       SizedBox(
-                        width: 80,
+                        width: 90,
                         child: LinearProgressIndicator(
                           value: project.progress,
                           backgroundColor: Theme.of(
                             context,
                           ).colorScheme.surfaceContainerHighest,
+                          minHeight: 8,
+                          borderRadius: BorderRadius.circular(5),
                         ),
                       ),
                       const SizedBox(width: 8),
@@ -250,6 +252,8 @@ class _ProjectListScreenState extends State<ProjectListScreen> {
                                 backgroundColor: Theme.of(
                                   context,
                                 ).colorScheme.surfaceContainerHighest,
+                                minHeight: 8,
+                                borderRadius: BorderRadius.circular(5),
                               ),
                             ),
                             const SizedBox(width: 8),

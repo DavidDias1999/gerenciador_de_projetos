@@ -1,12 +1,88 @@
 [
   {
+    "step_name": "ANT",
+    "tasks": [
+      { "task_name": "Briefing do cliente" },
+      { "task_name": "Layout" },
+      { "task_name": "Modelo tridimensional 3D" },
+      { "task_name": "Vídeo do modelo tridimensional" },
+      { "task_name": "Render" },
+      { "task_name": "Render 360º" },
+      { "task_name": "Apresentação" }
+    ]
+  },
+  {
     "step_name": "LTA",
     "tasks": [
       { "task_name": "Colocar tudo em layer" },
       { "task_name": "Estacionamento (indicar vagas, dimensões, PNE)" },
       { "task_name": "1 Fachada" },
-      { "task_name": "Corte Longitudinal" }
-      
+      { "task_name": "Corte Longitudinal" },
+      { "task_name": "Corte Transversal" },
+      { "task_name": "Categorizar portas" },
+      { "task_name": "Categorizar janelas" },
+      { "task_name": "Categorizar visores" },
+      { "task_name": "Cotas internas" },
+      { "task_name": "Cotas externas" },
+      { "task_name": "Metragem quadrada (de cada ambiente)" },
+      { "task_name": "Demonstrar Rua/Passeio" },
+      { "task_name": "Cota de nível (em planta e corte)" },
+      { "task_name": "Posicionamento de equipamentos (indicado em planta)" },
+      { "task_name": "Posicionamento de Fluxos e legenda" },
+      { "task_name": "Nome dos ambientes" },
+      { "task_name": "Detalhamento (específico de equipamentos e abrigo de resíduos)" },
+      { "task_name": "Notas" },
+      { "task_name": "Indicação da ventilação e iluminação (Cada pavimento) e legenda" },
+      { "task_name": "Folha ( Padrão prefeitura)" },
+      { "task_name": "Detalhe abrigo de resíduo" },
+      { "task_name": "Detalhe sanitários PCD" },
+      { "task_name": "Indicação de subida ou descida de escadas e rampas" },
+      { "task_name": "Colocar corrimão escadas e rampas" },
+      { "task_name": "Nota de porta veneziana de alumínio pintado no abrigo de resíduo externo" },
+      { "task_name": "Planta de situação" },
+      { "task_name": "Planta de entorno" },
+      { "task_name": "Diagramação da folha" }
+    ]
+  },
+  {
+    "step_name": "REF",
+    "tasks": [
+      { "task_name": "DESENHAR PLANTAS NO PONTO DE ORIGEM (  selecionar o desenho; comando mover; seleção do ponto; digitar  0,0,0 )" },
+      { "task_name": "Mobiliário" },
+      { "task_name": "Eletrodomésticos (geladeira, microondas, máquina de lavar, tanquinho)" },
+      { "task_name": "Higiene (tanque, pia, vaso sanitário, cuba)" },
+      { "task_name": "Equipamentos de laboratório" },
+      { "task_name": "Demolição" },
+      { "task_name": "Alvenaria" },
+      { "task_name": "Divisórias (PVC, Drywall, Aço, Vidro)" },
+      { "task_name": "Desníveis de piso" },
+      { "task_name": "Janelas (com e sem legenda) " },
+      { "task_name": "Portas (com e sem legenda)" },
+      { "task_name": "Visores (com e sem legenda)" },
+      { "task_name": "Exaustores" },
+      { "task_name": "Cotas (internas e externas)" },
+      { "task_name": "Nome dos ambientes (com metragem quadrada)" },
+      { "task_name": "Pé direito" },
+      { "task_name": "Cota de nível" },
+      { "task_name": "Nome das portas, janelas e visores (com largura, altura e material)" },
+      { "task_name": "Escadas, rampas e elevadores" },
+      { "task_name": "Pass through" },
+      { "task_name": "Layers" },
+      { "task_name": "Folha padrão Enovar com os dados do cliente" }
+    ]
+  },
+  {
+    "step_name": "EXE - DEM",
+    "tasks": [
+      { "task_name": "Deixar ligados somente os layers desnível, escada, rampa, estrutura, alvenaria e área a construir e  a demolir ligados (layers da estrutura geral da planta)" },
+      { "task_name": "Cotar áreas a demolir" },
+      { "task_name": "Cotar distância até a área a demolir" },
+      { "task_name": "Fazer detalhes de vão pass through" },
+      { "task_name": "OBS: Em detalhe, cotar altura dos recortes / vãos - portas e visores de ambientes." },
+      { "task_name": "Colocar tudo em layer" },
+      { "task_name": "Legenda de área a demolir" },
+      { "task_name": "Projeto em escala 1:50" },
+      { "task_name": "Folha padrão Enovar Projetos (Executivos)" }
     ]
   },
   {
@@ -15,26 +91,173 @@
       { "task_name": "Deixar ligados somente os layers desnível, escada, rampa, estrutura, alvenaria e área a construir ligados (layers da estrutura geral da planta)" },
       { "task_name": "Cotar áreas a construir" },
       { "task_name": "Cotar distância até a área a construir" },
-      { "task_name": "Detalhes de banheiros, wc pne, abrigo de resíduos" }
-      
+      { "task_name": "Detalhes de banheiros, wc pne, abrigo de resíduos" },
+      { "task_name": "Colocar tudo em layer" },
+      { "task_name": "Legenda área a construir" },
+      { "task_name": "Projeto em escala 1:50" },
+      { "task_name": "Folha padrão Enovar Projetos (Executivos)" }
     ]
   },
   {
-    "step_name": " EXE - ARQ",
+    "step_name": "EXE - ELE",
+    "tasks": [
+      { "task_name": "Verificar se é 110/220, 110 ou 220 ( De acordo com a cidade )" },
+      { "task_name": "Símbolos da tabela em planta diminuir a escala em 0.5" },
+      { "task_name": "Posicionamento dos pontos" },
+      { "task_name": "Cotar pontos (Sempre manter a cota arredondada e cotar a partir da parede mais próxima, de preferência de alvenaria, se não tiver preferência em parede de drywall)" },
+      { "task_name": "Tabela de legenda dos pontos" },
+      { "task_name": "Detalhe (Quando for posicionado o ponto em mobiliário, exe.: mesa de adm)" },
+      { "task_name": "Colocar tudo em layer" },
+      { "task_name": "Projeto em escala 1:50" },
+      { "task_name": "Folha padrão Enovar Projetos (Executivos)" }
+    ]
+  },
+  {
+    "step_name": "EXE - ILU",
+    "tasks": [
+      { "task_name": "Fazer cálculo" },
+      { "task_name": "Congelar layer de mobiliário" },
+      { "task_name": "Posicionar interruptores" },
+      { "task_name": "Locar símbolo de luminária distribuindo pelo ambiente (após realização do cálculo luminotécnico)" },
+      { "task_name": "Cotar iluminação a partir do eixo" },
+      { "task_name": "Fazer circuito" },
+      { "task_name": "Nota com especificações" },
+      { "task_name": "Colocar tudo em layer" },
+      { "task_name": "Projeto em escala 1:50" },
+      { "task_name": "Folha padrão Enovar Projetos (Executivos)" }
+    ]
+  },
+    {
+    "step_name": "EXE - HID",
+    "tasks": [
+      { "task_name": "Posicionamento dos pontos - Obs: Pontos hidráulicos da pia da paramentação: Ponto de piso, distanciar 15 cm da parede proposta e cotar a partir da alvenaria mais próxima. Verificar ponto hidráulico da osmose reversa para fazer reforço na planta de divisórias caso o mesmo seja instalado em divisória de PVC  " },
+      { "task_name": "Ponto de ralo nos banheiros, DML, abrigo de resíduos" },
+      { "task_name": "Ponto de água no abrigo de resíduos a 45cm, torneira com engate para mangueira (especificar torneira em nota)" },
+      { "task_name": "Cotas (Cotar a partir do centro do ponto em paredes de drywall, e em paredes de alvenaria a parede mais próxima de preferência, arredondando a metragem para facilitar a execução)." },
+      { "task_name": "Legenda dos pontos de água e esgoto" },
+      { "task_name": "Girar letra do símbolo sempre no sentido de leitura" },
+      { "task_name": "Colocar tudo em layer" },
+      { "task_name": "Projeto em escala 1:50" },
+      { "task_name": "Folha padrão Enovar Projetos (Executivos)" }
+    ]
+  },
+    {
+    "step_name": "EXE - CLI",
+    "tasks": [
+      { "task_name": "Posicionamento do aparelho de ar condicionado (em planta) para estoque de matéria prima ( insuflamento e ar condicionado) estoque de embalagens (insuflamento)" },
+      { "task_name": "Cotas (A partir do meio do equipamento de Ar condicionado até qualquer parede ou divisória)" },
+      { "task_name": "Caso haja representação da tubulação, cota se dá a partir do centro da mesma" },
+      { "task_name": "Posicionamento de Tubulação (Quando o Ar condicionado for instalado em divisória)." },
+      { "task_name": "Posicionar sempre no centro da parede, de frente para o lado mais comprido do ambiente (preferência por paredes de alvenaria) desviar de janelas e portas por conta do dreno. Também manter o ar condicionado distante das bancadas com balança." },
+      { "task_name": "Colocar hachura de  sistemas de ventilação, insuflamento e exaustão" },
+      { "task_name": "Representar equipamento de ar condicionado com 90x20cm." },
+      { "task_name": "Colocar tudo em layer" },
+      { "task_name": "Projeto em escala 1:50" },
+      { "task_name": "Folha padrão Enovar Projetos (Executivos)" },
+      { "task_name": "Marcar duto de ventilação dos estéreis" }
+    ]
+  },
+    {
+    "step_name": "EXE - PIS",
+    "tasks": [
+      { "task_name": "Paginação de piso" },
+      { "task_name": "Tipos de piso que serão aplicados" },
+      { "task_name": "Tipos de rodapé ou canto arredondado" },
+      { "task_name": "Indicação do início da paginação" },
+      { "task_name": "Cota do perímetro dos pisos que serão aplicados" },
+      { "task_name": "Cota de nível" },
+      { "task_name": "Notas" },
+      { "task_name": "Metragem quadrada de piso" },
+      { "task_name": "Metragem linear de rodapé ou canto arredondado" },
+      { "task_name": "Legenda de pisos" },
+      { "task_name": "Colocar tudo em layer" },
+      { "task_name": "Projeto em escala 1:50" },
+      { "task_name": "Folha padrão Enovar Projetos (Executivos)" }
+    ]
+  },
+    {
+    "step_name": "EXE - FOR",
+    "tasks": [
+      { "task_name": "Pé direito" },
+      { "task_name": "Legenda dos forros" },
+      { "task_name": "Cotar forro (cotar a partir de alvenaria)" },
+      { "task_name": "Congelar layer de mobiliário" },
+      { "task_name": "Hachura áreas com forro existente" },
+      { "task_name": "Hachurar áreas com forro proposto (hachuras diferentes de acordo com cada altura e material proposto ex: PVC, Gesso, Aço, etc)" },
+      { "task_name": "Colocar tudo em layer" },
+      { "task_name": "Projeto em escala 1:50" },
+      { "task_name": "Folha padrão Enovar Projetos (Executivos)" }
+    ]
+  },
+  {
+    "step_name": "EXE - DIV",
+    "tasks": [
+      { "task_name": "Posicionamento de divisórias" },
+      { "task_name": "Posicionamento de visores" },
+      { "task_name": "Posicionamento das portas" },
+      { "task_name": "Especificação de porta (Largura x espessura – material - abertura)" },
+      { "task_name": "Cotar divisórias" },
+      { "task_name": "Congelar Layer de Mobiliário" },
+      { "task_name": "Fazer detalhe de reforço em parede de PVC e Drywall caso seja necessário" },
+      { "task_name": "Fazer detalhes de pass through" },
+      { "task_name": "OBS: Em detalhe, cotar altura - portas, visores, ambiente, mostrar forro." },
+      { "task_name": "Colocar detalhe de acústica caso seja necessário" },
+      { "task_name": "Colocar tudo em layer" },
+      { "task_name": "Projeto em escala 1:50" },
+      { "task_name": "Folha padrão Enovar Projetos (Executivos)" },
+      { "task_name": "Detalhe de reforço" }
+    ]
+  }, {
+    "step_name": "EXE - EXA",
+    "tasks": [
+      { "task_name": "Colocar tudo em layer" },
+      { "task_name": "Marcar duto dos exaustores" },
+      { "task_name": "Marcar caminho dos dutos até a saída proposta (com linha tracejada)" },
+      { "task_name": "Projeto em escala 1:50" },
+      { "task_name": "Folha padrão Enovar Projetos" }
+    ]
+  },
+  {
+    "step_name": "EXE - ACB",
     "tasks": [
       { "task_name": "Acabamentos (Piso, Forro e Revestimento)" },
       { "task_name": "Cotas Gerais (todos ambientes)" },
-      { "task_name": "Detalhamento do banheiro PCD" }
-      
+      { "task_name": "Detalhamento do banheiro PCD" },
+      { "task_name": "Tabela de acabamentos" },
+      { "task_name": "Nome dos ambientes" },
+      { "task_name": "Metragem quadrada dos ambientes" },
+      { "task_name": "VERIFICAR LEGENDAS DE ACORDO COM O PROJETO DE PISO E FORRO" },
+      { "task_name": "Colocar tudo em layer" },
+      { "task_name": "Folha padrão Enovar Projetos (Executivos)" },
+      { "task_name": "Projeto em escala 1:50" }
     ]
   },
-  {
+    {
     "step_name": "EXE - MOB",
     "tasks": [
       { "task_name": "Posicionar mobiliário em 3D" },
       { "task_name": "Cotar mobiliário em planta" },
-      { "task_name": "Fazer vistas laterais" }
-      
+      { "task_name": "Fazer vistas laterais" },
+      { "task_name": "Fazer vistas 3D" },
+      { "task_name": "Colocar tudo em layer" },
+      { "task_name": "Projeto em escala 1:50 (ou a definir)" },
+      { "task_name": "Colocar em folhas separadas por ambiente" },
+      { "task_name": "Congelar os códigos" },
+      { "task_name": "Folha padrão Enovar Projetos (Executivos)" }
+    ]
+  },
+  {
+    "step_name": "EXE - MAR",
+    "tasks": [
+      { "task_name": "Hachurar tampos de acordo com o material que será aplicado (granito, inox, madeira, etc.)" },
+      { "task_name": "Hachurar área úmida do tampo" },
+      { "task_name": "Cotar tampos (cota geral + cota de área úmida + cota de cuba)" },
+      { "task_name": "Colocar cuba" },
+      { "task_name": "Colocar torneira" },
+      { "task_name": "Legenda" },
+      { "task_name": "Colocar tudo em layer" },
+      { "task_name": "Projeto em escala 1:50" },
+      { "task_name": "Folha padrão Enovar Projetos (Executivos)" }
     ]
   }
 ]
