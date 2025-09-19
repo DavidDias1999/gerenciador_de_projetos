@@ -12,6 +12,33 @@
     ]
   },
   {
+    "step_name": "REF",
+    "tasks": [
+      { "task_name": "DESENHAR PLANTAS NO PONTO DE ORIGEM (selecionar o desenho; comando mover; seleção do ponto; digitar  0,0,0)" },
+      { "task_name": "Mobiliário" },
+      { "task_name": "Eletrodomésticos (geladeira, microondas, máquina de lavar, tanquinho)" },
+      { "task_name": "Higiene (tanque, pia, vaso sanitário, cuba)" },
+      { "task_name": "Equipamentos de laboratório" },
+      { "task_name": "Demolição" },
+      { "task_name": "Alvenaria" },
+      { "task_name": "Divisórias (PVC, Drywall, Aço, Vidro)" },
+      { "task_name": "Desníveis de piso" },
+      { "task_name": "Janelas (com e sem legenda) " },
+      { "task_name": "Portas (com e sem legenda)" },
+      { "task_name": "Visores (com e sem legenda)" },
+      { "task_name": "Exaustores" },
+      { "task_name": "Cotas (internas e externas)" },
+      { "task_name": "Nome dos ambientes (com metragem quadrada)" },
+      { "task_name": "Pé direito" },
+      { "task_name": "Cota de nível" },
+      { "task_name": "Nome das portas, janelas e visores (com largura, altura e material)" },
+      { "task_name": "Escadas, rampas e elevadores" },
+      { "task_name": "Pass through" },
+      { "task_name": "Layers" },
+      { "task_name": "Folha padrão Enovar com os dados do cliente" }
+    ]
+  },
+  {
     "step_name": "LTA",
     "tasks": [
       { "task_name": "Colocar tudo em layer" },
@@ -42,33 +69,6 @@
       { "task_name": "Planta de situação" },
       { "task_name": "Planta de entorno" },
       { "task_name": "Diagramação da folha" }
-    ]
-  },
-  {
-    "step_name": "REF",
-    "tasks": [
-      { "task_name": "DESENHAR PLANTAS NO PONTO DE ORIGEM (  selecionar o desenho; comando mover; seleção do ponto; digitar  0,0,0 )" },
-      { "task_name": "Mobiliário" },
-      { "task_name": "Eletrodomésticos (geladeira, microondas, máquina de lavar, tanquinho)" },
-      { "task_name": "Higiene (tanque, pia, vaso sanitário, cuba)" },
-      { "task_name": "Equipamentos de laboratório" },
-      { "task_name": "Demolição" },
-      { "task_name": "Alvenaria" },
-      { "task_name": "Divisórias (PVC, Drywall, Aço, Vidro)" },
-      { "task_name": "Desníveis de piso" },
-      { "task_name": "Janelas (com e sem legenda) " },
-      { "task_name": "Portas (com e sem legenda)" },
-      { "task_name": "Visores (com e sem legenda)" },
-      { "task_name": "Exaustores" },
-      { "task_name": "Cotas (internas e externas)" },
-      { "task_name": "Nome dos ambientes (com metragem quadrada)" },
-      { "task_name": "Pé direito" },
-      { "task_name": "Cota de nível" },
-      { "task_name": "Nome das portas, janelas e visores (com largura, altura e material)" },
-      { "task_name": "Escadas, rampas e elevadores" },
-      { "task_name": "Pass through" },
-      { "task_name": "Layers" },
-      { "task_name": "Folha padrão Enovar com os dados do cliente" }
     ]
   },
   {
@@ -258,6 +258,29 @@
       { "task_name": "Colocar tudo em layer" },
       { "task_name": "Projeto em escala 1:50" },
       { "task_name": "Folha padrão Enovar Projetos (Executivos)" }
+    ]
+  },{
+    "step_name": "EXE - FAC",
+    "tasks": [
+      { "task_name": "Posicionamento do logo" },
+      { "task_name": "Material do logo" },
+      { "task_name": "ACM (cotas, cor, luz e textura)" },
+      { "task_name": "Adesivo (cotas, textura e posicionamento)" },
+      { "task_name": "Esquadrias (portas, janelas, vitrines e etc), Material, Textura, Cor, Posicionamento e Dimensões" },
+      { "task_name": "Revestimento" },
+      { "task_name": "Iluminação" },
+      { "task_name": "Numero do imóvel (posicionamento)" },
+      { "task_name": "Porta de aço" },
+      { "task_name": "Coberturas (Toldo, Marquise e Telhado)" },
+      { "task_name": "Coberturas (Toldo, Marquise e Telhado)" }
+    
+    ]
+  },
+  {
+    "step_name": "EXE - CVS",
+    "tasks": [
+      { "task_name": "Textos e Logos (Material, Cotas, Textura, Luz e Posicionamento)" },
+      { "task_name": "Adesivos (Cotas, Posicionamento e Texturas)" }    
     ]
   }
 ]
