@@ -33,7 +33,7 @@ void main() async {
   runApp(
     ChangeNotifierProvider(
       create: (context) {
-        final projectService = ProjectService(dataBase: dataBase);
+        final projectService = ProjectService(database: dataBase);
         final projectRepository = ProjectRepository(
           projectService: projectService,
         );

@@ -7,12 +7,11 @@ import '../../domain/models/task_model.dart' as domain;
 class ProjectService {
   final AppDatabase _db;
 
-  ProjectService({required AppDatabase dataBase}) : _db = dataBase;
+  ProjectService({required AppDatabase database}) : _db = database;
 
   domain.Project _mapFullProjectToDomain(FullProject fullProject) {
     return domain.Project(
       id: fullProject.project.id,
-      clientName: fullProject.project.clientName,
       projectName: fullProject.project.projectName,
       isCompleted: fullProject.project.isCompleted,
       steps: fullProject.steps.map((fullStep) {
@@ -36,8 +35,8 @@ class ProjectService {
     return fullProjects.map(_mapFullProjectToDomain).toList();
   }
 
-  Future<void> createNewProject(String clientName, String projectName) async {
-    await _db.createNewProject(clientName, projectName);
+  Future<void> createNewProject(String projectName) async {
+    await _db.createNewProject(projectName);
   }
 
   Future<void> updateTask(String taskId, bool isCompleted) async {

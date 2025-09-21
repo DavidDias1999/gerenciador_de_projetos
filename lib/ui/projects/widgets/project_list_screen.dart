@@ -29,7 +29,6 @@ class _ProjectListScreenState extends State<ProjectListScreen> {
 
   void _showCreateProjectDialog(BuildContext context) {
     final viewModel = Provider.of<ProjectViewModel>(context, listen: false);
-    final clientNameController = TextEditingController();
     final projectNameController = TextEditingController();
     final formKey = GlobalKey<FormState>();
 
@@ -43,15 +42,6 @@ class _ProjectListScreenState extends State<ProjectListScreen> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                TextFormField(
-                  controller: clientNameController,
-                  decoration: const InputDecoration(
-                    labelText: 'Nome do Cliente',
-                  ),
-                  validator: (value) => value == null || value.isEmpty
-                      ? 'Campo obrigatório'
-                      : null,
-                ),
                 TextFormField(
                   controller: projectNameController,
                   decoration: const InputDecoration(
@@ -72,10 +62,7 @@ class _ProjectListScreenState extends State<ProjectListScreen> {
             ElevatedButton(
               onPressed: () {
                 if (formKey.currentState!.validate()) {
-                  viewModel.createNewProject(
-                    clientNameController.text,
-                    projectNameController.text,
-                  );
+                  viewModel.createNewProject(projectNameController.text);
                   Navigator.of(context).pop();
                 }
               },
@@ -162,13 +149,6 @@ class _ProjectListScreenState extends State<ProjectListScreen> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Text(
-                              project.clientName,
-                              style: const TextStyle(
-                                fontWeight: FontWeight.bold,
-                              ),
-                              overflow: TextOverflow.ellipsis,
-                            ),
                             Text(
                               project.projectName,
                               style: Theme.of(context).textTheme.bodySmall,

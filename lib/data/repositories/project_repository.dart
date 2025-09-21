@@ -9,8 +9,8 @@ class ProjectRepository {
 
   Future<List<Project>> getProjects() => _projectService.fetchProjects();
 
-  Future<void> createNewProject(String clientName, String projectName) =>
-      _projectService.createNewProject(clientName, projectName);
+  Future<void> createNewProject(String projectName) =>
+      _projectService.createNewProject(projectName);
 
   Future<void> updateTask(String taskId, bool isCompleted) =>
       _projectService.updateTask(taskId, isCompleted);

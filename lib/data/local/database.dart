@@ -11,7 +11,6 @@ part 'database.g.dart';
 @DataClassName('ProjectData')
 class Projects extends Table {
   TextColumn get id => text()();
-  TextColumn get clientName => text()();
   TextColumn get projectName => text()();
   BoolColumn get isCompleted => boolean().withDefault(const Constant(false))();
   @override
@@ -64,7 +63,6 @@ class AppDatabase extends _$AppDatabase {
       },
       onUpgrade: (Migrator m, int from, int to) async {
         if (from == 1) {
-          // Se estamos vindo da versão 1, adicionamos a nova coluna.
           await m.addColumn(projects, projects.isCompleted);
         }
       },
@@ -92,16 +90,12 @@ class AppDatabase extends _$AppDatabase {
     return fullProjects;
   }
 
-  Future<void> createNewProject(String clientName, String projectName) async {
+  Future<void> createNewProject(String projectName) async {
     final uuid = Uuid();
     final newProjectId = uuid.v4();
     await transaction(() async {
       await into(projects).insert(
-        ProjectsCompanion.insert(
-          id: newProjectId,
-          clientName: clientName,
-          projectName: projectName,
-        ),
+        ProjectsCompanion.insert(id: newProjectId, projectName: projectName),
       );
 
       final defaultSteps = await createDefaultSteps();
