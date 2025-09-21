@@ -43,6 +43,7 @@ class _ProjectListScreenState extends State<ProjectListScreen> {
               mainAxisSize: MainAxisSize.min,
               children: [
                 TextFormField(
+                  autofocus: true,
                   controller: projectNameController,
                   decoration: const InputDecoration(
                     labelText: 'Nome do Projeto',
