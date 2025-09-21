@@ -148,6 +148,12 @@ class AppDatabase extends _$AppDatabase {
       await (delete(projects)..where((p) => p.id.equals(projectId))).go();
     });
   }
+
+  Future<void> selectAllTasksInStep(String stepId) {
+    return (update(tasks)..where((t) => t.stepId.equals(stepId))).write(
+      const TasksCompanion(isCompleted: Value(true)),
+    );
+  }
 }
 
 LazyDatabase _openConnection() {

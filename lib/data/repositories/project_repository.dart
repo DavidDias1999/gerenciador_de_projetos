@@ -20,4 +20,7 @@ class ProjectRepository {
 
   Future<void> deleteProject(String projectId) =>
       _projectService.deleteProject(projectId);
+
+  Future<void> selectAllTasksInStep(String stepId) =>
+      _projectService.selectAllTasksInStep(stepId);
 }

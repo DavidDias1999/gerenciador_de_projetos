@@ -254,6 +254,24 @@ class _ProjectListScreenState extends State<ProjectListScreen> {
                                   style: Theme.of(context).textTheme.labelSmall,
                                 ),
                               ),
+                              PopupMenuButton<String>(
+                                icon: const Icon(Icons.more_vert, size: 20.0),
+                                onSelected: (String result) {
+                                  if (result == 'selectAll') {
+                                    viewModel.selectAllTasksInStep(
+                                      project.id,
+                                      step.id,
+                                    );
+                                  }
+                                },
+                                itemBuilder: (BuildContext context) =>
+                                    <PopupMenuEntry<String>>[
+                                      const PopupMenuItem<String>(
+                                        value: 'selectAll',
+                                        child: Text('Selecionar todas'),
+                                      ),
+                                    ],
+                              ),
                             ],
                           ),
                           children: step.tasks.map((task) {

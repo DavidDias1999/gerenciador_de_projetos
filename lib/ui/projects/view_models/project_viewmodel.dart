@@ -77,4 +77,21 @@ class ProjectViewModel extends ChangeNotifier {
     await _repository.deleteProject(projectId);
     await loadProjects();
   }
+
+  Future<void> selectAllTasksInStep(String projectId, String stepId) async {
+    Project project;
+    try {
+      project = _activeProjects.firstWhere((p) => p.id == projectId);
+    } catch (e) {
+      project = _completedProjects.firstWhere((p) => p.id == projectId);
+    }
+    final step = project.steps.firstWhere((s) => s.id == stepId);
+
+    for (var task in step.tasks) {
+      task.isCompleted = true;
+    }
+    notifyListeners();
+
+    await _repository.selectAllTasksInStep(stepId);
+  }
 }
