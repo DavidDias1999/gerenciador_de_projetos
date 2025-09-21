@@ -114,168 +114,181 @@ class _ProjectListScreenState extends State<ProjectListScreen> {
         ? 'Projetos Ativos'
         : 'Projetos Finalizados';
 
-    return Scaffold(
-      appBar: AppBar(title: Text(title)),
-      body: Consumer<ProjectViewModel>(
-        builder: (context, viewModel, child) {
-          final projects = widget.projectType == ProjectType.active
-              ? viewModel.activeProjects
-              : viewModel.completedProjects;
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      child: Scaffold(
+        appBar: AppBar(title: Text(title)),
+        body: Consumer<ProjectViewModel>(
+          builder: (context, viewModel, child) {
+            final projects = widget.projectType == ProjectType.active
+                ? viewModel.activeProjects
+                : viewModel.completedProjects;
 
-          if (viewModel.isLoading) {
-            return const Center(child: CircularProgressIndicator());
-          }
-          if (projects.isEmpty) {
-            return Center(
-              child: Text(
-                'Nenhum projeto ${widget.projectType == ProjectType.active ? 'ativo' : 'finalizado'} encontrado.',
-              ),
-            );
-          }
+            if (viewModel.isLoading) {
+              return const Center(child: CircularProgressIndicator());
+            }
+            if (projects.isEmpty) {
+              return Center(
+                child: Text(
+                  'Nenhum projeto ${widget.projectType == ProjectType.active ? 'ativo' : 'finalizado'} encontrado.',
+                ),
+              );
+            }
 
-          return ListView.builder(
-            padding: const EdgeInsets.all(8),
-            itemCount: projects.length,
-            itemBuilder: (context, index) {
-              final project = projects[index];
-              return Card(
-                clipBehavior: Clip.antiAlias,
-                margin: const EdgeInsets.symmetric(vertical: 8.0),
-                child: ExpansionTile(
-                  key: ValueKey(project.id),
-                  title: Row(
-                    children: [
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Text(
-                              project.projectName,
-                              style: Theme.of(context).textTheme.bodySmall,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ],
+            return ListView.builder(
+              padding: const EdgeInsets.all(8),
+              itemCount: projects.length,
+              itemBuilder: (context, index) {
+                final project = projects[index];
+                return Card(
+                  clipBehavior: Clip.antiAlias,
+                  margin: const EdgeInsets.symmetric(vertical: 8.0),
+                  child: ExpansionTile(
+                    shape: Border(),
+                    key: ValueKey(project.id),
+                    title: Row(
+                      children: [
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Text(
+                                project.projectName,
+                                style: Theme.of(context).textTheme.bodyLarge,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ],
+                          ),
                         ),
-                      ),
-                      const SizedBox(width: 16),
-                      SizedBox(
-                        width: 90,
-                        child: LinearProgressIndicator(
-                          value: project.progress,
-                          backgroundColor: Theme.of(
-                            context,
-                          ).colorScheme.surfaceContainerHighest,
-                          minHeight: 8,
-                          borderRadius: BorderRadius.circular(5),
+                        const SizedBox(width: 16),
+                        SizedBox(
+                          width: 90,
+                          child: LinearProgressIndicator(
+                            value: project.progress,
+                            backgroundColor: Theme.of(
+                              context,
+                            ).colorScheme.surfaceContainerHighest,
+                            minHeight: 8,
+                            borderRadius: BorderRadius.circular(5),
+                          ),
                         ),
-                      ),
-                      const SizedBox(width: 8),
-                      SizedBox(
-                        width: 40,
-                        child: Text(
-                          '${(project.progress * 100).toStringAsFixed(0)}%',
-                          style: Theme.of(context).textTheme.labelSmall,
+                        const SizedBox(width: 8),
+                        SizedBox(
+                          width: 40,
+                          child: Text(
+                            '${(project.progress * 100).toStringAsFixed(0)}%',
+                            style: Theme.of(context).textTheme.labelSmall,
+                          ),
                         ),
-                      ),
-                      PopupMenuButton<String>(
-                        onSelected: (String result) {
-                          if (result == 'complete') {
-                            viewModel.completeProject(project.id);
-                          } else if (result == 'activate') {
-                            viewModel.activateProject(project.id);
-                          } else if (result == 'delete') {
-                            _showDeleteConfirmationDialog(context, project);
-                          }
-                        },
-                        itemBuilder: (BuildContext context) =>
-                            <PopupMenuEntry<String>>[
-                              if (widget.projectType == ProjectType.active)
+                        PopupMenuButton<String>(
+                          onSelected: (String result) {
+                            if (result == 'complete') {
+                              viewModel.completeProject(project.id);
+                            } else if (result == 'activate') {
+                              viewModel.activateProject(project.id);
+                            } else if (result == 'delete') {
+                              _showDeleteConfirmationDialog(context, project);
+                            }
+                          },
+                          itemBuilder: (BuildContext context) =>
+                              <PopupMenuEntry<String>>[
+                                if (widget.projectType == ProjectType.active)
+                                  const PopupMenuItem<String>(
+                                    value: 'complete',
+                                    child: Text('Finalizar projeto'),
+                                  ),
+                                if (widget.projectType == ProjectType.completed)
+                                  const PopupMenuItem<String>(
+                                    value: 'activate',
+                                    child: Text('Ativar projeto'),
+                                  ),
+                                const PopupMenuDivider(),
                                 const PopupMenuItem<String>(
-                                  value: 'complete',
-                                  child: Text('Finalizar projeto'),
+                                  value: 'delete',
+                                  child: Text(
+                                    'Deletar projeto',
+                                    style: TextStyle(color: Colors.red),
+                                  ),
                                 ),
-                              if (widget.projectType == ProjectType.completed)
-                                const PopupMenuItem<String>(
-                                  value: 'activate',
-                                  child: Text('Ativar projeto'),
-                                ),
-                              const PopupMenuDivider(),
-                              const PopupMenuItem<String>(
-                                value: 'delete',
+                              ],
+                        ),
+                      ],
+                    ),
+                    children: project.steps.map((step) {
+                      return Padding(
+                        padding: const EdgeInsets.fromLTRB(
+                          16.0,
+                          8.0,
+                          16.0,
+                          8.0,
+                        ),
+                        child: ExpansionTile(
+                          shape: Border(),
+                          key: ValueKey(step.id),
+                          title: Row(
+                            children: [
+                              Expanded(
                                 child: Text(
-                                  'Deletar projeto',
-                                  style: TextStyle(color: Colors.red),
+                                  step.title,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                              const SizedBox(width: 16),
+                              SizedBox(
+                                width: 80,
+                                child: LinearProgressIndicator(
+                                  value: step.progress,
+                                  backgroundColor: Theme.of(
+                                    context,
+                                  ).colorScheme.surfaceContainerHighest,
+                                  minHeight: 8,
+                                  borderRadius: BorderRadius.circular(5),
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              SizedBox(
+                                width: 40,
+                                child: Text(
+                                  '${(step.progress * 100).toStringAsFixed(0)}%',
+                                  style: Theme.of(context).textTheme.labelSmall,
                                 ),
                               ),
                             ],
-                      ),
-                    ],
-                  ),
-                  children: project.steps.map((step) {
-                    return Padding(
-                      padding: const EdgeInsets.fromLTRB(16.0, 8.0, 16.0, 8.0),
-                      child: ExpansionTile(
-                        key: ValueKey(step.id),
-                        title: Row(
-                          children: [
-                            Expanded(
-                              child: Text(
-                                step.title,
-                                overflow: TextOverflow.ellipsis,
+                          ),
+                          children: step.tasks.map((task) {
+                            return ListTile(
+                              leading: Checkbox(
+                                value: task.isCompleted,
+                                onChanged: (bool? value) {
+                                  viewModel.toggleTaskStatus(
+                                    task.id,
+                                    task.isCompleted,
+                                  );
+                                },
                               ),
-                            ),
-                            const SizedBox(width: 16),
-                            SizedBox(
-                              width: 80,
-                              child: LinearProgressIndicator(
-                                value: step.progress,
-                                backgroundColor: Theme.of(
-                                  context,
-                                ).colorScheme.surfaceContainerHighest,
-                                minHeight: 8,
-                                borderRadius: BorderRadius.circular(5),
+                              title: Text(
+                                task.title,
+                                style: Theme.of(context).textTheme.bodyMedium,
                               ),
-                            ),
-                            const SizedBox(width: 8),
-                            SizedBox(
-                              width: 40,
-                              child: Text(
-                                '${(step.progress * 100).toStringAsFixed(0)}%',
-                                style: Theme.of(context).textTheme.labelSmall,
-                              ),
-                            ),
-                          ],
+                            );
+                          }).toList(),
                         ),
-                        children: step.tasks.map((task) {
-                          return ListTile(
-                            leading: Checkbox(
-                              value: task.isCompleted,
-                              onChanged: (bool? value) {
-                                viewModel.toggleTaskStatus(
-                                  task.id,
-                                  task.isCompleted,
-                                );
-                              },
-                            ),
-                            title: Text(task.title),
-                          );
-                        }).toList(),
-                      ),
-                    );
-                  }).toList(),
-                ),
-              );
-            },
-          );
-        },
+                      );
+                    }).toList(),
+                  ),
+                );
+              },
+            );
+          },
+        ),
+        floatingActionButton: widget.projectType == ProjectType.active
+            ? FloatingActionButton(
+                onPressed: () => _showCreateProjectDialog(context),
+                child: const Icon(Icons.add),
+              )
+            : null,
       ),
-      floatingActionButton: widget.projectType == ProjectType.active
-          ? FloatingActionButton(
-              onPressed: () => _showCreateProjectDialog(context),
-              child: const Icon(Icons.add),
-            )
-          : null,
     );
   }
 }

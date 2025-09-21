@@ -6,11 +6,27 @@ import 'package:gerenciador_de_projetos/data/repositories/project_repository.dar
 import 'package:gerenciador_de_projetos/data/services/project_service.dart';
 import 'package:gerenciador_de_projetos/ui/app/widgets/app.dart';
 import 'package:gerenciador_de_projetos/ui/projects/view_models/project_viewmodel.dart';
+import 'package:path/path.dart' as p;
+import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:window_manager/window_manager.dart';
 import '/ui/core/themes/theme.dart';
 
 void main() async {
+  // // DELETAR O BANCO DE DADOS NO WINDOWS
+  // const bool DELETAR_BANCO_DE_DADOS_AO_INICIAR = true;
+  // if (DELETAR_BANCO_DE_DADOS_AO_INICIAR) {
+  //   final dbFolder = await getApplicationDocumentsDirectory();
+  //   final file = File(p.join(dbFolder.path, 'db.sqlite'));
+
+  //   if (await file.exists()) {
+  //     await file.delete();
+  //     print('====================================================');
+  //     print('BANCO DE DADOS ANTIGO DELETADO COM SUCESSO.');
+  //     print('====================================================');
+  //   }
+  // }
+
   WidgetsFlutterBinding.ensureInitialized();
 
   if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
