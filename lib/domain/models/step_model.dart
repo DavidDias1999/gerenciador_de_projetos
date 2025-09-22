@@ -14,4 +14,11 @@ class Step {
     final completedTasks = tasks.where((task) => task.isCompleted).length;
     return completedTasks / tasks.length;
   }
+
+  bool get areAllTasksCompleted {
+    if (tasks.isEmpty) {
+      return true;
+    }
+    return tasks.every((task) => task.isCompleted);
+  }
 }

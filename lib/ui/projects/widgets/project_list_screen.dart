@@ -108,6 +108,34 @@ class _ProjectListScreenState extends State<ProjectListScreen> {
     );
   }
 
+  void _showMoveToCompletedDialog(Project project) {
+    final viewModel = Provider.of<ProjectViewModel>(context, listen: false);
+    showDialog(
+      context: context,
+      builder: (BuildContext dialogContext) {
+        return AlertDialog(
+          title: const Text('Projeto Finalizado!'),
+          content: Text(
+            'Deseja mover o projeto "${project.projectName}" para a área de finalizados?',
+          ),
+          actions: [
+            TextButton(
+              child: const Text('Não'),
+              onPressed: () => Navigator.of(dialogContext).pop(),
+            ),
+            ElevatedButton(
+              child: const Text('Sim, Mover'),
+              onPressed: () {
+                viewModel.refreshProjectLists();
+                Navigator.of(dialogContext).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final title = widget.projectType == ProjectType.active
@@ -259,18 +287,42 @@ class _ProjectListScreenState extends State<ProjectListScreen> {
                                 onSelected: (String result) {
                                   if (result == 'selectAll') {
                                     viewModel.selectAllTasksInStep(
+                                      project: project,
+                                      stepId: step.id,
+                                      onProjectCompleted: (completedProject) {
+                                        _showMoveToCompletedDialog(
+                                          completedProject,
+                                        );
+                                      },
+                                    );
+                                  } else if (result == 'deselectAll') {
+                                    viewModel.deselectAllTasksInStep(
                                       project.id,
                                       step.id,
                                     );
                                   }
                                 },
-                                itemBuilder: (BuildContext context) =>
-                                    <PopupMenuEntry<String>>[
+
+                                itemBuilder: (BuildContext context) {
+                                  final areAllSelected =
+                                      step.areAllTasksCompleted;
+
+                                  if (areAllSelected) {
+                                    return [
+                                      const PopupMenuItem<String>(
+                                        value: 'deselectAll',
+                                        child: Text('Desmarcar todas'),
+                                      ),
+                                    ];
+                                  } else {
+                                    return [
                                       const PopupMenuItem<String>(
                                         value: 'selectAll',
                                         child: Text('Selecionar todas'),
                                       ),
-                                    ],
+                                    ];
+                                  }
+                                },
                               ),
                             ],
                           ),
@@ -280,15 +332,17 @@ class _ProjectListScreenState extends State<ProjectListScreen> {
                                 value: task.isCompleted,
                                 onChanged: (bool? value) {
                                   viewModel.toggleTaskStatus(
-                                    task.id,
-                                    task.isCompleted,
+                                    project: project,
+                                    stepId: step.id,
+                                    taskId: task.id,
+                                    onProjectCompleted: (completedProject) =>
+                                        _showMoveToCompletedDialog(
+                                          completedProject,
+                                        ),
                                   );
                                 },
                               ),
-                              title: Text(
-                                task.title,
-                                style: Theme.of(context).textTheme.bodyMedium,
-                              ),
+                              title: Text(task.title),
                             );
                           }).toList(),
                         ),

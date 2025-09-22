@@ -54,4 +54,8 @@ class ProjectService {
   Future<void> selectAllTasksInStep(String stepId) async {
     await _db.selectAllTasksInStep(stepId);
   }
+
+  Future<void> deselectAllTasksInStep(String stepId) async {
+    await _db.deselectAllTasksInStep(stepId);
+  }
 }

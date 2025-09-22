@@ -23,4 +23,7 @@ class ProjectRepository {
 
   Future<void> selectAllTasksInStep(String stepId) =>
       _projectService.selectAllTasksInStep(stepId);
+
+  Future<void> deselectAllTasksInStep(String stepId) =>
+      _projectService.deselectAllTasksInStep(stepId);
 }

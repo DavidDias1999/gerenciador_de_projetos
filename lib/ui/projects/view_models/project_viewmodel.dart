@@ -50,27 +50,30 @@ class ProjectViewModel extends ChangeNotifier {
     await loadProjects();
   }
 
-  Future<void> toggleTaskStatus(String taskId, bool currentStatus) async {
-    await _repository.updateTask(taskId, !currentStatus);
+  Future<void> toggleTaskStatus({
+    required Project project,
+    required String stepId,
+    required String taskId,
+    required Function(Project completedProject) onProjectCompleted,
+  }) async {
+    final step = project.steps.firstWhere((s) => s.id == stepId);
+    final task = step.tasks.firstWhere((t) => t.id == taskId);
+    final wasProjectCompleted = project.isCompleted;
 
-    try {
-      final project = _activeProjects.firstWhere(
-        (p) => p.steps.any((s) => s.tasks.any((t) => t.id == taskId)),
-      );
-      final task = project.steps
-          .expand((s) => s.tasks)
-          .firstWhere((t) => t.id == taskId);
-      task.isCompleted = !currentStatus;
-    } catch (e) {
-      final project = _completedProjects.firstWhere(
-        (p) => p.steps.any((s) => s.tasks.any((t) => t.id == taskId)),
-      );
-      final task = project.steps
-          .expand((s) => s.tasks)
-          .firstWhere((t) => t.id == taskId);
-      task.isCompleted = !currentStatus;
-    }
+    task.isCompleted = !task.isCompleted;
     notifyListeners();
+
+    await _repository.updateTask(taskId, task.isCompleted);
+
+    final isProjectNowCompleted = project.isCompleted;
+
+    if (wasProjectCompleted != isProjectNowCompleted) {
+      if (isProjectNowCompleted) {
+        onProjectCompleted(project);
+      } else {
+        await loadProjects();
+      }
+    }
   }
 
   Future<void> deleteProject(String projectId) async {
@@ -78,20 +81,48 @@ class ProjectViewModel extends ChangeNotifier {
     await loadProjects();
   }
 
-  Future<void> selectAllTasksInStep(String projectId, String stepId) async {
-    Project project;
-    try {
-      project = _activeProjects.firstWhere((p) => p.id == projectId);
-    } catch (e) {
-      project = _completedProjects.firstWhere((p) => p.id == projectId);
-    }
-    final step = project.steps.firstWhere((s) => s.id == stepId);
+  Future<void> selectAllTasksInStep({
+    required Project project,
+    required String stepId,
+    required Function(Project completedProject) onProjectCompleted,
+  }) async {
+    final wasProjectCompleted = project.isCompleted;
 
+    final step = project.steps.firstWhere((s) => s.id == stepId);
     for (var task in step.tasks) {
       task.isCompleted = true;
     }
     notifyListeners();
 
     await _repository.selectAllTasksInStep(stepId);
+
+    final isProjectNowCompleted = project.isCompleted;
+    if (!wasProjectCompleted && isProjectNowCompleted) {
+      onProjectCompleted(project);
+    }
+  }
+
+  Future<void> deselectAllTasksInStep(String projectId, String stepId) async {
+    Project project;
+    try {
+      project = _activeProjects.firstWhere((p) => p.id == projectId);
+    } catch (e) {
+      project = _completedProjects.firstWhere((p) => p.id == projectId);
+    }
+
+    final wasProjectCompleted = project.isCompleted;
+
+    final step = project.steps.firstWhere((s) => s.id == stepId);
+    for (var task in step.tasks) {
+      task.isCompleted = false;
+    }
+    notifyListeners();
+
+    await _repository.deselectAllTasksInStep(stepId);
+
+    final isProjectNowCompleted = project.isCompleted;
+    if (wasProjectCompleted && !isProjectNowCompleted) {
+      await loadProjects();
+    }
   }
 }

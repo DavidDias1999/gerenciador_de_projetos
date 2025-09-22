@@ -154,6 +154,12 @@ class AppDatabase extends _$AppDatabase {
       const TasksCompanion(isCompleted: Value(true)),
     );
   }
+
+  Future<void> deselectAllTasksInStep(String stepId) {
+    return (update(tasks)..where((t) => t.stepId.equals(stepId))).write(
+      const TasksCompanion(isCompleted: Value(false)),
+    );
+  }
 }
 
 LazyDatabase _openConnection() {
