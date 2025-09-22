@@ -35,7 +35,6 @@ void main() async {
     WindowOptions windowOptions = const WindowOptions(
       size: Size(800, 900),
       minimumSize: Size(600, 500),
-      maximumSize: Size(1920, 1080),
       center: true,
       title: 'Gerenciador de Projetos',
     );
