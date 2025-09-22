@@ -160,6 +160,13 @@ class AppDatabase extends _$AppDatabase {
       const TasksCompanion(isCompleted: Value(false)),
     );
   }
+
+  Future<void> deleteStep(String stepId) async {
+    await transaction(() async {
+      await (delete(tasks)..where((t) => t.stepId.equals(stepId))).go();
+      await (delete(steps)..where((s) => s.id.equals(stepId))).go();
+    });
+  }
 }
 
 LazyDatabase _openConnection() {

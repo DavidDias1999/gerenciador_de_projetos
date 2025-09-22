@@ -1,7 +1,6 @@
-import 'package:flutter/material.dart';
-import 'package:gerenciador_de_projetos/data/repositories/project_repository.dart';
-
+import 'package:flutter/foundation.dart';
 import '../../../domain/models/project_model.dart';
+import '../../../data/repositories/project_repository.dart';
 
 class ProjectViewModel extends ChangeNotifier {
   final ProjectRepository _repository;
@@ -46,8 +45,25 @@ class ProjectViewModel extends ChangeNotifier {
     await loadProjects();
   }
 
+  Future<void> deleteProject(String projectId) async {
+    await _repository.deleteProject(projectId);
+    await loadProjects();
+  }
+
   Future<void> refreshProjectLists() async {
     await loadProjects();
+  }
+
+  Future<void> deleteStep(String projectId, String stepId) async {
+    await _repository.deleteStep(stepId);
+    Project project;
+    try {
+      project = _activeProjects.firstWhere((p) => p.id == projectId);
+    } catch (e) {
+      project = _completedProjects.firstWhere((p) => p.id == projectId);
+    }
+    project.steps.removeWhere((step) => step.id == stepId);
+    notifyListeners();
   }
 
   Future<void> toggleTaskStatus({
@@ -74,11 +90,6 @@ class ProjectViewModel extends ChangeNotifier {
         await loadProjects();
       }
     }
-  }
-
-  Future<void> deleteProject(String projectId) async {
-    await _repository.deleteProject(projectId);
-    await loadProjects();
   }
 
   Future<void> selectAllTasksInStep({

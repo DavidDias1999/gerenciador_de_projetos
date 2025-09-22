@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import '../../../domain/models/project_model.dart';
+import '../../../domain/models/project_model.dart' as domain;
+import '../../../domain/models/step_model.dart' as domain;
 import '../../app/widgets/app.dart';
 import '../view_models/project_viewmodel.dart';
 
@@ -75,7 +76,10 @@ class _ProjectListScreenState extends State<ProjectListScreen> {
     );
   }
 
-  void _showDeleteConfirmationDialog(BuildContext context, Project project) {
+  void _showDeleteConfirmationDialog(
+    BuildContext context,
+    domain.Project project,
+  ) {
     final viewModel = Provider.of<ProjectViewModel>(context, listen: false);
 
     showDialog(
@@ -108,7 +112,7 @@ class _ProjectListScreenState extends State<ProjectListScreen> {
     );
   }
 
-  void _showMoveToCompletedDialog(Project project) {
+  void _showMoveToCompletedDialog(domain.Project project) {
     final viewModel = Provider.of<ProjectViewModel>(context, listen: false);
     showDialog(
       context: context,
@@ -127,6 +131,42 @@ class _ProjectListScreenState extends State<ProjectListScreen> {
               child: const Text('Sim, Mover'),
               onPressed: () {
                 viewModel.refreshProjectLists();
+                Navigator.of(dialogContext).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _showDeleteStepConfirmationDialog(
+    BuildContext context,
+    domain.Project project,
+    domain.Step step,
+  ) {
+    final viewModel = Provider.of<ProjectViewModel>(context, listen: false);
+    showDialog(
+      context: context,
+      builder: (BuildContext dialogContext) {
+        return AlertDialog(
+          title: const Text('Confirmar Exclusão'),
+          content: Text(
+            'Você tem certeza que deseja deletar a etapa "${step.title}" e todas as suas tarefas? Esta ação não pode ser desfeita.',
+          ),
+          actions: [
+            TextButton(
+              child: const Text('Cancelar'),
+              onPressed: () => Navigator.of(dialogContext).pop(),
+            ),
+            FilledButton.tonal(
+              style: FilledButton.styleFrom(
+                backgroundColor: Theme.of(context).colorScheme.errorContainer,
+                foregroundColor: Theme.of(context).colorScheme.onErrorContainer,
+              ),
+              child: const Text('Deletar Etapa'),
+              onPressed: () {
+                viewModel.deleteStep(project.id, step.id);
                 Navigator.of(dialogContext).pop();
               },
             ),
@@ -300,28 +340,45 @@ class _ProjectListScreenState extends State<ProjectListScreen> {
                                       project.id,
                                       step.id,
                                     );
+                                  } else if (result == 'deleteStep') {
+                                    _showDeleteStepConfirmationDialog(
+                                      context,
+                                      project,
+                                      step,
+                                    );
                                   }
                                 },
 
                                 itemBuilder: (BuildContext context) {
                                   final areAllSelected =
                                       step.areAllTasksCompleted;
-
+                                  List<PopupMenuEntry<String>> items = [];
                                   if (areAllSelected) {
-                                    return [
+                                    items.add(
                                       const PopupMenuItem<String>(
                                         value: 'deselectAll',
                                         child: Text('Desmarcar todas'),
                                       ),
-                                    ];
+                                    );
                                   } else {
-                                    return [
+                                    items.add(
                                       const PopupMenuItem<String>(
                                         value: 'selectAll',
                                         child: Text('Selecionar todas'),
                                       ),
-                                    ];
+                                    );
                                   }
+                                  items.add(const PopupMenuDivider());
+                                  items.add(
+                                    const PopupMenuItem<String>(
+                                      value: 'deleteStep',
+                                      child: Text(
+                                        'Deletar etapa',
+                                        style: TextStyle(color: Colors.red),
+                                      ),
+                                    ),
+                                  );
+                                  return items;
                                 },
                               ),
                             ],

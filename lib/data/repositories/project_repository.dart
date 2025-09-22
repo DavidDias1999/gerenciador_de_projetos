@@ -26,4 +26,6 @@ class ProjectRepository {
 
   Future<void> deselectAllTasksInStep(String stepId) =>
       _projectService.deselectAllTasksInStep(stepId);
+
+  Future<void> deleteStep(String stepId) => _projectService.deleteStep(stepId);
 }
