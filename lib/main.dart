@@ -6,11 +6,11 @@ import 'package:gerenciador_de_projetos/data/repositories/project_repository.dar
 import 'package:gerenciador_de_projetos/data/services/project_service.dart';
 import 'package:gerenciador_de_projetos/ui/app/widgets/app.dart';
 import 'package:gerenciador_de_projetos/ui/projects/view_models/project_viewmodel.dart';
-import 'package:path/path.dart' as p;
-import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:window_manager/window_manager.dart';
 import '/ui/core/themes/theme.dart';
+// import 'package:path/path.dart' as p;
+// import 'package:path_provider/path_provider.dart';
 
 void main() async {
   // // DELETAR O BANCO DE DADOS NO WINDOWS

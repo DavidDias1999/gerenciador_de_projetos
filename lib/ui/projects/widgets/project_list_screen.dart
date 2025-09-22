@@ -130,7 +130,7 @@ class _ProjectListScreenState extends State<ProjectListScreen> {
             ElevatedButton(
               child: const Text('Sim, Mover'),
               onPressed: () {
-                viewModel.refreshProjectLists();
+                viewModel.completeProject(project.id);
                 Navigator.of(dialogContext).pop();
               },
             ),
@@ -329,11 +329,10 @@ class _ProjectListScreenState extends State<ProjectListScreen> {
                                     viewModel.selectAllTasksInStep(
                                       project: project,
                                       stepId: step.id,
-                                      onProjectCompleted: (completedProject) {
-                                        _showMoveToCompletedDialog(
-                                          completedProject,
-                                        );
-                                      },
+                                      onProjectReached100: (completedProject) =>
+                                          _showMoveToCompletedDialog(
+                                            completedProject,
+                                          ),
                                     );
                                   } else if (result == 'deselectAll') {
                                     viewModel.deselectAllTasksInStep(
@@ -390,9 +389,8 @@ class _ProjectListScreenState extends State<ProjectListScreen> {
                                 onChanged: (bool? value) {
                                   viewModel.toggleTaskStatus(
                                     project: project,
-                                    stepId: step.id,
                                     taskId: task.id,
-                                    onProjectCompleted: (completedProject) =>
+                                    onProjectReached100: (completedProject) =>
                                         _showMoveToCompletedDialog(
                                           completedProject,
                                         ),

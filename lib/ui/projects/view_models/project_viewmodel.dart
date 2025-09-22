@@ -68,36 +68,32 @@ class ProjectViewModel extends ChangeNotifier {
 
   Future<void> toggleTaskStatus({
     required Project project,
-    required String stepId,
     required String taskId,
-    required Function(Project completedProject) onProjectCompleted,
+    required Function(Project project) onProjectReached100,
   }) async {
-    final step = project.steps.firstWhere((s) => s.id == stepId);
-    final task = step.tasks.firstWhere((t) => t.id == taskId);
-    final wasProjectCompleted = project.isCompleted;
+    final progressBefore = project.progress;
 
+    final task = project.steps
+        .expand((s) => s.tasks)
+        .firstWhere((t) => t.id == taskId);
     task.isCompleted = !task.isCompleted;
     notifyListeners();
 
     await _repository.updateTask(taskId, task.isCompleted);
 
-    final isProjectNowCompleted = project.isCompleted;
+    final progressAfter = project.progress;
 
-    if (wasProjectCompleted != isProjectNowCompleted) {
-      if (isProjectNowCompleted) {
-        onProjectCompleted(project);
-      } else {
-        await loadProjects();
-      }
+    if (progressBefore < 1.0 && progressAfter == 1.0) {
+      onProjectReached100(project);
     }
   }
 
   Future<void> selectAllTasksInStep({
     required Project project,
     required String stepId,
-    required Function(Project completedProject) onProjectCompleted,
+    required Function(Project project) onProjectReached100,
   }) async {
-    final wasProjectCompleted = project.isCompleted;
+    final progressBefore = project.progress;
 
     final step = project.steps.firstWhere((s) => s.id == stepId);
     for (var task in step.tasks) {
@@ -107,9 +103,10 @@ class ProjectViewModel extends ChangeNotifier {
 
     await _repository.selectAllTasksInStep(stepId);
 
-    final isProjectNowCompleted = project.isCompleted;
-    if (!wasProjectCompleted && isProjectNowCompleted) {
-      onProjectCompleted(project);
+    final progressAfter = project.progress;
+
+    if (progressBefore < 1.0 && progressAfter == 1.0) {
+      onProjectReached100(project);
     }
   }
 
