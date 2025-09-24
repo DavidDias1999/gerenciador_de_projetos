@@ -100,7 +100,7 @@ class AppDatabase extends _$AppDatabase {
 
       final defaultSteps = await createDefaultSteps();
       for (final step in defaultSteps) {
-        await into(this.steps).insert(
+        await into(steps).insert(
           StepsCompanion.insert(
             id: step.id,
             title: step.title,
@@ -108,7 +108,7 @@ class AppDatabase extends _$AppDatabase {
           ),
         );
         for (final task in step.tasks) {
-          await into(this.tasks).insert(
+          await into(tasks).insert(
             TasksCompanion.insert(
               id: task.id,
               title: task.title,
@@ -136,7 +136,8 @@ class AppDatabase extends _$AppDatabase {
     await transaction(() async {
       final associatedSteps = await (select(
         steps,
-      )..where((s) => s.projectId.equals(projectId))).get();
+      )..where((s) => s.projectId.equals(projectId)))
+          .get();
       final stepIds = associatedSteps.map((s) => s.id).toList();
 
       if (stepIds.isNotEmpty) {

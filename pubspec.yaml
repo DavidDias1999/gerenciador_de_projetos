@@ -23,7 +23,7 @@ dependencies:
   uuid: ^4.3.3
 
   # Desktop
-  window_manager: ^0.3.8
+  window_manager: ^0.5.1
 
   # Ícones (Padrão)
   cupertino_icons: ^1.0.8
@@ -37,7 +37,7 @@ dev_dependencies:
   build_runner: ^2.4.8
 
   # Análise de Código
-  flutter_lints: ^3.0.1
+  flutter_lints: ^6.0.0
 
 flutter:
   uses-material-design: true
