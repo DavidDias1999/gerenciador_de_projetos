@@ -2,5 +2,10 @@ class Task {
   String id;
   String title;
   bool isCompleted;
-  Task({required this.id, required this.title, this.isCompleted = false});
+  int orderIndex;
+  Task(
+      {required this.id,
+      required this.title,
+      this.isCompleted = false,
+      required this.orderIndex});
 }

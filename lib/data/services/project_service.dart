@@ -20,10 +20,10 @@ class ProjectService {
           title: fullStep.step.title,
           tasks: fullStep.tasks.map((task) {
             return domain.Task(
-              id: task.id,
-              title: task.title,
-              isCompleted: task.isCompleted,
-            );
+                id: task.id,
+                title: task.title,
+                isCompleted: task.isCompleted,
+                orderIndex: task.orderIndex);
           }).toList(),
         );
       }).toList(),

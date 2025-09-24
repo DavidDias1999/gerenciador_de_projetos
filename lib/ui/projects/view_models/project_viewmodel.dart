@@ -1,12 +1,13 @@
 import 'package:flutter/foundation.dart';
 import '../../../domain/models/project_model.dart';
 import '../../../data/repositories/project_repository.dart';
+import '../../../domain/models/step_model.dart';
 
 class ProjectViewModel extends ChangeNotifier {
   final ProjectRepository _repository;
 
   ProjectViewModel({required ProjectRepository repository})
-    : _repository = repository;
+      : _repository = repository;
 
   bool _isLoading = false;
   bool get isLoading => _isLoading;
@@ -16,6 +17,15 @@ class ProjectViewModel extends ChangeNotifier {
 
   List<Project> _completedProjects = [];
   List<Project> get completedProjects => _completedProjects;
+
+  void _sortTasks(Step step) {
+    step.tasks.sort((a, b) {
+      if (a.isCompleted != b.isCompleted) {
+        return a.isCompleted ? 1 : -1;
+      }
+      return a.orderIndex.compareTo(b.orderIndex);
+    });
+  }
 
   Future<void> loadProjects() async {
     _isLoading = true;
@@ -73,10 +83,14 @@ class ProjectViewModel extends ChangeNotifier {
   }) async {
     final progressBefore = project.progress;
 
-    final task = project.steps
-        .expand((s) => s.tasks)
-        .firstWhere((t) => t.id == taskId);
+    final step =
+        project.steps.firstWhere((s) => s.tasks.any((t) => t.id == taskId));
+
+    final task =
+        project.steps.expand((s) => s.tasks).firstWhere((t) => t.id == taskId);
     task.isCompleted = !task.isCompleted;
+
+    _sortTasks(step);
     notifyListeners();
 
     await _repository.updateTask(taskId, task.isCompleted);
@@ -99,6 +113,8 @@ class ProjectViewModel extends ChangeNotifier {
     for (var task in step.tasks) {
       task.isCompleted = true;
     }
+
+    _sortTasks(step);
     notifyListeners();
 
     await _repository.selectAllTasksInStep(stepId);
@@ -124,6 +140,8 @@ class ProjectViewModel extends ChangeNotifier {
     for (var task in step.tasks) {
       task.isCompleted = false;
     }
+
+    _sortTasks(step);
     notifyListeners();
 
     await _repository.deselectAllTasksInStep(stepId);

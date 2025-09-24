@@ -32,6 +32,7 @@ class Tasks extends Table {
   TextColumn get title => text()();
   BoolColumn get isCompleted => boolean().withDefault(const Constant(false))();
   TextColumn get stepId => text().references(Steps, #id)();
+  IntColumn get orderIndex => integer().withDefault(const Constant(0))();
   @override
   Set<Column> get primaryKey => {id};
 }
@@ -53,7 +54,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(_openConnection());
 
   @override
-  int get schemaVersion => 2;
+  int get schemaVersion => 3;
 
   @override
   MigrationStrategy get migration {
@@ -64,6 +65,9 @@ class AppDatabase extends _$AppDatabase {
       onUpgrade: (Migrator m, int from, int to) async {
         if (from == 1) {
           await m.addColumn(projects, projects.isCompleted);
+        }
+        if (from < 3) {
+          await m.addColumn(tasks, tasks.orderIndex);
         }
       },
     );
@@ -110,10 +114,10 @@ class AppDatabase extends _$AppDatabase {
         for (final task in step.tasks) {
           await into(tasks).insert(
             TasksCompanion.insert(
-              id: task.id,
-              title: task.title,
-              stepId: step.id,
-            ),
+                id: task.id,
+                title: task.title,
+                stepId: step.id,
+                orderIndex: Value(task.orderIndex)),
           );
         }
       }

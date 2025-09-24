@@ -18,14 +18,16 @@ Future<List<Step>> createDefaultSteps() async {
   final List<Step> steps = jsonList.map((stepJson) {
     final List<dynamic> tasksJson = stepJson['tasks'];
 
-    final List<Task> tasks = tasksJson.map((taskJson) {
-      return Task(
+    final List<Task> tasks = [];
+    for (int i = 0; i < tasksJson.length; i++) {
+      final taskJson = tasksJson[i];
+      tasks.add(Task(
         id: uuid.v4(),
         title: taskJson['task_name'],
         isCompleted: false,
-      );
-    }).toList();
-
+        orderIndex: i,
+      ));
+    }
     return Step(id: uuid.v4(), title: stepJson['step_name'], tasks: tasks);
   }).toList();
 
