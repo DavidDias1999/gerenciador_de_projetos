@@ -18,6 +18,15 @@ class ProjectViewModel extends ChangeNotifier {
   List<Project> _completedProjects = [];
   List<Project> get completedProjects => _completedProjects;
 
+  bool _isLoadingDeletedSteps = false;
+  bool get isLoadingDeletedSteps => _isLoadingDeletedSteps;
+
+  List<Step> _deletedSteps = [];
+  List<Step> get deletedSteps => _deletedSteps;
+
+  final Set<String> _selectedStepsToRestore = {};
+  Set<String> get selectedStepsToRestore => _selectedStepsToRestore;
+
   void _sortTasks(Step step) {
     step.tasks.sort((a, b) {
       if (a.isCompleted != b.isCompleted) {
@@ -64,8 +73,9 @@ class ProjectViewModel extends ChangeNotifier {
     await loadProjects();
   }
 
-  Future<void> deleteStep(String projectId, String stepId) async {
+  Future<void> softDeleteStep(String projectId, String stepId) async {
     await _repository.deleteStep(stepId);
+
     Project project;
     try {
       project = _activeProjects.firstWhere((p) => p.id == projectId);
@@ -150,5 +160,34 @@ class ProjectViewModel extends ChangeNotifier {
     if (wasProjectCompleted && !isProjectNowCompleted) {
       await loadProjects();
     }
+  }
+
+  Future<void> fetchDeletedSteps(String projectId) async {
+    _isLoadingDeletedSteps = true;
+    _deletedSteps = [];
+    _selectedStepsToRestore.clear();
+    notifyListeners();
+
+    _deletedSteps = await _repository.getDeletedStepsForProject(projectId);
+    _isLoadingDeletedSteps = false;
+    notifyListeners();
+  }
+
+  void toggleStepSelectionForRestore(String stepId) {
+    if (_selectedStepsToRestore.contains(stepId)) {
+      _selectedStepsToRestore.remove(stepId);
+    } else {
+      _selectedStepsToRestore.add(stepId);
+    }
+    notifyListeners();
+  }
+
+  Future<void> restoreSelectedSteps() async {
+    if (_selectedStepsToRestore.isEmpty) return;
+
+    await _repository.restoreSteps(_selectedStepsToRestore.toList());
+    _selectedStepsToRestore.clear();
+    _deletedSteps = [];
+    await loadProjects();
   }
 }

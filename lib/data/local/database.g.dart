@@ -263,8 +263,14 @@ class $StepsTable extends Steps with TableInfo<$StepsTable, StepData> {
       requiredDuringInsert: true,
       defaultConstraints:
           GeneratedColumn.constraintIsAlways('REFERENCES projects (id)'));
+  static const VerificationMeta _deletedAtMeta =
+      const VerificationMeta('deletedAt');
   @override
-  List<GeneratedColumn> get $columns => [id, title, projectId];
+  late final GeneratedColumn<DateTime> deletedAt = GeneratedColumn<DateTime>(
+      'deleted_at', aliasedName, true,
+      type: DriftSqlType.dateTime, requiredDuringInsert: false);
+  @override
+  List<GeneratedColumn> get $columns => [id, title, projectId, deletedAt];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
@@ -292,6 +298,10 @@ class $StepsTable extends Steps with TableInfo<$StepsTable, StepData> {
     } else if (isInserting) {
       context.missing(_projectIdMeta);
     }
+    if (data.containsKey('deleted_at')) {
+      context.handle(_deletedAtMeta,
+          deletedAt.isAcceptableOrUnknown(data['deleted_at']!, _deletedAtMeta));
+    }
     return context;
   }
 
@@ -307,6 +317,8 @@ class $StepsTable extends Steps with TableInfo<$StepsTable, StepData> {
           .read(DriftSqlType.string, data['${effectivePrefix}title'])!,
       projectId: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}project_id'])!,
+      deletedAt: attachedDatabase.typeMapping
+          .read(DriftSqlType.dateTime, data['${effectivePrefix}deleted_at']),
     );
   }
 
@@ -320,14 +332,21 @@ class StepData extends DataClass implements Insertable<StepData> {
   final String id;
   final String title;
   final String projectId;
+  final DateTime? deletedAt;
   const StepData(
-      {required this.id, required this.title, required this.projectId});
+      {required this.id,
+      required this.title,
+      required this.projectId,
+      this.deletedAt});
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
     map['id'] = Variable<String>(id);
     map['title'] = Variable<String>(title);
     map['project_id'] = Variable<String>(projectId);
+    if (!nullToAbsent || deletedAt != null) {
+      map['deleted_at'] = Variable<DateTime>(deletedAt);
+    }
     return map;
   }
 
@@ -336,6 +355,9 @@ class StepData extends DataClass implements Insertable<StepData> {
       id: Value(id),
       title: Value(title),
       projectId: Value(projectId),
+      deletedAt: deletedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(deletedAt),
     );
   }
 
@@ -346,6 +368,7 @@ class StepData extends DataClass implements Insertable<StepData> {
       id: serializer.fromJson<String>(json['id']),
       title: serializer.fromJson<String>(json['title']),
       projectId: serializer.fromJson<String>(json['projectId']),
+      deletedAt: serializer.fromJson<DateTime?>(json['deletedAt']),
     );
   }
   @override
@@ -355,19 +378,27 @@ class StepData extends DataClass implements Insertable<StepData> {
       'id': serializer.toJson<String>(id),
       'title': serializer.toJson<String>(title),
       'projectId': serializer.toJson<String>(projectId),
+      'deletedAt': serializer.toJson<DateTime?>(deletedAt),
     };
   }
 
-  StepData copyWith({String? id, String? title, String? projectId}) => StepData(
+  StepData copyWith(
+          {String? id,
+          String? title,
+          String? projectId,
+          Value<DateTime?> deletedAt = const Value.absent()}) =>
+      StepData(
         id: id ?? this.id,
         title: title ?? this.title,
         projectId: projectId ?? this.projectId,
+        deletedAt: deletedAt.present ? deletedAt.value : this.deletedAt,
       );
   StepData copyWithCompanion(StepsCompanion data) {
     return StepData(
       id: data.id.present ? data.id.value : this.id,
       title: data.title.present ? data.title.value : this.title,
       projectId: data.projectId.present ? data.projectId.value : this.projectId,
+      deletedAt: data.deletedAt.present ? data.deletedAt.value : this.deletedAt,
     );
   }
 
@@ -376,37 +407,42 @@ class StepData extends DataClass implements Insertable<StepData> {
     return (StringBuffer('StepData(')
           ..write('id: $id, ')
           ..write('title: $title, ')
-          ..write('projectId: $projectId')
+          ..write('projectId: $projectId, ')
+          ..write('deletedAt: $deletedAt')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode => Object.hash(id, title, projectId);
+  int get hashCode => Object.hash(id, title, projectId, deletedAt);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
       (other is StepData &&
           other.id == this.id &&
           other.title == this.title &&
-          other.projectId == this.projectId);
+          other.projectId == this.projectId &&
+          other.deletedAt == this.deletedAt);
 }
 
 class StepsCompanion extends UpdateCompanion<StepData> {
   final Value<String> id;
   final Value<String> title;
   final Value<String> projectId;
+  final Value<DateTime?> deletedAt;
   final Value<int> rowid;
   const StepsCompanion({
     this.id = const Value.absent(),
     this.title = const Value.absent(),
     this.projectId = const Value.absent(),
+    this.deletedAt = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   StepsCompanion.insert({
     required String id,
     required String title,
     required String projectId,
+    this.deletedAt = const Value.absent(),
     this.rowid = const Value.absent(),
   })  : id = Value(id),
         title = Value(title),
@@ -415,12 +451,14 @@ class StepsCompanion extends UpdateCompanion<StepData> {
     Expression<String>? id,
     Expression<String>? title,
     Expression<String>? projectId,
+    Expression<DateTime>? deletedAt,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
       if (title != null) 'title': title,
       if (projectId != null) 'project_id': projectId,
+      if (deletedAt != null) 'deleted_at': deletedAt,
       if (rowid != null) 'rowid': rowid,
     });
   }
@@ -429,11 +467,13 @@ class StepsCompanion extends UpdateCompanion<StepData> {
       {Value<String>? id,
       Value<String>? title,
       Value<String>? projectId,
+      Value<DateTime?>? deletedAt,
       Value<int>? rowid}) {
     return StepsCompanion(
       id: id ?? this.id,
       title: title ?? this.title,
       projectId: projectId ?? this.projectId,
+      deletedAt: deletedAt ?? this.deletedAt,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -450,6 +490,9 @@ class StepsCompanion extends UpdateCompanion<StepData> {
     if (projectId.present) {
       map['project_id'] = Variable<String>(projectId.value);
     }
+    if (deletedAt.present) {
+      map['deleted_at'] = Variable<DateTime>(deletedAt.value);
+    }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
     }
@@ -462,6 +505,7 @@ class StepsCompanion extends UpdateCompanion<StepData> {
           ..write('id: $id, ')
           ..write('title: $title, ')
           ..write('projectId: $projectId, ')
+          ..write('deletedAt: $deletedAt, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -1019,12 +1063,14 @@ typedef $$StepsTableCreateCompanionBuilder = StepsCompanion Function({
   required String id,
   required String title,
   required String projectId,
+  Value<DateTime?> deletedAt,
   Value<int> rowid,
 });
 typedef $$StepsTableUpdateCompanionBuilder = StepsCompanion Function({
   Value<String> id,
   Value<String> title,
   Value<String> projectId,
+  Value<DateTime?> deletedAt,
   Value<int> rowid,
 });
 
@@ -1074,6 +1120,9 @@ class $$StepsTableFilterComposer extends Composer<_$AppDatabase, $StepsTable> {
 
   ColumnFilters<String> get title => $composableBuilder(
       column: $table.title, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<DateTime> get deletedAt => $composableBuilder(
+      column: $table.deletedAt, builder: (column) => ColumnFilters(column));
 
   $$ProjectsTableFilterComposer get projectId {
     final $$ProjectsTableFilterComposer composer = $composerBuilder(
@@ -1132,6 +1181,9 @@ class $$StepsTableOrderingComposer
   ColumnOrderings<String> get title => $composableBuilder(
       column: $table.title, builder: (column) => ColumnOrderings(column));
 
+  ColumnOrderings<DateTime> get deletedAt => $composableBuilder(
+      column: $table.deletedAt, builder: (column) => ColumnOrderings(column));
+
   $$ProjectsTableOrderingComposer get projectId {
     final $$ProjectsTableOrderingComposer composer = $composerBuilder(
         composer: this,
@@ -1167,6 +1219,9 @@ class $$StepsTableAnnotationComposer
 
   GeneratedColumn<String> get title =>
       $composableBuilder(column: $table.title, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get deletedAt =>
+      $composableBuilder(column: $table.deletedAt, builder: (column) => column);
 
   $$ProjectsTableAnnotationComposer get projectId {
     final $$ProjectsTableAnnotationComposer composer = $composerBuilder(
@@ -1236,24 +1291,28 @@ class $$StepsTableTableManager extends RootTableManager<
             Value<String> id = const Value.absent(),
             Value<String> title = const Value.absent(),
             Value<String> projectId = const Value.absent(),
+            Value<DateTime?> deletedAt = const Value.absent(),
             Value<int> rowid = const Value.absent(),
           }) =>
               StepsCompanion(
             id: id,
             title: title,
             projectId: projectId,
+            deletedAt: deletedAt,
             rowid: rowid,
           ),
           createCompanionCallback: ({
             required String id,
             required String title,
             required String projectId,
+            Value<DateTime?> deletedAt = const Value.absent(),
             Value<int> rowid = const Value.absent(),
           }) =>
               StepsCompanion.insert(
             id: id,
             title: title,
             projectId: projectId,
+            deletedAt: deletedAt,
             rowid: rowid,
           ),
           withReferenceMapper: (p0) => p0

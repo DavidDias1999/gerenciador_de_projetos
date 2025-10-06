@@ -1,3 +1,4 @@
+import '../../domain/models/step_model.dart';
 import '../services/project_service.dart';
 import '../../domain/models/project_model.dart';
 
@@ -5,7 +6,7 @@ class ProjectRepository {
   final ProjectService _projectService;
 
   ProjectRepository({required ProjectService projectService})
-    : _projectService = projectService;
+      : _projectService = projectService;
 
   Future<List<Project>> getProjects() => _projectService.fetchProjects();
 
@@ -27,5 +28,12 @@ class ProjectRepository {
   Future<void> deselectAllTasksInStep(String stepId) =>
       _projectService.deselectAllTasksInStep(stepId);
 
-  Future<void> deleteStep(String stepId) => _projectService.deleteStep(stepId);
+  Future<void> deleteStep(String stepId) =>
+      _projectService.softDeleteStep(stepId);
+
+  Future<List<Step>> getDeletedStepsForProject(String projectId) =>
+      _projectService.getDeletedStepsForProject(projectId);
+
+  Future<void> restoreSteps(List<String> stepIds) =>
+      _projectService.restoreSteps(stepIds);
 }

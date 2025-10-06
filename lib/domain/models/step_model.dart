@@ -4,8 +4,13 @@ class Step {
   String id;
   String title;
   List<Task> tasks;
+  DateTime? deletedAt;
 
-  Step({required this.id, required this.title, required this.tasks});
+  Step(
+      {required this.id,
+      required this.title,
+      required this.tasks,
+      this.deletedAt});
 
   double get progress {
     if (tasks.isEmpty) {

@@ -22,6 +22,7 @@ class Steps extends Table {
   TextColumn get id => text()();
   TextColumn get title => text()();
   TextColumn get projectId => text().references(Projects, #id)();
+  DateTimeColumn get deletedAt => dateTime().nullable()();
   @override
   Set<Column> get primaryKey => {id};
 }
@@ -54,7 +55,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(_openConnection());
 
   @override
-  int get schemaVersion => 3;
+  int get schemaVersion => 4;
 
   @override
   MigrationStrategy get migration {
@@ -69,6 +70,9 @@ class AppDatabase extends _$AppDatabase {
         if (from < 3) {
           await m.addColumn(tasks, tasks.orderIndex);
         }
+        if (from < 4) {
+          await m.addColumn(steps, steps.deletedAt);
+        }
       },
     );
   }
@@ -79,7 +83,8 @@ class AppDatabase extends _$AppDatabase {
 
     for (final projectData in projectsData) {
       final stepsQuery = select(steps)
-        ..where((tbl) => tbl.projectId.equals(projectData.id));
+        ..where((tbl) => tbl.projectId.equals(projectData.id))
+        ..where((tbl) => tbl.deletedAt.isNull());
       final projectStepsData = await stepsQuery.get();
       final List<FullStep> fullSteps = [];
 
@@ -166,11 +171,23 @@ class AppDatabase extends _$AppDatabase {
     );
   }
 
-  Future<void> deleteStep(String stepId) async {
-    await transaction(() async {
-      await (delete(tasks)..where((t) => t.stepId.equals(stepId))).go();
-      await (delete(steps)..where((s) => s.id.equals(stepId))).go();
-    });
+  Future<void> softDeleteStep(String stepId) {
+    return (update(steps)..where((s) => s.id.equals(stepId))).write(
+      StepsCompanion(deletedAt: Value(DateTime.now())),
+    );
+  }
+
+  Future<List<StepData>> getDeletedStepsForProject(String projectId) {
+    return (select(steps)
+          ..where((s) => s.projectId.equals(projectId))
+          ..where((s) => s.deletedAt.isNotNull()))
+        .get();
+  }
+
+  Future<void> restoreSteps(List<String> stepIds) {
+    return (update(steps)..where((s) => s.id.isIn(stepIds))).write(
+      const StepsCompanion(deletedAt: Value(null)),
+    );
   }
 }
 

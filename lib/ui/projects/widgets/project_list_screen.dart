@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:gerenciador_de_projetos/ui/projects/widgets/restore_steps_dialog.dart';
 import 'package:provider/provider.dart';
-
 import '../../../domain/models/project_model.dart' as domain;
 import '../../../domain/models/step_model.dart' as domain;
 import '../../app/widgets/app.dart';
@@ -152,7 +152,7 @@ class _ProjectListScreenState extends State<ProjectListScreen> {
         return AlertDialog(
           title: const Text('Confirmar Exclusão'),
           content: Text(
-            'Você tem certeza que deseja deletar a etapa "${step.title}" e todas as suas tarefas? Esta ação não pode ser desfeita.',
+            'Você tem certeza que deseja deletar a etapa "${step.title}"? Suas tarefas também serão ocultadas mas poderão ser restauradas.',
           ),
           actions: [
             TextButton(
@@ -166,13 +166,26 @@ class _ProjectListScreenState extends State<ProjectListScreen> {
               ),
               child: const Text('Deletar Etapa'),
               onPressed: () {
-                viewModel.deleteStep(project.id, step.id);
+                viewModel.softDeleteStep(project.id, step.id);
                 Navigator.of(dialogContext).pop();
               },
             ),
           ],
         );
       },
+    );
+  }
+
+  void _showRestoreStepsDialog(BuildContext context, domain.Project project) {
+    final viewModel = Provider.of<ProjectViewModel>(context, listen: false);
+    viewModel.fetchDeletedSteps(project.id);
+
+    showDialog(
+      context: context,
+      builder: (_) => ChangeNotifierProvider.value(
+        value: viewModel,
+        child: const RestoreStepsDialog(),
+      ),
     );
   }
 
@@ -212,7 +225,7 @@ class _ProjectListScreenState extends State<ProjectListScreen> {
                   clipBehavior: Clip.antiAlias,
                   margin: const EdgeInsets.symmetric(vertical: 8.0),
                   child: ExpansionTile(
-                    shape: Border(),
+                    shape: const Border(),
                     key: ValueKey(project.id),
                     title: Row(
                       children: [
@@ -234,9 +247,9 @@ class _ProjectListScreenState extends State<ProjectListScreen> {
                           width: 90,
                           child: LinearProgressIndicator(
                             value: project.progress,
-                            backgroundColor: Theme.of(
-                              context,
-                            ).colorScheme.surfaceContainerHighest,
+                            backgroundColor: Theme.of(context)
+                                .colorScheme
+                                .surfaceContainerHighest,
                             minHeight: 8,
                             borderRadius: BorderRadius.circular(5),
                           ),
@@ -257,29 +270,36 @@ class _ProjectListScreenState extends State<ProjectListScreen> {
                               viewModel.activateProject(project.id);
                             } else if (result == 'delete') {
                               _showDeleteConfirmationDialog(context, project);
+                            } else if (result == 'restore_steps') {
+                              _showRestoreStepsDialog(context, project);
                             }
                           },
                           itemBuilder: (BuildContext context) =>
                               <PopupMenuEntry<String>>[
-                                if (widget.projectType == ProjectType.active)
-                                  const PopupMenuItem<String>(
-                                    value: 'complete',
-                                    child: Text('Finalizar projeto'),
-                                  ),
-                                if (widget.projectType == ProjectType.completed)
-                                  const PopupMenuItem<String>(
-                                    value: 'activate',
-                                    child: Text('Ativar projeto'),
-                                  ),
-                                const PopupMenuDivider(),
-                                const PopupMenuItem<String>(
-                                  value: 'delete',
-                                  child: Text(
-                                    'Deletar projeto',
-                                    style: TextStyle(color: Colors.red),
-                                  ),
-                                ),
-                              ],
+                            if (widget.projectType == ProjectType.active)
+                              const PopupMenuItem<String>(
+                                value: 'complete',
+                                child: Text('Finalizar projeto'),
+                              ),
+                            if (widget.projectType == ProjectType.completed)
+                              const PopupMenuItem<String>(
+                                value: 'activate',
+                                child: Text('Ativar projeto'),
+                              ),
+                            const PopupMenuDivider(),
+                            const PopupMenuItem<String>(
+                              value: 'restore_steps',
+                              child: Text('Restaurar etapas'),
+                            ),
+                            const PopupMenuDivider(),
+                            const PopupMenuItem<String>(
+                              value: 'delete',
+                              child: Text(
+                                'Deletar projeto',
+                                style: TextStyle(color: Colors.red),
+                              ),
+                            ),
+                          ],
                         ),
                       ],
                     ),
@@ -292,7 +312,7 @@ class _ProjectListScreenState extends State<ProjectListScreen> {
                           8.0,
                         ),
                         child: ExpansionTile(
-                          shape: Border(),
+                          shape: const Border(),
                           key: ValueKey(step.id),
                           title: Row(
                             children: [
@@ -307,9 +327,9 @@ class _ProjectListScreenState extends State<ProjectListScreen> {
                                 width: 80,
                                 child: LinearProgressIndicator(
                                   value: step.progress,
-                                  backgroundColor: Theme.of(
-                                    context,
-                                  ).colorScheme.surfaceContainerHighest,
+                                  backgroundColor: Theme.of(context)
+                                      .colorScheme
+                                      .surfaceContainerHighest,
                                   minHeight: 8,
                                   borderRadius: BorderRadius.circular(5),
                                 ),
@@ -331,8 +351,8 @@ class _ProjectListScreenState extends State<ProjectListScreen> {
                                       stepId: step.id,
                                       onProjectReached100: (completedProject) =>
                                           _showMoveToCompletedDialog(
-                                            completedProject,
-                                          ),
+                                        completedProject,
+                                      ),
                                     );
                                   } else if (result == 'deselectAll') {
                                     viewModel.deselectAllTasksInStep(
@@ -347,7 +367,6 @@ class _ProjectListScreenState extends State<ProjectListScreen> {
                                     );
                                   }
                                 },
-
                                 itemBuilder: (BuildContext context) {
                                   final areAllSelected =
                                       step.areAllTasksCompleted;
@@ -392,8 +411,8 @@ class _ProjectListScreenState extends State<ProjectListScreen> {
                                     taskId: task.id,
                                     onProjectReached100: (completedProject) =>
                                         _showMoveToCompletedDialog(
-                                          completedProject,
-                                        ),
+                                      completedProject,
+                                    ),
                                   );
                                 },
                               ),
