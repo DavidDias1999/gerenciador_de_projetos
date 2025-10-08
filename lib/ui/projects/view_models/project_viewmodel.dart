@@ -1,7 +1,9 @@
 import 'package:flutter/foundation.dart';
-import '../../../domain/models/project_model.dart';
 import '../../../data/repositories/project_repository.dart';
+import '../../../domain/models/project_model.dart';
 import '../../../domain/models/step_model.dart';
+import '../../../domain/models/sub_step_model.dart';
+import '../../../domain/models/task_model.dart';
 
 class ProjectViewModel extends ChangeNotifier {
   final ProjectRepository _repository;
@@ -26,15 +28,6 @@ class ProjectViewModel extends ChangeNotifier {
 
   final Set<String> _selectedStepsToRestore = {};
   Set<String> get selectedStepsToRestore => _selectedStepsToRestore;
-
-  void _sortTasks(Step step) {
-    step.tasks.sort((a, b) {
-      if (a.isCompleted != b.isCompleted) {
-        return a.isCompleted ? 1 : -1;
-      }
-      return a.orderIndex.compareTo(b.orderIndex);
-    });
-  }
 
   Future<void> loadProjects() async {
     _isLoading = true;
@@ -69,13 +62,8 @@ class ProjectViewModel extends ChangeNotifier {
     await loadProjects();
   }
 
-  Future<void> refreshProjectLists() async {
-    await loadProjects();
-  }
-
   Future<void> softDeleteStep(String projectId, String stepId) async {
-    await _repository.deleteStep(stepId);
-
+    await _repository.softDeleteStep(stepId);
     Project project;
     try {
       project = _activeProjects.firstWhere((p) => p.id == projectId);
@@ -86,6 +74,15 @@ class ProjectViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
+  void _sortTasks(SubStep subStep) {
+    subStep.tasks.sort((a, b) {
+      if (a.isCompleted != b.isCompleted) {
+        return a.isCompleted ? 1 : -1;
+      }
+      return a.orderIndex.compareTo(b.orderIndex);
+    });
+  }
+
   Future<void> toggleTaskStatus({
     required Project project,
     required String taskId,
@@ -93,68 +90,81 @@ class ProjectViewModel extends ChangeNotifier {
   }) async {
     final progressBefore = project.progress;
 
-    final step =
-        project.steps.firstWhere((s) => s.tasks.any((t) => t.id == taskId));
+    SubStep? targetSubStep;
+    Task? targetTask;
 
-    final task =
-        project.steps.expand((s) => s.tasks).firstWhere((t) => t.id == taskId);
-    task.isCompleted = !task.isCompleted;
+    for (var step in project.steps) {
+      for (var subStep in step.subSteps) {
+        try {
+          targetTask = subStep.tasks.firstWhere((t) => t.id == taskId);
+          targetSubStep = subStep;
+          break;
+        } catch (e) {
+          continue;
+        }
+      }
+      if (targetTask != null) break;
+    }
 
-    _sortTasks(step);
-    notifyListeners();
+    if (targetTask != null && targetSubStep != null) {
+      targetTask.isCompleted = !targetTask.isCompleted;
+      _sortTasks(targetSubStep);
+      notifyListeners();
 
-    await _repository.updateTask(taskId, task.isCompleted);
+      await _repository.updateTask(taskId, targetTask.isCompleted);
+    }
 
     final progressAfter = project.progress;
-
     if (progressBefore < 1.0 && progressAfter == 1.0) {
       onProjectReached100(project);
     }
   }
 
-  Future<void> selectAllTasksInStep({
+  Future<void> selectAllTasksInSubStep({
     required Project project,
-    required String stepId,
+    required String subStepId,
     required Function(Project project) onProjectReached100,
   }) async {
     final progressBefore = project.progress;
 
-    final step = project.steps.firstWhere((s) => s.id == stepId);
-    for (var task in step.tasks) {
+    final subStep = project.steps
+        .expand((s) => s.subSteps)
+        .firstWhere((ss) => ss.id == subStepId);
+
+    for (var task in subStep.tasks) {
       task.isCompleted = true;
     }
-
-    _sortTasks(step);
+    _sortTasks(subStep);
     notifyListeners();
 
-    await _repository.selectAllTasksInStep(stepId);
+    await _repository.selectAllTasksInSubStep(subStepId);
 
     final progressAfter = project.progress;
-
     if (progressBefore < 1.0 && progressAfter == 1.0) {
       onProjectReached100(project);
     }
   }
 
-  Future<void> deselectAllTasksInStep(String projectId, String stepId) async {
+  Future<void> deselectAllTasksInSubStep(
+      String projectId, String subStepId) async {
     Project project;
     try {
       project = _activeProjects.firstWhere((p) => p.id == projectId);
     } catch (e) {
       project = _completedProjects.firstWhere((p) => p.id == projectId);
     }
-
     final wasProjectCompleted = project.isCompleted;
+    final subStep = project.steps
+        .expand((s) => s.subSteps)
+        .firstWhere((ss) => ss.id == subStepId);
 
-    final step = project.steps.firstWhere((s) => s.id == stepId);
-    for (var task in step.tasks) {
+    for (var task in subStep.tasks) {
       task.isCompleted = false;
     }
-
-    _sortTasks(step);
+    _sortTasks(subStep);
     notifyListeners();
 
-    await _repository.deselectAllTasksInStep(stepId);
+    await _repository.deselectAllTasksInSubStep(subStepId);
 
     final isProjectNowCompleted = project.isCompleted;
     if (wasProjectCompleted && !isProjectNowCompleted) {
@@ -184,7 +194,6 @@ class ProjectViewModel extends ChangeNotifier {
 
   Future<void> restoreSelectedSteps() async {
     if (_selectedStepsToRestore.isEmpty) return;
-
     await _repository.restoreSteps(_selectedStepsToRestore.toList());
     _selectedStepsToRestore.clear();
     _deletedSteps = [];

@@ -1,7 +1,7 @@
 import '../local/database.dart';
-
 import '../../domain/models/project_model.dart' as domain;
 import '../../domain/models/step_model.dart' as domain;
+import '../../domain/models/sub_step_model.dart' as domain;
 import '../../domain/models/task_model.dart' as domain;
 
 class ProjectService {
@@ -18,12 +18,21 @@ class ProjectService {
         return domain.Step(
           id: fullStep.step.id,
           title: fullStep.step.title,
-          tasks: fullStep.tasks.map((task) {
-            return domain.Task(
-                id: task.id,
-                title: task.title,
-                isCompleted: task.isCompleted,
-                orderIndex: task.orderIndex);
+          deletedAt: fullStep.step.deletedAt,
+          subSteps: fullStep.subSteps.map((fullSubStep) {
+            return domain.SubStep(
+              id: fullSubStep.subStep.id,
+              title: fullSubStep.subStep.title,
+              orderIndex: fullSubStep.subStep.orderIndex,
+              tasks: fullSubStep.tasks.map((task) {
+                return domain.Task(
+                  id: task.id,
+                  title: task.title,
+                  isCompleted: task.isCompleted,
+                  orderIndex: task.orderIndex,
+                );
+              }).toList(),
+            );
           }).toList(),
         );
       }).toList(),
@@ -51,12 +60,12 @@ class ProjectService {
     await _db.deleteProject(projectId);
   }
 
-  Future<void> selectAllTasksInStep(String stepId) async {
-    await _db.selectAllTasksInStep(stepId);
+  Future<void> selectAllTasksInSubStep(String subStepId) async {
+    await _db.selectAllTasksInSubStep(subStepId);
   }
 
-  Future<void> deselectAllTasksInStep(String stepId) async {
-    await _db.deselectAllTasksInStep(stepId);
+  Future<void> deselectAllTasksInSubStep(String subStepId) async {
+    await _db.deselectAllTasksInSubStep(subStepId);
   }
 
   Future<void> softDeleteStep(String stepId) async {
@@ -65,12 +74,11 @@ class ProjectService {
 
   Future<List<domain.Step>> getDeletedStepsForProject(String projectId) async {
     final deletedStepsData = await _db.getDeletedStepsForProject(projectId);
-
     return deletedStepsData.map((stepData) {
       return domain.Step(
         id: stepData.id,
         title: stepData.title,
-        tasks: [],
+        subSteps: [],
         deletedAt: stepData.deletedAt,
       );
     }).toList();

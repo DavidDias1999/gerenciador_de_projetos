@@ -1,29 +1,22 @@
-import 'task_model.dart';
+import 'sub_step_model.dart';
 
 class Step {
   String id;
   String title;
-  List<Task> tasks;
+  List<SubStep> subSteps;
   DateTime? deletedAt;
 
-  Step(
-      {required this.id,
-      required this.title,
-      required this.tasks,
-      this.deletedAt});
+  Step({
+    required this.id,
+    required this.title,
+    required this.subSteps,
+    this.deletedAt,
+  });
 
   double get progress {
-    if (tasks.isEmpty) {
-      return 0.0;
-    }
-    final completedTasks = tasks.where((task) => task.isCompleted).length;
-    return completedTasks / tasks.length;
-  }
-
-  bool get areAllTasksCompleted {
-    if (tasks.isEmpty) {
-      return true;
-    }
-    return tasks.every((task) => task.isCompleted);
+    if (subSteps.isEmpty) return 0.0;
+    final totalProgress =
+        subSteps.fold<double>(0.0, (sum, subStep) => sum + subStep.progress);
+    return totalProgress / subSteps.length;
   }
 }

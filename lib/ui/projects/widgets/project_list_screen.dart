@@ -3,6 +3,7 @@ import 'package:gerenciador_de_projetos/ui/projects/widgets/restore_steps_dialog
 import 'package:provider/provider.dart';
 import '../../../domain/models/project_model.dart' as domain;
 import '../../../domain/models/step_model.dart' as domain;
+import '../../../domain/models/sub_step_model.dart' as domain;
 import '../../app/widgets/app.dart';
 import '../view_models/project_viewmodel.dart';
 
@@ -81,7 +82,6 @@ class _ProjectListScreenState extends State<ProjectListScreen> {
     domain.Project project,
   ) {
     final viewModel = Provider.of<ProjectViewModel>(context, listen: false);
-
     showDialog(
       context: context,
       builder: (BuildContext dialogContext) {
@@ -152,7 +152,7 @@ class _ProjectListScreenState extends State<ProjectListScreen> {
         return AlertDialog(
           title: const Text('Confirmar Exclusão'),
           content: Text(
-            'Você tem certeza que deseja deletar a etapa "${step.title}"? Suas tarefas também serão ocultadas mas poderão ser restauradas.',
+            'Você tem certeza que deseja deletar a etapa "${step.title}"? Suas sub-etapas e tarefas também serão ocultadas mas poderão ser restauradas.',
           ),
           actions: [
             TextButton(
@@ -179,7 +179,6 @@ class _ProjectListScreenState extends State<ProjectListScreen> {
   void _showRestoreStepsDialog(BuildContext context, domain.Project project) {
     final viewModel = Provider.of<ProjectViewModel>(context, listen: false);
     viewModel.fetchDeletedSteps(project.id);
-
     showDialog(
       context: context,
       builder: (_) => ChangeNotifierProvider.value(
@@ -230,16 +229,10 @@ class _ProjectListScreenState extends State<ProjectListScreen> {
                     title: Row(
                       children: [
                         Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Text(
-                                project.projectName,
-                                style: Theme.of(context).textTheme.bodyLarge,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ],
+                          child: Text(
+                            project.projectName,
+                            style: Theme.of(context).textTheme.bodyLarge,
+                            overflow: TextOverflow.ellipsis,
                           ),
                         ),
                         const SizedBox(width: 16),
@@ -304,122 +297,147 @@ class _ProjectListScreenState extends State<ProjectListScreen> {
                       ],
                     ),
                     children: project.steps.map((step) {
-                      return Padding(
-                        padding: const EdgeInsets.fromLTRB(
-                          16.0,
-                          8.0,
-                          16.0,
-                          8.0,
-                        ),
-                        child: ExpansionTile(
-                          shape: const Border(),
-                          key: ValueKey(step.id),
-                          title: Row(
-                            children: [
-                              Expanded(
+                      return ExpansionTile(
+                        key: ValueKey(step.id),
+                        title: Row(
+                          children: [
+                            Expanded(
+                              child: Padding(
+                                padding: const EdgeInsets.only(left: 16.0),
                                 child: Text(
                                   step.title,
-                                  overflow: TextOverflow.ellipsis,
+                                  style: Theme.of(context).textTheme.titleSmall,
                                 ),
                               ),
-                              const SizedBox(width: 16),
-                              SizedBox(
-                                width: 80,
-                                child: LinearProgressIndicator(
-                                  value: step.progress,
-                                  backgroundColor: Theme.of(context)
-                                      .colorScheme
-                                      .surfaceContainerHighest,
-                                  minHeight: 8,
-                                  borderRadius: BorderRadius.circular(5),
-                                ),
+                            ),
+                            const SizedBox(width: 16),
+                            SizedBox(
+                              width: 80,
+                              child: LinearProgressIndicator(
+                                value: step.progress,
+                                backgroundColor: Theme.of(context)
+                                    .colorScheme
+                                    .surfaceContainerHighest,
+                                minHeight: 8,
+                                borderRadius: BorderRadius.circular(5),
                               ),
-                              const SizedBox(width: 8),
-                              SizedBox(
-                                width: 40,
-                                child: Text(
-                                  '${(step.progress * 100).toStringAsFixed(0)}%',
-                                  style: Theme.of(context).textTheme.labelSmall,
-                                ),
+                            ),
+                            const SizedBox(width: 8),
+                            SizedBox(
+                              width: 40,
+                              child: Text(
+                                '${(step.progress * 100).toStringAsFixed(0)}%',
+                                style: Theme.of(context).textTheme.labelSmall,
                               ),
-                              PopupMenuButton<String>(
-                                icon: const Icon(Icons.more_vert, size: 20.0),
-                                onSelected: (String result) {
-                                  if (result == 'selectAll') {
-                                    viewModel.selectAllTasksInStep(
-                                      project: project,
-                                      stepId: step.id,
-                                      onProjectReached100: (completedProject) =>
-                                          _showMoveToCompletedDialog(
-                                        completedProject,
-                                      ),
-                                    );
-                                  } else if (result == 'deselectAll') {
-                                    viewModel.deselectAllTasksInStep(
-                                      project.id,
-                                      step.id,
-                                    );
-                                  } else if (result == 'deleteStep') {
-                                    _showDeleteStepConfirmationDialog(
-                                      context,
-                                      project,
-                                      step,
-                                    );
-                                  }
-                                },
-                                itemBuilder: (BuildContext context) {
-                                  final areAllSelected =
-                                      step.areAllTasksCompleted;
-                                  List<PopupMenuEntry<String>> items = [];
-                                  if (areAllSelected) {
-                                    items.add(
-                                      const PopupMenuItem<String>(
-                                        value: 'deselectAll',
-                                        child: Text('Desmarcar todas'),
-                                      ),
-                                    );
-                                  } else {
-                                    items.add(
-                                      const PopupMenuItem<String>(
-                                        value: 'selectAll',
-                                        child: Text('Selecionar todas'),
-                                      ),
-                                    );
-                                  }
-                                  items.add(const PopupMenuDivider());
-                                  items.add(
-                                    const PopupMenuItem<String>(
-                                      value: 'deleteStep',
-                                      child: Text(
-                                        'Deletar etapa',
-                                        style: TextStyle(color: Colors.red),
-                                      ),
-                                    ),
+                            ),
+                            PopupMenuButton<String>(
+                              icon: const Icon(Icons.more_vert, size: 20.0),
+                              onSelected: (String result) {
+                                if (result == 'deleteStep') {
+                                  _showDeleteStepConfirmationDialog(
+                                    context,
+                                    project,
+                                    step,
                                   );
-                                  return items;
-                                },
-                              ),
-                            ],
-                          ),
-                          children: step.tasks.map((task) {
-                            return ListTile(
-                              leading: Checkbox(
-                                value: task.isCompleted,
-                                onChanged: (bool? value) {
-                                  viewModel.toggleTaskStatus(
-                                    project: project,
-                                    taskId: task.id,
-                                    onProjectReached100: (completedProject) =>
-                                        _showMoveToCompletedDialog(
-                                      completedProject,
-                                    ),
-                                  );
-                                },
-                              ),
-                              title: Text(task.title),
-                            );
-                          }).toList(),
+                                }
+                              },
+                              itemBuilder: (BuildContext context) => [
+                                const PopupMenuItem<String>(
+                                  value: 'deleteStep',
+                                  child: Text(
+                                    'Deletar etapa',
+                                    style: TextStyle(color: Colors.red),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
                         ),
+                        children: step.subSteps.map((subStep) {
+                          return Padding(
+                            padding: const EdgeInsets.fromLTRB(32, 0, 16, 0),
+                            child: ExpansionTile(
+                              key: ValueKey(subStep.id),
+                              title: Row(
+                                children: [
+                                  Expanded(
+                                      child: Text(subStep.title,
+                                          style: Theme.of(context)
+                                              .textTheme
+                                              .bodyMedium)),
+                                  const SizedBox(width: 16),
+                                  SizedBox(
+                                    width: 80,
+                                    child: LinearProgressIndicator(
+                                      value: subStep.progress,
+                                      backgroundColor: Theme.of(context)
+                                          .colorScheme
+                                          .surfaceContainerHighest,
+                                      minHeight: 8,
+                                      borderRadius: BorderRadius.circular(5),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 8),
+                                  SizedBox(
+                                    width: 40,
+                                    child: Text(
+                                      '${(subStep.progress * 100).toStringAsFixed(0)}%',
+                                      style: Theme.of(context)
+                                          .textTheme
+                                          .labelSmall,
+                                    ),
+                                  ),
+                                  PopupMenuButton<String>(
+                                    icon:
+                                        const Icon(Icons.more_vert, size: 18.0),
+                                    onSelected: (String result) {
+                                      if (result == 'selectAll') {
+                                        viewModel.selectAllTasksInSubStep(
+                                          project: project,
+                                          subStepId: subStep.id,
+                                          onProjectReached100: (p) =>
+                                              _showMoveToCompletedDialog(p),
+                                        );
+                                      } else if (result == 'deselectAll') {
+                                        viewModel.deselectAllTasksInSubStep(
+                                            project.id, subStep.id);
+                                      }
+                                    },
+                                    itemBuilder: (context) => [
+                                      const PopupMenuItem(
+                                          value: 'selectAll',
+                                          child: Text('Selecionar todas')),
+                                      const PopupMenuItem(
+                                          value: 'deselectAll',
+                                          child: Text('Desmarcar todas')),
+                                    ],
+                                  ),
+                                ],
+                              ),
+                              children: subStep.tasks.map((task) {
+                                return ListTile(
+                                  contentPadding:
+                                      const EdgeInsets.only(left: 24),
+                                  leading: Checkbox(
+                                    value: task.isCompleted,
+                                    onChanged: (bool? value) {
+                                      viewModel.toggleTaskStatus(
+                                        project: project,
+                                        taskId: task.id,
+                                        onProjectReached100:
+                                            (completedProject) =>
+                                                _showMoveToCompletedDialog(
+                                          completedProject,
+                                        ),
+                                      );
+                                    },
+                                  ),
+                                  title: Text(task.title),
+                                );
+                              }).toList(),
+                            ),
+                          );
+                        }).toList(),
                       );
                     }).toList(),
                   ),
