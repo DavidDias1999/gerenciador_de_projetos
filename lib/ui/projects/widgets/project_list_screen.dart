@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../../../domain/models/project_model.dart' as domain;
 import '../../../domain/models/step_model.dart' as domain;
 import '../../app/widgets/app.dart';
+import '../../auth/view_models/auth_viewmodel.dart';
 import '../view_models/project_viewmodel.dart';
 
 class ProjectListScreen extends StatefulWidget {
@@ -19,13 +20,13 @@ class _ProjectListScreenState extends State<ProjectListScreen> {
   @override
   void initState() {
     super.initState();
-    final viewModel = Provider.of<ProjectViewModel>(context, listen: false);
-    if (viewModel.activeProjects.isEmpty &&
-        viewModel.completedProjects.isEmpty) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final viewModel = Provider.of<ProjectViewModel>(context, listen: false);
+      if (viewModel.activeProjects.isEmpty &&
+          viewModel.completedProjects.isEmpty) {
         viewModel.loadProjects();
-      });
-    }
+      }
+    });
   }
 
   void _showCreateProjectDialog(BuildContext context) {
@@ -415,23 +416,50 @@ class _ProjectListScreenState extends State<ProjectListScreen> {
                               ),
                               children: subStep.tasks.map((task) {
                                 return ListTile(
-                                  contentPadding:
-                                      const EdgeInsets.only(left: 24),
+                                  contentPadding: const EdgeInsets.only(
+                                      left: 24, right: 16),
                                   leading: Checkbox(
                                     value: task.isCompleted,
                                     onChanged: (bool? value) {
-                                      viewModel.toggleTaskStatus(
-                                        project: project,
-                                        taskId: task.id,
-                                        onProjectReached100:
-                                            (completedProject) =>
-                                                _showMoveToCompletedDialog(
-                                          completedProject,
-                                        ),
-                                      );
+                                      final authViewModel =
+                                          context.read<AuthViewModel>();
+                                      final currentUser =
+                                          authViewModel.currentUser;
+
+                                      if (currentUser != null) {
+                                        viewModel.toggleTaskStatus(
+                                          project: project,
+                                          taskId: task.id,
+                                          onProjectReached100:
+                                              (completedProject) =>
+                                                  _showMoveToCompletedDialog(
+                                                      completedProject),
+                                          currentUserId: currentUser.id,
+                                          currentUsername: currentUser.username,
+                                        );
+                                      }
                                     },
                                   ),
-                                  title: Text(task.title),
+                                  title: Text(
+                                    task.title,
+                                    style: TextStyle(
+                                      decoration: task.isCompleted
+                                          ? TextDecoration.lineThrough
+                                          : TextDecoration.none,
+                                      color: task.isCompleted
+                                          ? Theme.of(context).disabledColor
+                                          : null,
+                                    ),
+                                  ),
+                                  subtitle: task.isCompleted &&
+                                          task.completedByUsername != null
+                                      ? Text(
+                                          'Concluído por: ${task.completedByUsername}',
+                                          style: Theme.of(context)
+                                              .textTheme
+                                              .bodySmall,
+                                        )
+                                      : null,
                                 );
                               }).toList(),
                             ),

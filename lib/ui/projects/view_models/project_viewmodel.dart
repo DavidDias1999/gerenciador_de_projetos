@@ -87,6 +87,8 @@ class ProjectViewModel extends ChangeNotifier {
     required Project project,
     required String taskId,
     required Function(Project project) onProjectReached100,
+    required int currentUserId,
+    required String currentUsername,
   }) async {
     final progressBefore = project.progress;
 
@@ -108,10 +110,18 @@ class ProjectViewModel extends ChangeNotifier {
 
     if (targetTask != null && targetSubStep != null) {
       targetTask.isCompleted = !targetTask.isCompleted;
+      if (targetTask.isCompleted) {
+        targetTask.completedByUsername = currentUsername;
+        targetTask.completedAt = DateTime.now();
+      } else {
+        targetTask.completedByUsername = null;
+        targetTask.completedAt = null;
+      }
       _sortTasks(targetSubStep);
       notifyListeners();
 
-      await _repository.updateTask(taskId, targetTask.isCompleted);
+      await _repository.updateTask(
+          taskId, targetTask.isCompleted, currentUserId);
     }
 
     final progressAfter = project.progress;

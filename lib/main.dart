@@ -16,7 +16,7 @@ import '/ui/core/themes/theme.dart';
 // import 'package:path_provider/path_provider.dart';
 
 void main() async {
-  // // DELETAR O BANCO DE DADOS NO WINDOWS
+  // DELETAR O BANCO DE DADOS NO WINDOWS
   // const bool DELETAR_BANCO_DE_DADOS_AO_INICIAR = true;
   // if (DELETAR_BANCO_DE_DADOS_AO_INICIAR) {
   //   final dbFolder = await getApplicationDocumentsDirectory();

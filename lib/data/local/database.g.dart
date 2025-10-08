@@ -783,325 +783,6 @@ class SubStepsCompanion extends UpdateCompanion<SubStepData> {
   }
 }
 
-class $TasksTable extends Tasks with TableInfo<$TasksTable, TaskData> {
-  @override
-  final GeneratedDatabase attachedDatabase;
-  final String? _alias;
-  $TasksTable(this.attachedDatabase, [this._alias]);
-  static const VerificationMeta _idMeta = const VerificationMeta('id');
-  @override
-  late final GeneratedColumn<String> id = GeneratedColumn<String>(
-      'id', aliasedName, false,
-      type: DriftSqlType.string, requiredDuringInsert: true);
-  static const VerificationMeta _titleMeta = const VerificationMeta('title');
-  @override
-  late final GeneratedColumn<String> title = GeneratedColumn<String>(
-      'title', aliasedName, false,
-      type: DriftSqlType.string, requiredDuringInsert: true);
-  static const VerificationMeta _isCompletedMeta =
-      const VerificationMeta('isCompleted');
-  @override
-  late final GeneratedColumn<bool> isCompleted = GeneratedColumn<bool>(
-      'is_completed', aliasedName, false,
-      type: DriftSqlType.bool,
-      requiredDuringInsert: false,
-      defaultConstraints: GeneratedColumn.constraintIsAlways(
-          'CHECK ("is_completed" IN (0, 1))'),
-      defaultValue: const Constant(false));
-  static const VerificationMeta _subStepIdMeta =
-      const VerificationMeta('subStepId');
-  @override
-  late final GeneratedColumn<String> subStepId = GeneratedColumn<String>(
-      'sub_step_id', aliasedName, false,
-      type: DriftSqlType.string,
-      requiredDuringInsert: true,
-      defaultConstraints:
-          GeneratedColumn.constraintIsAlways('REFERENCES sub_steps (id)'));
-  static const VerificationMeta _orderIndexMeta =
-      const VerificationMeta('orderIndex');
-  @override
-  late final GeneratedColumn<int> orderIndex = GeneratedColumn<int>(
-      'order_index', aliasedName, false,
-      type: DriftSqlType.int,
-      requiredDuringInsert: false,
-      defaultValue: const Constant(0));
-  @override
-  List<GeneratedColumn> get $columns =>
-      [id, title, isCompleted, subStepId, orderIndex];
-  @override
-  String get aliasedName => _alias ?? actualTableName;
-  @override
-  String get actualTableName => $name;
-  static const String $name = 'tasks';
-  @override
-  VerificationContext validateIntegrity(Insertable<TaskData> instance,
-      {bool isInserting = false}) {
-    final context = VerificationContext();
-    final data = instance.toColumns(true);
-    if (data.containsKey('id')) {
-      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
-    } else if (isInserting) {
-      context.missing(_idMeta);
-    }
-    if (data.containsKey('title')) {
-      context.handle(
-          _titleMeta, title.isAcceptableOrUnknown(data['title']!, _titleMeta));
-    } else if (isInserting) {
-      context.missing(_titleMeta);
-    }
-    if (data.containsKey('is_completed')) {
-      context.handle(
-          _isCompletedMeta,
-          isCompleted.isAcceptableOrUnknown(
-              data['is_completed']!, _isCompletedMeta));
-    }
-    if (data.containsKey('sub_step_id')) {
-      context.handle(
-          _subStepIdMeta,
-          subStepId.isAcceptableOrUnknown(
-              data['sub_step_id']!, _subStepIdMeta));
-    } else if (isInserting) {
-      context.missing(_subStepIdMeta);
-    }
-    if (data.containsKey('order_index')) {
-      context.handle(
-          _orderIndexMeta,
-          orderIndex.isAcceptableOrUnknown(
-              data['order_index']!, _orderIndexMeta));
-    }
-    return context;
-  }
-
-  @override
-  Set<GeneratedColumn> get $primaryKey => {id};
-  @override
-  TaskData map(Map<String, dynamic> data, {String? tablePrefix}) {
-    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
-    return TaskData(
-      id: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}id'])!,
-      title: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}title'])!,
-      isCompleted: attachedDatabase.typeMapping
-          .read(DriftSqlType.bool, data['${effectivePrefix}is_completed'])!,
-      subStepId: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}sub_step_id'])!,
-      orderIndex: attachedDatabase.typeMapping
-          .read(DriftSqlType.int, data['${effectivePrefix}order_index'])!,
-    );
-  }
-
-  @override
-  $TasksTable createAlias(String alias) {
-    return $TasksTable(attachedDatabase, alias);
-  }
-}
-
-class TaskData extends DataClass implements Insertable<TaskData> {
-  final String id;
-  final String title;
-  final bool isCompleted;
-  final String subStepId;
-  final int orderIndex;
-  const TaskData(
-      {required this.id,
-      required this.title,
-      required this.isCompleted,
-      required this.subStepId,
-      required this.orderIndex});
-  @override
-  Map<String, Expression> toColumns(bool nullToAbsent) {
-    final map = <String, Expression>{};
-    map['id'] = Variable<String>(id);
-    map['title'] = Variable<String>(title);
-    map['is_completed'] = Variable<bool>(isCompleted);
-    map['sub_step_id'] = Variable<String>(subStepId);
-    map['order_index'] = Variable<int>(orderIndex);
-    return map;
-  }
-
-  TasksCompanion toCompanion(bool nullToAbsent) {
-    return TasksCompanion(
-      id: Value(id),
-      title: Value(title),
-      isCompleted: Value(isCompleted),
-      subStepId: Value(subStepId),
-      orderIndex: Value(orderIndex),
-    );
-  }
-
-  factory TaskData.fromJson(Map<String, dynamic> json,
-      {ValueSerializer? serializer}) {
-    serializer ??= driftRuntimeOptions.defaultSerializer;
-    return TaskData(
-      id: serializer.fromJson<String>(json['id']),
-      title: serializer.fromJson<String>(json['title']),
-      isCompleted: serializer.fromJson<bool>(json['isCompleted']),
-      subStepId: serializer.fromJson<String>(json['subStepId']),
-      orderIndex: serializer.fromJson<int>(json['orderIndex']),
-    );
-  }
-  @override
-  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
-    serializer ??= driftRuntimeOptions.defaultSerializer;
-    return <String, dynamic>{
-      'id': serializer.toJson<String>(id),
-      'title': serializer.toJson<String>(title),
-      'isCompleted': serializer.toJson<bool>(isCompleted),
-      'subStepId': serializer.toJson<String>(subStepId),
-      'orderIndex': serializer.toJson<int>(orderIndex),
-    };
-  }
-
-  TaskData copyWith(
-          {String? id,
-          String? title,
-          bool? isCompleted,
-          String? subStepId,
-          int? orderIndex}) =>
-      TaskData(
-        id: id ?? this.id,
-        title: title ?? this.title,
-        isCompleted: isCompleted ?? this.isCompleted,
-        subStepId: subStepId ?? this.subStepId,
-        orderIndex: orderIndex ?? this.orderIndex,
-      );
-  TaskData copyWithCompanion(TasksCompanion data) {
-    return TaskData(
-      id: data.id.present ? data.id.value : this.id,
-      title: data.title.present ? data.title.value : this.title,
-      isCompleted:
-          data.isCompleted.present ? data.isCompleted.value : this.isCompleted,
-      subStepId: data.subStepId.present ? data.subStepId.value : this.subStepId,
-      orderIndex:
-          data.orderIndex.present ? data.orderIndex.value : this.orderIndex,
-    );
-  }
-
-  @override
-  String toString() {
-    return (StringBuffer('TaskData(')
-          ..write('id: $id, ')
-          ..write('title: $title, ')
-          ..write('isCompleted: $isCompleted, ')
-          ..write('subStepId: $subStepId, ')
-          ..write('orderIndex: $orderIndex')
-          ..write(')'))
-        .toString();
-  }
-
-  @override
-  int get hashCode =>
-      Object.hash(id, title, isCompleted, subStepId, orderIndex);
-  @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      (other is TaskData &&
-          other.id == this.id &&
-          other.title == this.title &&
-          other.isCompleted == this.isCompleted &&
-          other.subStepId == this.subStepId &&
-          other.orderIndex == this.orderIndex);
-}
-
-class TasksCompanion extends UpdateCompanion<TaskData> {
-  final Value<String> id;
-  final Value<String> title;
-  final Value<bool> isCompleted;
-  final Value<String> subStepId;
-  final Value<int> orderIndex;
-  final Value<int> rowid;
-  const TasksCompanion({
-    this.id = const Value.absent(),
-    this.title = const Value.absent(),
-    this.isCompleted = const Value.absent(),
-    this.subStepId = const Value.absent(),
-    this.orderIndex = const Value.absent(),
-    this.rowid = const Value.absent(),
-  });
-  TasksCompanion.insert({
-    required String id,
-    required String title,
-    this.isCompleted = const Value.absent(),
-    required String subStepId,
-    this.orderIndex = const Value.absent(),
-    this.rowid = const Value.absent(),
-  })  : id = Value(id),
-        title = Value(title),
-        subStepId = Value(subStepId);
-  static Insertable<TaskData> custom({
-    Expression<String>? id,
-    Expression<String>? title,
-    Expression<bool>? isCompleted,
-    Expression<String>? subStepId,
-    Expression<int>? orderIndex,
-    Expression<int>? rowid,
-  }) {
-    return RawValuesInsertable({
-      if (id != null) 'id': id,
-      if (title != null) 'title': title,
-      if (isCompleted != null) 'is_completed': isCompleted,
-      if (subStepId != null) 'sub_step_id': subStepId,
-      if (orderIndex != null) 'order_index': orderIndex,
-      if (rowid != null) 'rowid': rowid,
-    });
-  }
-
-  TasksCompanion copyWith(
-      {Value<String>? id,
-      Value<String>? title,
-      Value<bool>? isCompleted,
-      Value<String>? subStepId,
-      Value<int>? orderIndex,
-      Value<int>? rowid}) {
-    return TasksCompanion(
-      id: id ?? this.id,
-      title: title ?? this.title,
-      isCompleted: isCompleted ?? this.isCompleted,
-      subStepId: subStepId ?? this.subStepId,
-      orderIndex: orderIndex ?? this.orderIndex,
-      rowid: rowid ?? this.rowid,
-    );
-  }
-
-  @override
-  Map<String, Expression> toColumns(bool nullToAbsent) {
-    final map = <String, Expression>{};
-    if (id.present) {
-      map['id'] = Variable<String>(id.value);
-    }
-    if (title.present) {
-      map['title'] = Variable<String>(title.value);
-    }
-    if (isCompleted.present) {
-      map['is_completed'] = Variable<bool>(isCompleted.value);
-    }
-    if (subStepId.present) {
-      map['sub_step_id'] = Variable<String>(subStepId.value);
-    }
-    if (orderIndex.present) {
-      map['order_index'] = Variable<int>(orderIndex.value);
-    }
-    if (rowid.present) {
-      map['rowid'] = Variable<int>(rowid.value);
-    }
-    return map;
-  }
-
-  @override
-  String toString() {
-    return (StringBuffer('TasksCompanion(')
-          ..write('id: $id, ')
-          ..write('title: $title, ')
-          ..write('isCompleted: $isCompleted, ')
-          ..write('subStepId: $subStepId, ')
-          ..write('orderIndex: $orderIndex, ')
-          ..write('rowid: $rowid')
-          ..write(')'))
-        .toString();
-  }
-}
-
 class $UsersTable extends Users with TableInfo<$UsersTable, UserData> {
   @override
   final GeneratedDatabase attachedDatabase;
@@ -1319,20 +1000,434 @@ class UsersCompanion extends UpdateCompanion<UserData> {
   }
 }
 
+class $TasksTable extends Tasks with TableInfo<$TasksTable, TaskData> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $TasksTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+      'id', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _titleMeta = const VerificationMeta('title');
+  @override
+  late final GeneratedColumn<String> title = GeneratedColumn<String>(
+      'title', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _isCompletedMeta =
+      const VerificationMeta('isCompleted');
+  @override
+  late final GeneratedColumn<bool> isCompleted = GeneratedColumn<bool>(
+      'is_completed', aliasedName, false,
+      type: DriftSqlType.bool,
+      requiredDuringInsert: false,
+      defaultConstraints: GeneratedColumn.constraintIsAlways(
+          'CHECK ("is_completed" IN (0, 1))'),
+      defaultValue: const Constant(false));
+  static const VerificationMeta _subStepIdMeta =
+      const VerificationMeta('subStepId');
+  @override
+  late final GeneratedColumn<String> subStepId = GeneratedColumn<String>(
+      'sub_step_id', aliasedName, false,
+      type: DriftSqlType.string,
+      requiredDuringInsert: true,
+      defaultConstraints:
+          GeneratedColumn.constraintIsAlways('REFERENCES sub_steps (id)'));
+  static const VerificationMeta _orderIndexMeta =
+      const VerificationMeta('orderIndex');
+  @override
+  late final GeneratedColumn<int> orderIndex = GeneratedColumn<int>(
+      'order_index', aliasedName, false,
+      type: DriftSqlType.int,
+      requiredDuringInsert: false,
+      defaultValue: const Constant(0));
+  static const VerificationMeta _completedByUserIdMeta =
+      const VerificationMeta('completedByUserId');
+  @override
+  late final GeneratedColumn<int> completedByUserId = GeneratedColumn<int>(
+      'completed_by_user_id', aliasedName, true,
+      type: DriftSqlType.int,
+      requiredDuringInsert: false,
+      defaultConstraints:
+          GeneratedColumn.constraintIsAlways('REFERENCES users (id)'));
+  static const VerificationMeta _completedAtMeta =
+      const VerificationMeta('completedAt');
+  @override
+  late final GeneratedColumn<DateTime> completedAt = GeneratedColumn<DateTime>(
+      'completed_at', aliasedName, true,
+      type: DriftSqlType.dateTime, requiredDuringInsert: false);
+  @override
+  List<GeneratedColumn> get $columns => [
+        id,
+        title,
+        isCompleted,
+        subStepId,
+        orderIndex,
+        completedByUserId,
+        completedAt
+      ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'tasks';
+  @override
+  VerificationContext validateIntegrity(Insertable<TaskData> instance,
+      {bool isInserting = false}) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('title')) {
+      context.handle(
+          _titleMeta, title.isAcceptableOrUnknown(data['title']!, _titleMeta));
+    } else if (isInserting) {
+      context.missing(_titleMeta);
+    }
+    if (data.containsKey('is_completed')) {
+      context.handle(
+          _isCompletedMeta,
+          isCompleted.isAcceptableOrUnknown(
+              data['is_completed']!, _isCompletedMeta));
+    }
+    if (data.containsKey('sub_step_id')) {
+      context.handle(
+          _subStepIdMeta,
+          subStepId.isAcceptableOrUnknown(
+              data['sub_step_id']!, _subStepIdMeta));
+    } else if (isInserting) {
+      context.missing(_subStepIdMeta);
+    }
+    if (data.containsKey('order_index')) {
+      context.handle(
+          _orderIndexMeta,
+          orderIndex.isAcceptableOrUnknown(
+              data['order_index']!, _orderIndexMeta));
+    }
+    if (data.containsKey('completed_by_user_id')) {
+      context.handle(
+          _completedByUserIdMeta,
+          completedByUserId.isAcceptableOrUnknown(
+              data['completed_by_user_id']!, _completedByUserIdMeta));
+    }
+    if (data.containsKey('completed_at')) {
+      context.handle(
+          _completedAtMeta,
+          completedAt.isAcceptableOrUnknown(
+              data['completed_at']!, _completedAtMeta));
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  TaskData map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return TaskData(
+      id: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}id'])!,
+      title: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}title'])!,
+      isCompleted: attachedDatabase.typeMapping
+          .read(DriftSqlType.bool, data['${effectivePrefix}is_completed'])!,
+      subStepId: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}sub_step_id'])!,
+      orderIndex: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}order_index'])!,
+      completedByUserId: attachedDatabase.typeMapping.read(
+          DriftSqlType.int, data['${effectivePrefix}completed_by_user_id']),
+      completedAt: attachedDatabase.typeMapping
+          .read(DriftSqlType.dateTime, data['${effectivePrefix}completed_at']),
+    );
+  }
+
+  @override
+  $TasksTable createAlias(String alias) {
+    return $TasksTable(attachedDatabase, alias);
+  }
+}
+
+class TaskData extends DataClass implements Insertable<TaskData> {
+  final String id;
+  final String title;
+  final bool isCompleted;
+  final String subStepId;
+  final int orderIndex;
+  final int? completedByUserId;
+  final DateTime? completedAt;
+  const TaskData(
+      {required this.id,
+      required this.title,
+      required this.isCompleted,
+      required this.subStepId,
+      required this.orderIndex,
+      this.completedByUserId,
+      this.completedAt});
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['title'] = Variable<String>(title);
+    map['is_completed'] = Variable<bool>(isCompleted);
+    map['sub_step_id'] = Variable<String>(subStepId);
+    map['order_index'] = Variable<int>(orderIndex);
+    if (!nullToAbsent || completedByUserId != null) {
+      map['completed_by_user_id'] = Variable<int>(completedByUserId);
+    }
+    if (!nullToAbsent || completedAt != null) {
+      map['completed_at'] = Variable<DateTime>(completedAt);
+    }
+    return map;
+  }
+
+  TasksCompanion toCompanion(bool nullToAbsent) {
+    return TasksCompanion(
+      id: Value(id),
+      title: Value(title),
+      isCompleted: Value(isCompleted),
+      subStepId: Value(subStepId),
+      orderIndex: Value(orderIndex),
+      completedByUserId: completedByUserId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(completedByUserId),
+      completedAt: completedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(completedAt),
+    );
+  }
+
+  factory TaskData.fromJson(Map<String, dynamic> json,
+      {ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return TaskData(
+      id: serializer.fromJson<String>(json['id']),
+      title: serializer.fromJson<String>(json['title']),
+      isCompleted: serializer.fromJson<bool>(json['isCompleted']),
+      subStepId: serializer.fromJson<String>(json['subStepId']),
+      orderIndex: serializer.fromJson<int>(json['orderIndex']),
+      completedByUserId: serializer.fromJson<int?>(json['completedByUserId']),
+      completedAt: serializer.fromJson<DateTime?>(json['completedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'title': serializer.toJson<String>(title),
+      'isCompleted': serializer.toJson<bool>(isCompleted),
+      'subStepId': serializer.toJson<String>(subStepId),
+      'orderIndex': serializer.toJson<int>(orderIndex),
+      'completedByUserId': serializer.toJson<int?>(completedByUserId),
+      'completedAt': serializer.toJson<DateTime?>(completedAt),
+    };
+  }
+
+  TaskData copyWith(
+          {String? id,
+          String? title,
+          bool? isCompleted,
+          String? subStepId,
+          int? orderIndex,
+          Value<int?> completedByUserId = const Value.absent(),
+          Value<DateTime?> completedAt = const Value.absent()}) =>
+      TaskData(
+        id: id ?? this.id,
+        title: title ?? this.title,
+        isCompleted: isCompleted ?? this.isCompleted,
+        subStepId: subStepId ?? this.subStepId,
+        orderIndex: orderIndex ?? this.orderIndex,
+        completedByUserId: completedByUserId.present
+            ? completedByUserId.value
+            : this.completedByUserId,
+        completedAt: completedAt.present ? completedAt.value : this.completedAt,
+      );
+  TaskData copyWithCompanion(TasksCompanion data) {
+    return TaskData(
+      id: data.id.present ? data.id.value : this.id,
+      title: data.title.present ? data.title.value : this.title,
+      isCompleted:
+          data.isCompleted.present ? data.isCompleted.value : this.isCompleted,
+      subStepId: data.subStepId.present ? data.subStepId.value : this.subStepId,
+      orderIndex:
+          data.orderIndex.present ? data.orderIndex.value : this.orderIndex,
+      completedByUserId: data.completedByUserId.present
+          ? data.completedByUserId.value
+          : this.completedByUserId,
+      completedAt:
+          data.completedAt.present ? data.completedAt.value : this.completedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('TaskData(')
+          ..write('id: $id, ')
+          ..write('title: $title, ')
+          ..write('isCompleted: $isCompleted, ')
+          ..write('subStepId: $subStepId, ')
+          ..write('orderIndex: $orderIndex, ')
+          ..write('completedByUserId: $completedByUserId, ')
+          ..write('completedAt: $completedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(id, title, isCompleted, subStepId, orderIndex,
+      completedByUserId, completedAt);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is TaskData &&
+          other.id == this.id &&
+          other.title == this.title &&
+          other.isCompleted == this.isCompleted &&
+          other.subStepId == this.subStepId &&
+          other.orderIndex == this.orderIndex &&
+          other.completedByUserId == this.completedByUserId &&
+          other.completedAt == this.completedAt);
+}
+
+class TasksCompanion extends UpdateCompanion<TaskData> {
+  final Value<String> id;
+  final Value<String> title;
+  final Value<bool> isCompleted;
+  final Value<String> subStepId;
+  final Value<int> orderIndex;
+  final Value<int?> completedByUserId;
+  final Value<DateTime?> completedAt;
+  final Value<int> rowid;
+  const TasksCompanion({
+    this.id = const Value.absent(),
+    this.title = const Value.absent(),
+    this.isCompleted = const Value.absent(),
+    this.subStepId = const Value.absent(),
+    this.orderIndex = const Value.absent(),
+    this.completedByUserId = const Value.absent(),
+    this.completedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  TasksCompanion.insert({
+    required String id,
+    required String title,
+    this.isCompleted = const Value.absent(),
+    required String subStepId,
+    this.orderIndex = const Value.absent(),
+    this.completedByUserId = const Value.absent(),
+    this.completedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  })  : id = Value(id),
+        title = Value(title),
+        subStepId = Value(subStepId);
+  static Insertable<TaskData> custom({
+    Expression<String>? id,
+    Expression<String>? title,
+    Expression<bool>? isCompleted,
+    Expression<String>? subStepId,
+    Expression<int>? orderIndex,
+    Expression<int>? completedByUserId,
+    Expression<DateTime>? completedAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (title != null) 'title': title,
+      if (isCompleted != null) 'is_completed': isCompleted,
+      if (subStepId != null) 'sub_step_id': subStepId,
+      if (orderIndex != null) 'order_index': orderIndex,
+      if (completedByUserId != null) 'completed_by_user_id': completedByUserId,
+      if (completedAt != null) 'completed_at': completedAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  TasksCompanion copyWith(
+      {Value<String>? id,
+      Value<String>? title,
+      Value<bool>? isCompleted,
+      Value<String>? subStepId,
+      Value<int>? orderIndex,
+      Value<int?>? completedByUserId,
+      Value<DateTime?>? completedAt,
+      Value<int>? rowid}) {
+    return TasksCompanion(
+      id: id ?? this.id,
+      title: title ?? this.title,
+      isCompleted: isCompleted ?? this.isCompleted,
+      subStepId: subStepId ?? this.subStepId,
+      orderIndex: orderIndex ?? this.orderIndex,
+      completedByUserId: completedByUserId ?? this.completedByUserId,
+      completedAt: completedAt ?? this.completedAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (title.present) {
+      map['title'] = Variable<String>(title.value);
+    }
+    if (isCompleted.present) {
+      map['is_completed'] = Variable<bool>(isCompleted.value);
+    }
+    if (subStepId.present) {
+      map['sub_step_id'] = Variable<String>(subStepId.value);
+    }
+    if (orderIndex.present) {
+      map['order_index'] = Variable<int>(orderIndex.value);
+    }
+    if (completedByUserId.present) {
+      map['completed_by_user_id'] = Variable<int>(completedByUserId.value);
+    }
+    if (completedAt.present) {
+      map['completed_at'] = Variable<DateTime>(completedAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('TasksCompanion(')
+          ..write('id: $id, ')
+          ..write('title: $title, ')
+          ..write('isCompleted: $isCompleted, ')
+          ..write('subStepId: $subStepId, ')
+          ..write('orderIndex: $orderIndex, ')
+          ..write('completedByUserId: $completedByUserId, ')
+          ..write('completedAt: $completedAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
   late final $ProjectsTable projects = $ProjectsTable(this);
   late final $StepsTable steps = $StepsTable(this);
   late final $SubStepsTable subSteps = $SubStepsTable(this);
-  late final $TasksTable tasks = $TasksTable(this);
   late final $UsersTable users = $UsersTable(this);
+  late final $TasksTable tasks = $TasksTable(this);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
   @override
   List<DatabaseSchemaEntity> get allSchemaEntities =>
-      [projects, steps, subSteps, tasks, users];
+      [projects, steps, subSteps, users, tasks];
 }
 
 typedef $$ProjectsTableCreateCompanionBuilder = ProjectsCompanion Function({
@@ -2199,274 +2294,6 @@ typedef $$SubStepsTableProcessedTableManager = ProcessedTableManager<
     (SubStepData, $$SubStepsTableReferences),
     SubStepData,
     PrefetchHooks Function({bool stepId, bool tasksRefs})>;
-typedef $$TasksTableCreateCompanionBuilder = TasksCompanion Function({
-  required String id,
-  required String title,
-  Value<bool> isCompleted,
-  required String subStepId,
-  Value<int> orderIndex,
-  Value<int> rowid,
-});
-typedef $$TasksTableUpdateCompanionBuilder = TasksCompanion Function({
-  Value<String> id,
-  Value<String> title,
-  Value<bool> isCompleted,
-  Value<String> subStepId,
-  Value<int> orderIndex,
-  Value<int> rowid,
-});
-
-final class $$TasksTableReferences
-    extends BaseReferences<_$AppDatabase, $TasksTable, TaskData> {
-  $$TasksTableReferences(super.$_db, super.$_table, super.$_typedResult);
-
-  static $SubStepsTable _subStepIdTable(_$AppDatabase db) => db.subSteps
-      .createAlias($_aliasNameGenerator(db.tasks.subStepId, db.subSteps.id));
-
-  $$SubStepsTableProcessedTableManager get subStepId {
-    final $_column = $_itemColumn<String>('sub_step_id')!;
-
-    final manager = $$SubStepsTableTableManager($_db, $_db.subSteps)
-        .filter((f) => f.id.sqlEquals($_column));
-    final item = $_typedResult.readTableOrNull(_subStepIdTable($_db));
-    if (item == null) return manager;
-    return ProcessedTableManager(
-        manager.$state.copyWith(prefetchedData: [item]));
-  }
-}
-
-class $$TasksTableFilterComposer extends Composer<_$AppDatabase, $TasksTable> {
-  $$TasksTableFilterComposer({
-    required super.$db,
-    required super.$table,
-    super.joinBuilder,
-    super.$addJoinBuilderToRootComposer,
-    super.$removeJoinBuilderFromRootComposer,
-  });
-  ColumnFilters<String> get id => $composableBuilder(
-      column: $table.id, builder: (column) => ColumnFilters(column));
-
-  ColumnFilters<String> get title => $composableBuilder(
-      column: $table.title, builder: (column) => ColumnFilters(column));
-
-  ColumnFilters<bool> get isCompleted => $composableBuilder(
-      column: $table.isCompleted, builder: (column) => ColumnFilters(column));
-
-  ColumnFilters<int> get orderIndex => $composableBuilder(
-      column: $table.orderIndex, builder: (column) => ColumnFilters(column));
-
-  $$SubStepsTableFilterComposer get subStepId {
-    final $$SubStepsTableFilterComposer composer = $composerBuilder(
-        composer: this,
-        getCurrentColumn: (t) => t.subStepId,
-        referencedTable: $db.subSteps,
-        getReferencedColumn: (t) => t.id,
-        builder: (joinBuilder,
-                {$addJoinBuilderToRootComposer,
-                $removeJoinBuilderFromRootComposer}) =>
-            $$SubStepsTableFilterComposer(
-              $db: $db,
-              $table: $db.subSteps,
-              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-              joinBuilder: joinBuilder,
-              $removeJoinBuilderFromRootComposer:
-                  $removeJoinBuilderFromRootComposer,
-            ));
-    return composer;
-  }
-}
-
-class $$TasksTableOrderingComposer
-    extends Composer<_$AppDatabase, $TasksTable> {
-  $$TasksTableOrderingComposer({
-    required super.$db,
-    required super.$table,
-    super.joinBuilder,
-    super.$addJoinBuilderToRootComposer,
-    super.$removeJoinBuilderFromRootComposer,
-  });
-  ColumnOrderings<String> get id => $composableBuilder(
-      column: $table.id, builder: (column) => ColumnOrderings(column));
-
-  ColumnOrderings<String> get title => $composableBuilder(
-      column: $table.title, builder: (column) => ColumnOrderings(column));
-
-  ColumnOrderings<bool> get isCompleted => $composableBuilder(
-      column: $table.isCompleted, builder: (column) => ColumnOrderings(column));
-
-  ColumnOrderings<int> get orderIndex => $composableBuilder(
-      column: $table.orderIndex, builder: (column) => ColumnOrderings(column));
-
-  $$SubStepsTableOrderingComposer get subStepId {
-    final $$SubStepsTableOrderingComposer composer = $composerBuilder(
-        composer: this,
-        getCurrentColumn: (t) => t.subStepId,
-        referencedTable: $db.subSteps,
-        getReferencedColumn: (t) => t.id,
-        builder: (joinBuilder,
-                {$addJoinBuilderToRootComposer,
-                $removeJoinBuilderFromRootComposer}) =>
-            $$SubStepsTableOrderingComposer(
-              $db: $db,
-              $table: $db.subSteps,
-              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-              joinBuilder: joinBuilder,
-              $removeJoinBuilderFromRootComposer:
-                  $removeJoinBuilderFromRootComposer,
-            ));
-    return composer;
-  }
-}
-
-class $$TasksTableAnnotationComposer
-    extends Composer<_$AppDatabase, $TasksTable> {
-  $$TasksTableAnnotationComposer({
-    required super.$db,
-    required super.$table,
-    super.joinBuilder,
-    super.$addJoinBuilderToRootComposer,
-    super.$removeJoinBuilderFromRootComposer,
-  });
-  GeneratedColumn<String> get id =>
-      $composableBuilder(column: $table.id, builder: (column) => column);
-
-  GeneratedColumn<String> get title =>
-      $composableBuilder(column: $table.title, builder: (column) => column);
-
-  GeneratedColumn<bool> get isCompleted => $composableBuilder(
-      column: $table.isCompleted, builder: (column) => column);
-
-  GeneratedColumn<int> get orderIndex => $composableBuilder(
-      column: $table.orderIndex, builder: (column) => column);
-
-  $$SubStepsTableAnnotationComposer get subStepId {
-    final $$SubStepsTableAnnotationComposer composer = $composerBuilder(
-        composer: this,
-        getCurrentColumn: (t) => t.subStepId,
-        referencedTable: $db.subSteps,
-        getReferencedColumn: (t) => t.id,
-        builder: (joinBuilder,
-                {$addJoinBuilderToRootComposer,
-                $removeJoinBuilderFromRootComposer}) =>
-            $$SubStepsTableAnnotationComposer(
-              $db: $db,
-              $table: $db.subSteps,
-              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-              joinBuilder: joinBuilder,
-              $removeJoinBuilderFromRootComposer:
-                  $removeJoinBuilderFromRootComposer,
-            ));
-    return composer;
-  }
-}
-
-class $$TasksTableTableManager extends RootTableManager<
-    _$AppDatabase,
-    $TasksTable,
-    TaskData,
-    $$TasksTableFilterComposer,
-    $$TasksTableOrderingComposer,
-    $$TasksTableAnnotationComposer,
-    $$TasksTableCreateCompanionBuilder,
-    $$TasksTableUpdateCompanionBuilder,
-    (TaskData, $$TasksTableReferences),
-    TaskData,
-    PrefetchHooks Function({bool subStepId})> {
-  $$TasksTableTableManager(_$AppDatabase db, $TasksTable table)
-      : super(TableManagerState(
-          db: db,
-          table: table,
-          createFilteringComposer: () =>
-              $$TasksTableFilterComposer($db: db, $table: table),
-          createOrderingComposer: () =>
-              $$TasksTableOrderingComposer($db: db, $table: table),
-          createComputedFieldComposer: () =>
-              $$TasksTableAnnotationComposer($db: db, $table: table),
-          updateCompanionCallback: ({
-            Value<String> id = const Value.absent(),
-            Value<String> title = const Value.absent(),
-            Value<bool> isCompleted = const Value.absent(),
-            Value<String> subStepId = const Value.absent(),
-            Value<int> orderIndex = const Value.absent(),
-            Value<int> rowid = const Value.absent(),
-          }) =>
-              TasksCompanion(
-            id: id,
-            title: title,
-            isCompleted: isCompleted,
-            subStepId: subStepId,
-            orderIndex: orderIndex,
-            rowid: rowid,
-          ),
-          createCompanionCallback: ({
-            required String id,
-            required String title,
-            Value<bool> isCompleted = const Value.absent(),
-            required String subStepId,
-            Value<int> orderIndex = const Value.absent(),
-            Value<int> rowid = const Value.absent(),
-          }) =>
-              TasksCompanion.insert(
-            id: id,
-            title: title,
-            isCompleted: isCompleted,
-            subStepId: subStepId,
-            orderIndex: orderIndex,
-            rowid: rowid,
-          ),
-          withReferenceMapper: (p0) => p0
-              .map((e) =>
-                  (e.readTable(table), $$TasksTableReferences(db, table, e)))
-              .toList(),
-          prefetchHooksCallback: ({subStepId = false}) {
-            return PrefetchHooks(
-              db: db,
-              explicitlyWatchedTables: [],
-              addJoins: <
-                  T extends TableManagerState<
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic>>(state) {
-                if (subStepId) {
-                  state = state.withJoin(
-                    currentTable: table,
-                    currentColumn: table.subStepId,
-                    referencedTable: $$TasksTableReferences._subStepIdTable(db),
-                    referencedColumn:
-                        $$TasksTableReferences._subStepIdTable(db).id,
-                  ) as T;
-                }
-
-                return state;
-              },
-              getPrefetchedDataCallback: (items) async {
-                return [];
-              },
-            );
-          },
-        ));
-}
-
-typedef $$TasksTableProcessedTableManager = ProcessedTableManager<
-    _$AppDatabase,
-    $TasksTable,
-    TaskData,
-    $$TasksTableFilterComposer,
-    $$TasksTableOrderingComposer,
-    $$TasksTableAnnotationComposer,
-    $$TasksTableCreateCompanionBuilder,
-    $$TasksTableUpdateCompanionBuilder,
-    (TaskData, $$TasksTableReferences),
-    TaskData,
-    PrefetchHooks Function({bool subStepId})>;
 typedef $$UsersTableCreateCompanionBuilder = UsersCompanion Function({
   Value<int> id,
   required String username,
@@ -2477,6 +2304,26 @@ typedef $$UsersTableUpdateCompanionBuilder = UsersCompanion Function({
   Value<String> username,
   Value<String> password,
 });
+
+final class $$UsersTableReferences
+    extends BaseReferences<_$AppDatabase, $UsersTable, UserData> {
+  $$UsersTableReferences(super.$_db, super.$_table, super.$_typedResult);
+
+  static MultiTypedResultKey<$TasksTable, List<TaskData>> _tasksRefsTable(
+          _$AppDatabase db) =>
+      MultiTypedResultKey.fromTable(db.tasks,
+          aliasName:
+              $_aliasNameGenerator(db.users.id, db.tasks.completedByUserId));
+
+  $$TasksTableProcessedTableManager get tasksRefs {
+    final manager = $$TasksTableTableManager($_db, $_db.tasks).filter(
+        (f) => f.completedByUserId.id.sqlEquals($_itemColumn<int>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(_tasksRefsTable($_db));
+    return ProcessedTableManager(
+        manager.$state.copyWith(prefetchedData: cache));
+  }
+}
 
 class $$UsersTableFilterComposer extends Composer<_$AppDatabase, $UsersTable> {
   $$UsersTableFilterComposer({
@@ -2494,6 +2341,27 @@ class $$UsersTableFilterComposer extends Composer<_$AppDatabase, $UsersTable> {
 
   ColumnFilters<String> get password => $composableBuilder(
       column: $table.password, builder: (column) => ColumnFilters(column));
+
+  Expression<bool> tasksRefs(
+      Expression<bool> Function($$TasksTableFilterComposer f) f) {
+    final $$TasksTableFilterComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.id,
+        referencedTable: $db.tasks,
+        getReferencedColumn: (t) => t.completedByUserId,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$TasksTableFilterComposer(
+              $db: $db,
+              $table: $db.tasks,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return f(composer);
+  }
 }
 
 class $$UsersTableOrderingComposer
@@ -2532,6 +2400,27 @@ class $$UsersTableAnnotationComposer
 
   GeneratedColumn<String> get password =>
       $composableBuilder(column: $table.password, builder: (column) => column);
+
+  Expression<T> tasksRefs<T extends Object>(
+      Expression<T> Function($$TasksTableAnnotationComposer a) f) {
+    final $$TasksTableAnnotationComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.id,
+        referencedTable: $db.tasks,
+        getReferencedColumn: (t) => t.completedByUserId,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$TasksTableAnnotationComposer(
+              $db: $db,
+              $table: $db.tasks,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return f(composer);
+  }
 }
 
 class $$UsersTableTableManager extends RootTableManager<
@@ -2543,9 +2432,9 @@ class $$UsersTableTableManager extends RootTableManager<
     $$UsersTableAnnotationComposer,
     $$UsersTableCreateCompanionBuilder,
     $$UsersTableUpdateCompanionBuilder,
-    (UserData, BaseReferences<_$AppDatabase, $UsersTable, UserData>),
+    (UserData, $$UsersTableReferences),
     UserData,
-    PrefetchHooks Function()> {
+    PrefetchHooks Function({bool tasksRefs})> {
   $$UsersTableTableManager(_$AppDatabase db, $UsersTable table)
       : super(TableManagerState(
           db: db,
@@ -2577,9 +2466,31 @@ class $$UsersTableTableManager extends RootTableManager<
             password: password,
           ),
           withReferenceMapper: (p0) => p0
-              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .map((e) =>
+                  (e.readTable(table), $$UsersTableReferences(db, table, e)))
               .toList(),
-          prefetchHooksCallback: null,
+          prefetchHooksCallback: ({tasksRefs = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [if (tasksRefs) db.tasks],
+              addJoins: null,
+              getPrefetchedDataCallback: (items) async {
+                return [
+                  if (tasksRefs)
+                    await $_getPrefetchedData<UserData, $UsersTable, TaskData>(
+                        currentTable: table,
+                        referencedTable:
+                            $$UsersTableReferences._tasksRefsTable(db),
+                        managerFromTypedResult: (p0) =>
+                            $$UsersTableReferences(db, table, p0).tasksRefs,
+                        referencedItemsForCurrentItem:
+                            (item, referencedItems) => referencedItems
+                                .where((e) => e.completedByUserId == item.id),
+                        typedResults: items)
+                ];
+              },
+            );
+          },
         ));
 }
 
@@ -2592,9 +2503,384 @@ typedef $$UsersTableProcessedTableManager = ProcessedTableManager<
     $$UsersTableAnnotationComposer,
     $$UsersTableCreateCompanionBuilder,
     $$UsersTableUpdateCompanionBuilder,
-    (UserData, BaseReferences<_$AppDatabase, $UsersTable, UserData>),
+    (UserData, $$UsersTableReferences),
     UserData,
-    PrefetchHooks Function()>;
+    PrefetchHooks Function({bool tasksRefs})>;
+typedef $$TasksTableCreateCompanionBuilder = TasksCompanion Function({
+  required String id,
+  required String title,
+  Value<bool> isCompleted,
+  required String subStepId,
+  Value<int> orderIndex,
+  Value<int?> completedByUserId,
+  Value<DateTime?> completedAt,
+  Value<int> rowid,
+});
+typedef $$TasksTableUpdateCompanionBuilder = TasksCompanion Function({
+  Value<String> id,
+  Value<String> title,
+  Value<bool> isCompleted,
+  Value<String> subStepId,
+  Value<int> orderIndex,
+  Value<int?> completedByUserId,
+  Value<DateTime?> completedAt,
+  Value<int> rowid,
+});
+
+final class $$TasksTableReferences
+    extends BaseReferences<_$AppDatabase, $TasksTable, TaskData> {
+  $$TasksTableReferences(super.$_db, super.$_table, super.$_typedResult);
+
+  static $SubStepsTable _subStepIdTable(_$AppDatabase db) => db.subSteps
+      .createAlias($_aliasNameGenerator(db.tasks.subStepId, db.subSteps.id));
+
+  $$SubStepsTableProcessedTableManager get subStepId {
+    final $_column = $_itemColumn<String>('sub_step_id')!;
+
+    final manager = $$SubStepsTableTableManager($_db, $_db.subSteps)
+        .filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_subStepIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+        manager.$state.copyWith(prefetchedData: [item]));
+  }
+
+  static $UsersTable _completedByUserIdTable(_$AppDatabase db) =>
+      db.users.createAlias(
+          $_aliasNameGenerator(db.tasks.completedByUserId, db.users.id));
+
+  $$UsersTableProcessedTableManager? get completedByUserId {
+    final $_column = $_itemColumn<int>('completed_by_user_id');
+    if ($_column == null) return null;
+    final manager = $$UsersTableTableManager($_db, $_db.users)
+        .filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_completedByUserIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+        manager.$state.copyWith(prefetchedData: [item]));
+  }
+}
+
+class $$TasksTableFilterComposer extends Composer<_$AppDatabase, $TasksTable> {
+  $$TasksTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+      column: $table.id, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get title => $composableBuilder(
+      column: $table.title, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<bool> get isCompleted => $composableBuilder(
+      column: $table.isCompleted, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<int> get orderIndex => $composableBuilder(
+      column: $table.orderIndex, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<DateTime> get completedAt => $composableBuilder(
+      column: $table.completedAt, builder: (column) => ColumnFilters(column));
+
+  $$SubStepsTableFilterComposer get subStepId {
+    final $$SubStepsTableFilterComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.subStepId,
+        referencedTable: $db.subSteps,
+        getReferencedColumn: (t) => t.id,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$SubStepsTableFilterComposer(
+              $db: $db,
+              $table: $db.subSteps,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return composer;
+  }
+
+  $$UsersTableFilterComposer get completedByUserId {
+    final $$UsersTableFilterComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.completedByUserId,
+        referencedTable: $db.users,
+        getReferencedColumn: (t) => t.id,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$UsersTableFilterComposer(
+              $db: $db,
+              $table: $db.users,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return composer;
+  }
+}
+
+class $$TasksTableOrderingComposer
+    extends Composer<_$AppDatabase, $TasksTable> {
+  $$TasksTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+      column: $table.id, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get title => $composableBuilder(
+      column: $table.title, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<bool> get isCompleted => $composableBuilder(
+      column: $table.isCompleted, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<int> get orderIndex => $composableBuilder(
+      column: $table.orderIndex, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<DateTime> get completedAt => $composableBuilder(
+      column: $table.completedAt, builder: (column) => ColumnOrderings(column));
+
+  $$SubStepsTableOrderingComposer get subStepId {
+    final $$SubStepsTableOrderingComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.subStepId,
+        referencedTable: $db.subSteps,
+        getReferencedColumn: (t) => t.id,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$SubStepsTableOrderingComposer(
+              $db: $db,
+              $table: $db.subSteps,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return composer;
+  }
+
+  $$UsersTableOrderingComposer get completedByUserId {
+    final $$UsersTableOrderingComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.completedByUserId,
+        referencedTable: $db.users,
+        getReferencedColumn: (t) => t.id,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$UsersTableOrderingComposer(
+              $db: $db,
+              $table: $db.users,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return composer;
+  }
+}
+
+class $$TasksTableAnnotationComposer
+    extends Composer<_$AppDatabase, $TasksTable> {
+  $$TasksTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get title =>
+      $composableBuilder(column: $table.title, builder: (column) => column);
+
+  GeneratedColumn<bool> get isCompleted => $composableBuilder(
+      column: $table.isCompleted, builder: (column) => column);
+
+  GeneratedColumn<int> get orderIndex => $composableBuilder(
+      column: $table.orderIndex, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get completedAt => $composableBuilder(
+      column: $table.completedAt, builder: (column) => column);
+
+  $$SubStepsTableAnnotationComposer get subStepId {
+    final $$SubStepsTableAnnotationComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.subStepId,
+        referencedTable: $db.subSteps,
+        getReferencedColumn: (t) => t.id,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$SubStepsTableAnnotationComposer(
+              $db: $db,
+              $table: $db.subSteps,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return composer;
+  }
+
+  $$UsersTableAnnotationComposer get completedByUserId {
+    final $$UsersTableAnnotationComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.completedByUserId,
+        referencedTable: $db.users,
+        getReferencedColumn: (t) => t.id,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$UsersTableAnnotationComposer(
+              $db: $db,
+              $table: $db.users,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return composer;
+  }
+}
+
+class $$TasksTableTableManager extends RootTableManager<
+    _$AppDatabase,
+    $TasksTable,
+    TaskData,
+    $$TasksTableFilterComposer,
+    $$TasksTableOrderingComposer,
+    $$TasksTableAnnotationComposer,
+    $$TasksTableCreateCompanionBuilder,
+    $$TasksTableUpdateCompanionBuilder,
+    (TaskData, $$TasksTableReferences),
+    TaskData,
+    PrefetchHooks Function({bool subStepId, bool completedByUserId})> {
+  $$TasksTableTableManager(_$AppDatabase db, $TasksTable table)
+      : super(TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$TasksTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$TasksTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$TasksTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback: ({
+            Value<String> id = const Value.absent(),
+            Value<String> title = const Value.absent(),
+            Value<bool> isCompleted = const Value.absent(),
+            Value<String> subStepId = const Value.absent(),
+            Value<int> orderIndex = const Value.absent(),
+            Value<int?> completedByUserId = const Value.absent(),
+            Value<DateTime?> completedAt = const Value.absent(),
+            Value<int> rowid = const Value.absent(),
+          }) =>
+              TasksCompanion(
+            id: id,
+            title: title,
+            isCompleted: isCompleted,
+            subStepId: subStepId,
+            orderIndex: orderIndex,
+            completedByUserId: completedByUserId,
+            completedAt: completedAt,
+            rowid: rowid,
+          ),
+          createCompanionCallback: ({
+            required String id,
+            required String title,
+            Value<bool> isCompleted = const Value.absent(),
+            required String subStepId,
+            Value<int> orderIndex = const Value.absent(),
+            Value<int?> completedByUserId = const Value.absent(),
+            Value<DateTime?> completedAt = const Value.absent(),
+            Value<int> rowid = const Value.absent(),
+          }) =>
+              TasksCompanion.insert(
+            id: id,
+            title: title,
+            isCompleted: isCompleted,
+            subStepId: subStepId,
+            orderIndex: orderIndex,
+            completedByUserId: completedByUserId,
+            completedAt: completedAt,
+            rowid: rowid,
+          ),
+          withReferenceMapper: (p0) => p0
+              .map((e) =>
+                  (e.readTable(table), $$TasksTableReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: (
+              {subStepId = false, completedByUserId = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [],
+              addJoins: <
+                  T extends TableManagerState<
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic>>(state) {
+                if (subStepId) {
+                  state = state.withJoin(
+                    currentTable: table,
+                    currentColumn: table.subStepId,
+                    referencedTable: $$TasksTableReferences._subStepIdTable(db),
+                    referencedColumn:
+                        $$TasksTableReferences._subStepIdTable(db).id,
+                  ) as T;
+                }
+                if (completedByUserId) {
+                  state = state.withJoin(
+                    currentTable: table,
+                    currentColumn: table.completedByUserId,
+                    referencedTable:
+                        $$TasksTableReferences._completedByUserIdTable(db),
+                    referencedColumn:
+                        $$TasksTableReferences._completedByUserIdTable(db).id,
+                  ) as T;
+                }
+
+                return state;
+              },
+              getPrefetchedDataCallback: (items) async {
+                return [];
+              },
+            );
+          },
+        ));
+}
+
+typedef $$TasksTableProcessedTableManager = ProcessedTableManager<
+    _$AppDatabase,
+    $TasksTable,
+    TaskData,
+    $$TasksTableFilterComposer,
+    $$TasksTableOrderingComposer,
+    $$TasksTableAnnotationComposer,
+    $$TasksTableCreateCompanionBuilder,
+    $$TasksTableUpdateCompanionBuilder,
+    (TaskData, $$TasksTableReferences),
+    TaskData,
+    PrefetchHooks Function({bool subStepId, bool completedByUserId})>;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
@@ -2605,8 +2891,8 @@ class $AppDatabaseManager {
       $$StepsTableTableManager(_db, _db.steps);
   $$SubStepsTableTableManager get subSteps =>
       $$SubStepsTableTableManager(_db, _db.subSteps);
-  $$TasksTableTableManager get tasks =>
-      $$TasksTableTableManager(_db, _db.tasks);
   $$UsersTableTableManager get users =>
       $$UsersTableTableManager(_db, _db.users);
+  $$TasksTableTableManager get tasks =>
+      $$TasksTableTableManager(_db, _db.tasks);
 }

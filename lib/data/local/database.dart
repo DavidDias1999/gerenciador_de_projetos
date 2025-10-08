@@ -44,6 +44,9 @@ class Tasks extends Table {
   BoolColumn get isCompleted => boolean().withDefault(const Constant(false))();
   TextColumn get subStepId => text().references(SubSteps, #id)();
   IntColumn get orderIndex => integer().withDefault(const Constant(0))();
+  IntColumn get completedByUserId =>
+      integer().nullable().references(Users, #id)();
+  DateTimeColumn get completedAt => dateTime().nullable()();
   @override
   Set<Column> get primaryKey => {id};
 }
@@ -78,20 +81,18 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(_openConnection());
 
   @override
-  int get schemaVersion => 6;
+  int get schemaVersion => 1;
 
   @override
   MigrationStrategy get migration {
-    return MigrationStrategy(
-      onCreate: (Migrator m) async {
-        await m.createAll();
-      },
-      onUpgrade: (Migrator m, int from, int to) async {
-        if (from < 6) {
-          await m.createTable(subSteps);
-        }
-      },
-    );
+    return MigrationStrategy(onCreate: (Migrator m) async {
+      await m.createAll();
+    }, onUpgrade: (Migrator m, int from, int to) async {
+      if (from < 7) {
+        await m.addColumn(tasks, tasks.completedByUserId);
+        await m.addColumn(tasks, tasks.completedAt);
+      }
+    });
   }
 
   Future<List<FullProject>> getAllProjects() async {
@@ -162,9 +163,17 @@ class AppDatabase extends _$AppDatabase {
     });
   }
 
-  Future<void> updateTaskStatus(String taskId, bool isCompleted) {
+  Future<void> updateTaskStatus({
+    required String taskId,
+    required bool isCompleted,
+    int? userId,
+  }) {
     return (update(tasks)..where((tbl) => tbl.id.equals(taskId))).write(
-      TasksCompanion(isCompleted: Value(isCompleted)),
+      TasksCompanion(
+        isCompleted: Value(isCompleted),
+        completedByUserId: Value(isCompleted ? userId : null),
+        completedAt: Value(isCompleted ? DateTime.now() : null),
+      ),
     );
   }
 

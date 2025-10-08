@@ -13,8 +13,8 @@ class ProjectRepository {
   Future<void> createNewProject(String projectName) =>
       _projectService.createNewProject(projectName);
 
-  Future<void> updateTask(String taskId, bool isCompleted) =>
-      _projectService.updateTask(taskId, isCompleted);
+  Future<void> updateTask(String taskId, bool isCompleted, int currentUserId) =>
+      _projectService.updateTask(taskId, isCompleted, currentUserId);
 
   Future<void> setProjectStatus(String projectId, bool isCompleted) =>
       _projectService.setProjectStatus(projectId, isCompleted);
