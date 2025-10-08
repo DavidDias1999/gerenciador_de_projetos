@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:gerenciador_de_projetos/ui/auth/view_models/auth_viewmodel.dart';
 import 'package:gerenciador_de_projetos/ui/projects/widgets/project_list_screen.dart';
+import 'package:provider/provider.dart';
 
 enum ProjectType { active, completed }
 
@@ -15,6 +17,9 @@ class _AppGDPState extends State<AppGDP> {
 
   @override
   Widget build(BuildContext context) {
+    final authViewModel = context.watch<AuthViewModel>();
+    final user = authViewModel.currentUser;
+
     return Scaffold(
       body: Row(
         children: [
@@ -40,6 +45,35 @@ class _AppGDPState extends State<AppGDP> {
                   label: Text('Finalizados'),
                 ),
               ],
+              trailing: Expanded(
+                child: Align(
+                  alignment: Alignment.bottomCenter,
+                  child: Padding(
+                    padding: const EdgeInsets.only(bottom: 8.0),
+                    child: PopupMenuButton<String>(
+                      onSelected: (value) {
+                        if (value == 'logout') {
+                          authViewModel.logout();
+                        }
+                      },
+                      itemBuilder: (context) => [
+                        const PopupMenuItem(
+                          value: 'logout',
+                          child: Text('Deslogar'),
+                        ),
+                      ],
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(Icons.person_outline),
+                          const SizedBox(height: 4),
+                          if (user != null) Text(user.username),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ),
             ),
           ),
           const VerticalDivider(

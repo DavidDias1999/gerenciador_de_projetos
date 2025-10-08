@@ -48,6 +48,13 @@ class Tasks extends Table {
   Set<Column> get primaryKey => {id};
 }
 
+@DataClassName('UserData')
+class Users extends Table {
+  IntColumn get id => integer().autoIncrement()();
+  TextColumn get username => text().unique()();
+  TextColumn get password => text()();
+}
+
 class FullProject {
   final ProjectData project;
   final List<FullStep> steps;
@@ -66,7 +73,7 @@ class FullSubStep {
   FullSubStep({required this.subStep, required this.tasks});
 }
 
-@DriftDatabase(tables: [Projects, Steps, SubSteps, Tasks])
+@DriftDatabase(tables: [Projects, Steps, SubSteps, Tasks, Users])
 class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(_openConnection());
 
@@ -218,6 +225,19 @@ class AppDatabase extends _$AppDatabase {
     return (update(steps)..where((s) => s.id.isIn(stepIds))).write(
       const StepsCompanion(deletedAt: Value(null)),
     );
+  }
+
+  Future<UserData?> getUserByUsername(String username) {
+    return (select(users)..where((tbl) => tbl.username.equals(username)))
+        .getSingleOrNull();
+  }
+
+  Future<int> createUser(UsersCompanion user) {
+    return into(users).insert(user);
+  }
+
+  Future<UserData?> getUserById(int id) {
+    return (select(users)..where((tbl) => tbl.id.equals(id))).getSingleOrNull();
   }
 }
 

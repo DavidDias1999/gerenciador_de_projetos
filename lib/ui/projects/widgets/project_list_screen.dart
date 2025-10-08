@@ -3,7 +3,6 @@ import 'package:gerenciador_de_projetos/ui/projects/widgets/restore_steps_dialog
 import 'package:provider/provider.dart';
 import '../../../domain/models/project_model.dart' as domain;
 import '../../../domain/models/step_model.dart' as domain;
-import '../../../domain/models/sub_step_model.dart' as domain;
 import '../../app/widgets/app.dart';
 import '../view_models/project_viewmodel.dart';
 
