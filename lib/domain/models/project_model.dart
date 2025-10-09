@@ -15,9 +15,12 @@ class Project {
 
   double get progress {
     final allTasks = steps
-        .expand((step) => step.subSteps)
-        .expand((subStep) => subStep.tasks)
+        .expand((step) => [
+              ...step.directTasks,
+              ...step.subSteps.expand((subStep) => subStep.tasks)
+            ])
         .toList();
+
     if (allTasks.isEmpty) return 0.0;
 
     final completedTasks = allTasks.where((task) => task.isCompleted).length;

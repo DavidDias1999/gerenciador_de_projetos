@@ -11,7 +11,6 @@ class ProjectService {
 
   Future<List<domain.Project>> fetchProjects() async {
     final fullProjects = await _db.getAllProjects();
-
     final allUsersData = await _db.select(_db.users).get();
     final userMap = {for (var user in allUsersData) user.id: user.username};
 
@@ -42,6 +41,16 @@ class ProjectService {
                 }).toList(),
               );
             }).toList(),
+            directTasks: fullStep.directTasks.map((taskData) {
+              return domain.Task(
+                id: taskData.id,
+                title: taskData.title,
+                isCompleted: taskData.isCompleted,
+                orderIndex: taskData.orderIndex,
+                completedAt: taskData.completedAt,
+                completedByUsername: userMap[taskData.completedByUserId],
+              );
+            }).toList(),
           );
         }).toList(),
       );
@@ -69,12 +78,20 @@ class ProjectService {
     await _db.deleteProject(projectId);
   }
 
-  Future<void> selectAllTasksInSubStep(String subStepId) async {
-    await _db.selectAllTasksInSubStep(subStepId);
+  Future<void> selectAllTasksInSubStep(String subStepId, int userId) async {
+    await _db.selectAllTasksInSubStep(subStepId, userId);
   }
 
   Future<void> deselectAllTasksInSubStep(String subStepId) async {
     await _db.deselectAllTasksInSubStep(subStepId);
+  }
+
+  Future<void> selectAllTasksInStep(String stepId, int userId) async {
+    await _db.selectAllTasksInStep(stepId, userId);
+  }
+
+  Future<void> deselectAllTasksInStep(String stepId) async {
+    await _db.deselectAllTasksInStep(stepId);
   }
 
   Future<void> softDeleteStep(String stepId) async {
@@ -88,6 +105,7 @@ class ProjectService {
         id: stepData.id,
         title: stepData.title,
         subSteps: [],
+        directTasks: [],
         deletedAt: stepData.deletedAt,
       );
     }).toList();

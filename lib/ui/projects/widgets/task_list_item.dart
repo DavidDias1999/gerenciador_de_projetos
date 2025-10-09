@@ -49,10 +49,8 @@ class TaskListItem extends StatelessWidget {
         ),
       ),
       subtitle: task.isCompleted && task.completedByUsername != null
-          ? Text(
-              'Concluído por: ${task.completedByUsername}',
-              style: Theme.of(context).textTheme.bodySmall,
-            )
+          ? Text('~ ${task.completedByUsername}',
+              style: Theme.of(context).textTheme.bodySmall)
           : null,
     );
   }

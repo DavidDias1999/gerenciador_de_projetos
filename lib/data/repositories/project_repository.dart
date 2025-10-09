@@ -22,11 +22,17 @@ class ProjectRepository {
   Future<void> deleteProject(String projectId) =>
       _projectService.deleteProject(projectId);
 
-  Future<void> selectAllTasksInSubStep(String subStepId) =>
-      _projectService.selectAllTasksInSubStep(subStepId);
+  Future<void> selectAllTasksInSubStep(String subStepId, int userId) =>
+      _projectService.selectAllTasksInSubStep(subStepId, userId);
 
   Future<void> deselectAllTasksInSubStep(String subStepId) =>
       _projectService.deselectAllTasksInSubStep(subStepId);
+
+  Future<void> selectAllTasksInStep(String stepId, int userId) =>
+      _projectService.selectAllTasksInStep(stepId, userId);
+
+  Future<void> deselectAllTasksInStep(String stepId) =>
+      _projectService.deselectAllTasksInStep(stepId);
 
   Future<void> softDeleteStep(String stepId) =>
       _projectService.softDeleteStep(stepId);

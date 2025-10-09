@@ -1029,11 +1029,19 @@ class $TasksTable extends Tasks with TableInfo<$TasksTable, TaskData> {
       const VerificationMeta('subStepId');
   @override
   late final GeneratedColumn<String> subStepId = GeneratedColumn<String>(
-      'sub_step_id', aliasedName, false,
+      'sub_step_id', aliasedName, true,
       type: DriftSqlType.string,
-      requiredDuringInsert: true,
+      requiredDuringInsert: false,
       defaultConstraints:
           GeneratedColumn.constraintIsAlways('REFERENCES sub_steps (id)'));
+  static const VerificationMeta _stepIdMeta = const VerificationMeta('stepId');
+  @override
+  late final GeneratedColumn<String> stepId = GeneratedColumn<String>(
+      'step_id', aliasedName, true,
+      type: DriftSqlType.string,
+      requiredDuringInsert: false,
+      defaultConstraints:
+          GeneratedColumn.constraintIsAlways('REFERENCES steps (id)'));
   static const VerificationMeta _orderIndexMeta =
       const VerificationMeta('orderIndex');
   @override
@@ -1063,6 +1071,7 @@ class $TasksTable extends Tasks with TableInfo<$TasksTable, TaskData> {
         title,
         isCompleted,
         subStepId,
+        stepId,
         orderIndex,
         completedByUserId,
         completedAt
@@ -1099,8 +1108,10 @@ class $TasksTable extends Tasks with TableInfo<$TasksTable, TaskData> {
           _subStepIdMeta,
           subStepId.isAcceptableOrUnknown(
               data['sub_step_id']!, _subStepIdMeta));
-    } else if (isInserting) {
-      context.missing(_subStepIdMeta);
+    }
+    if (data.containsKey('step_id')) {
+      context.handle(_stepIdMeta,
+          stepId.isAcceptableOrUnknown(data['step_id']!, _stepIdMeta));
     }
     if (data.containsKey('order_index')) {
       context.handle(
@@ -1136,7 +1147,9 @@ class $TasksTable extends Tasks with TableInfo<$TasksTable, TaskData> {
       isCompleted: attachedDatabase.typeMapping
           .read(DriftSqlType.bool, data['${effectivePrefix}is_completed'])!,
       subStepId: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}sub_step_id'])!,
+          .read(DriftSqlType.string, data['${effectivePrefix}sub_step_id']),
+      stepId: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}step_id']),
       orderIndex: attachedDatabase.typeMapping
           .read(DriftSqlType.int, data['${effectivePrefix}order_index'])!,
       completedByUserId: attachedDatabase.typeMapping.read(
@@ -1156,7 +1169,8 @@ class TaskData extends DataClass implements Insertable<TaskData> {
   final String id;
   final String title;
   final bool isCompleted;
-  final String subStepId;
+  final String? subStepId;
+  final String? stepId;
   final int orderIndex;
   final int? completedByUserId;
   final DateTime? completedAt;
@@ -1164,7 +1178,8 @@ class TaskData extends DataClass implements Insertable<TaskData> {
       {required this.id,
       required this.title,
       required this.isCompleted,
-      required this.subStepId,
+      this.subStepId,
+      this.stepId,
       required this.orderIndex,
       this.completedByUserId,
       this.completedAt});
@@ -1174,7 +1189,12 @@ class TaskData extends DataClass implements Insertable<TaskData> {
     map['id'] = Variable<String>(id);
     map['title'] = Variable<String>(title);
     map['is_completed'] = Variable<bool>(isCompleted);
-    map['sub_step_id'] = Variable<String>(subStepId);
+    if (!nullToAbsent || subStepId != null) {
+      map['sub_step_id'] = Variable<String>(subStepId);
+    }
+    if (!nullToAbsent || stepId != null) {
+      map['step_id'] = Variable<String>(stepId);
+    }
     map['order_index'] = Variable<int>(orderIndex);
     if (!nullToAbsent || completedByUserId != null) {
       map['completed_by_user_id'] = Variable<int>(completedByUserId);
@@ -1190,7 +1210,11 @@ class TaskData extends DataClass implements Insertable<TaskData> {
       id: Value(id),
       title: Value(title),
       isCompleted: Value(isCompleted),
-      subStepId: Value(subStepId),
+      subStepId: subStepId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(subStepId),
+      stepId:
+          stepId == null && nullToAbsent ? const Value.absent() : Value(stepId),
       orderIndex: Value(orderIndex),
       completedByUserId: completedByUserId == null && nullToAbsent
           ? const Value.absent()
@@ -1208,7 +1232,8 @@ class TaskData extends DataClass implements Insertable<TaskData> {
       id: serializer.fromJson<String>(json['id']),
       title: serializer.fromJson<String>(json['title']),
       isCompleted: serializer.fromJson<bool>(json['isCompleted']),
-      subStepId: serializer.fromJson<String>(json['subStepId']),
+      subStepId: serializer.fromJson<String?>(json['subStepId']),
+      stepId: serializer.fromJson<String?>(json['stepId']),
       orderIndex: serializer.fromJson<int>(json['orderIndex']),
       completedByUserId: serializer.fromJson<int?>(json['completedByUserId']),
       completedAt: serializer.fromJson<DateTime?>(json['completedAt']),
@@ -1221,7 +1246,8 @@ class TaskData extends DataClass implements Insertable<TaskData> {
       'id': serializer.toJson<String>(id),
       'title': serializer.toJson<String>(title),
       'isCompleted': serializer.toJson<bool>(isCompleted),
-      'subStepId': serializer.toJson<String>(subStepId),
+      'subStepId': serializer.toJson<String?>(subStepId),
+      'stepId': serializer.toJson<String?>(stepId),
       'orderIndex': serializer.toJson<int>(orderIndex),
       'completedByUserId': serializer.toJson<int?>(completedByUserId),
       'completedAt': serializer.toJson<DateTime?>(completedAt),
@@ -1232,7 +1258,8 @@ class TaskData extends DataClass implements Insertable<TaskData> {
           {String? id,
           String? title,
           bool? isCompleted,
-          String? subStepId,
+          Value<String?> subStepId = const Value.absent(),
+          Value<String?> stepId = const Value.absent(),
           int? orderIndex,
           Value<int?> completedByUserId = const Value.absent(),
           Value<DateTime?> completedAt = const Value.absent()}) =>
@@ -1240,7 +1267,8 @@ class TaskData extends DataClass implements Insertable<TaskData> {
         id: id ?? this.id,
         title: title ?? this.title,
         isCompleted: isCompleted ?? this.isCompleted,
-        subStepId: subStepId ?? this.subStepId,
+        subStepId: subStepId.present ? subStepId.value : this.subStepId,
+        stepId: stepId.present ? stepId.value : this.stepId,
         orderIndex: orderIndex ?? this.orderIndex,
         completedByUserId: completedByUserId.present
             ? completedByUserId.value
@@ -1254,6 +1282,7 @@ class TaskData extends DataClass implements Insertable<TaskData> {
       isCompleted:
           data.isCompleted.present ? data.isCompleted.value : this.isCompleted,
       subStepId: data.subStepId.present ? data.subStepId.value : this.subStepId,
+      stepId: data.stepId.present ? data.stepId.value : this.stepId,
       orderIndex:
           data.orderIndex.present ? data.orderIndex.value : this.orderIndex,
       completedByUserId: data.completedByUserId.present
@@ -1271,6 +1300,7 @@ class TaskData extends DataClass implements Insertable<TaskData> {
           ..write('title: $title, ')
           ..write('isCompleted: $isCompleted, ')
           ..write('subStepId: $subStepId, ')
+          ..write('stepId: $stepId, ')
           ..write('orderIndex: $orderIndex, ')
           ..write('completedByUserId: $completedByUserId, ')
           ..write('completedAt: $completedAt')
@@ -1279,8 +1309,8 @@ class TaskData extends DataClass implements Insertable<TaskData> {
   }
 
   @override
-  int get hashCode => Object.hash(id, title, isCompleted, subStepId, orderIndex,
-      completedByUserId, completedAt);
+  int get hashCode => Object.hash(id, title, isCompleted, subStepId, stepId,
+      orderIndex, completedByUserId, completedAt);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -1289,6 +1319,7 @@ class TaskData extends DataClass implements Insertable<TaskData> {
           other.title == this.title &&
           other.isCompleted == this.isCompleted &&
           other.subStepId == this.subStepId &&
+          other.stepId == this.stepId &&
           other.orderIndex == this.orderIndex &&
           other.completedByUserId == this.completedByUserId &&
           other.completedAt == this.completedAt);
@@ -1298,7 +1329,8 @@ class TasksCompanion extends UpdateCompanion<TaskData> {
   final Value<String> id;
   final Value<String> title;
   final Value<bool> isCompleted;
-  final Value<String> subStepId;
+  final Value<String?> subStepId;
+  final Value<String?> stepId;
   final Value<int> orderIndex;
   final Value<int?> completedByUserId;
   final Value<DateTime?> completedAt;
@@ -1308,6 +1340,7 @@ class TasksCompanion extends UpdateCompanion<TaskData> {
     this.title = const Value.absent(),
     this.isCompleted = const Value.absent(),
     this.subStepId = const Value.absent(),
+    this.stepId = const Value.absent(),
     this.orderIndex = const Value.absent(),
     this.completedByUserId = const Value.absent(),
     this.completedAt = const Value.absent(),
@@ -1317,19 +1350,20 @@ class TasksCompanion extends UpdateCompanion<TaskData> {
     required String id,
     required String title,
     this.isCompleted = const Value.absent(),
-    required String subStepId,
+    this.subStepId = const Value.absent(),
+    this.stepId = const Value.absent(),
     this.orderIndex = const Value.absent(),
     this.completedByUserId = const Value.absent(),
     this.completedAt = const Value.absent(),
     this.rowid = const Value.absent(),
   })  : id = Value(id),
-        title = Value(title),
-        subStepId = Value(subStepId);
+        title = Value(title);
   static Insertable<TaskData> custom({
     Expression<String>? id,
     Expression<String>? title,
     Expression<bool>? isCompleted,
     Expression<String>? subStepId,
+    Expression<String>? stepId,
     Expression<int>? orderIndex,
     Expression<int>? completedByUserId,
     Expression<DateTime>? completedAt,
@@ -1340,6 +1374,7 @@ class TasksCompanion extends UpdateCompanion<TaskData> {
       if (title != null) 'title': title,
       if (isCompleted != null) 'is_completed': isCompleted,
       if (subStepId != null) 'sub_step_id': subStepId,
+      if (stepId != null) 'step_id': stepId,
       if (orderIndex != null) 'order_index': orderIndex,
       if (completedByUserId != null) 'completed_by_user_id': completedByUserId,
       if (completedAt != null) 'completed_at': completedAt,
@@ -1351,7 +1386,8 @@ class TasksCompanion extends UpdateCompanion<TaskData> {
       {Value<String>? id,
       Value<String>? title,
       Value<bool>? isCompleted,
-      Value<String>? subStepId,
+      Value<String?>? subStepId,
+      Value<String?>? stepId,
       Value<int>? orderIndex,
       Value<int?>? completedByUserId,
       Value<DateTime?>? completedAt,
@@ -1361,6 +1397,7 @@ class TasksCompanion extends UpdateCompanion<TaskData> {
       title: title ?? this.title,
       isCompleted: isCompleted ?? this.isCompleted,
       subStepId: subStepId ?? this.subStepId,
+      stepId: stepId ?? this.stepId,
       orderIndex: orderIndex ?? this.orderIndex,
       completedByUserId: completedByUserId ?? this.completedByUserId,
       completedAt: completedAt ?? this.completedAt,
@@ -1382,6 +1419,9 @@ class TasksCompanion extends UpdateCompanion<TaskData> {
     }
     if (subStepId.present) {
       map['sub_step_id'] = Variable<String>(subStepId.value);
+    }
+    if (stepId.present) {
+      map['step_id'] = Variable<String>(stepId.value);
     }
     if (orderIndex.present) {
       map['order_index'] = Variable<int>(orderIndex.value);
@@ -1405,6 +1445,7 @@ class TasksCompanion extends UpdateCompanion<TaskData> {
           ..write('title: $title, ')
           ..write('isCompleted: $isCompleted, ')
           ..write('subStepId: $subStepId, ')
+          ..write('stepId: $stepId, ')
           ..write('orderIndex: $orderIndex, ')
           ..write('completedByUserId: $completedByUserId, ')
           ..write('completedAt: $completedAt, ')
@@ -1695,6 +1736,20 @@ final class $$StepsTableReferences
     return ProcessedTableManager(
         manager.$state.copyWith(prefetchedData: cache));
   }
+
+  static MultiTypedResultKey<$TasksTable, List<TaskData>> _tasksRefsTable(
+          _$AppDatabase db) =>
+      MultiTypedResultKey.fromTable(db.tasks,
+          aliasName: $_aliasNameGenerator(db.steps.id, db.tasks.stepId));
+
+  $$TasksTableProcessedTableManager get tasksRefs {
+    final manager = $$TasksTableTableManager($_db, $_db.tasks)
+        .filter((f) => f.stepId.id.sqlEquals($_itemColumn<String>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(_tasksRefsTable($_db));
+    return ProcessedTableManager(
+        manager.$state.copyWith(prefetchedData: cache));
+  }
 }
 
 class $$StepsTableFilterComposer extends Composer<_$AppDatabase, $StepsTable> {
@@ -1747,6 +1802,27 @@ class $$StepsTableFilterComposer extends Composer<_$AppDatabase, $StepsTable> {
             $$SubStepsTableFilterComposer(
               $db: $db,
               $table: $db.subSteps,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return f(composer);
+  }
+
+  Expression<bool> tasksRefs(
+      Expression<bool> Function($$TasksTableFilterComposer f) f) {
+    final $$TasksTableFilterComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.id,
+        referencedTable: $db.tasks,
+        getReferencedColumn: (t) => t.stepId,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$TasksTableFilterComposer(
+              $db: $db,
+              $table: $db.tasks,
               $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
               joinBuilder: joinBuilder,
               $removeJoinBuilderFromRootComposer:
@@ -1853,6 +1929,27 @@ class $$StepsTableAnnotationComposer
             ));
     return f(composer);
   }
+
+  Expression<T> tasksRefs<T extends Object>(
+      Expression<T> Function($$TasksTableAnnotationComposer a) f) {
+    final $$TasksTableAnnotationComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.id,
+        referencedTable: $db.tasks,
+        getReferencedColumn: (t) => t.stepId,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$TasksTableAnnotationComposer(
+              $db: $db,
+              $table: $db.tasks,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return f(composer);
+  }
 }
 
 class $$StepsTableTableManager extends RootTableManager<
@@ -1866,7 +1963,8 @@ class $$StepsTableTableManager extends RootTableManager<
     $$StepsTableUpdateCompanionBuilder,
     (StepData, $$StepsTableReferences),
     StepData,
-    PrefetchHooks Function({bool projectId, bool subStepsRefs})> {
+    PrefetchHooks Function(
+        {bool projectId, bool subStepsRefs, bool tasksRefs})> {
   $$StepsTableTableManager(_$AppDatabase db, $StepsTable table)
       : super(TableManagerState(
           db: db,
@@ -1909,10 +2007,14 @@ class $$StepsTableTableManager extends RootTableManager<
               .map((e) =>
                   (e.readTable(table), $$StepsTableReferences(db, table, e)))
               .toList(),
-          prefetchHooksCallback: ({projectId = false, subStepsRefs = false}) {
+          prefetchHooksCallback: (
+              {projectId = false, subStepsRefs = false, tasksRefs = false}) {
             return PrefetchHooks(
               db: db,
-              explicitlyWatchedTables: [if (subStepsRefs) db.subSteps],
+              explicitlyWatchedTables: [
+                if (subStepsRefs) db.subSteps,
+                if (tasksRefs) db.tasks
+              ],
               addJoins: <
                   T extends TableManagerState<
                       dynamic,
@@ -1951,6 +2053,17 @@ class $$StepsTableTableManager extends RootTableManager<
                         referencedItemsForCurrentItem: (item,
                                 referencedItems) =>
                             referencedItems.where((e) => e.stepId == item.id),
+                        typedResults: items),
+                  if (tasksRefs)
+                    await $_getPrefetchedData<StepData, $StepsTable, TaskData>(
+                        currentTable: table,
+                        referencedTable:
+                            $$StepsTableReferences._tasksRefsTable(db),
+                        managerFromTypedResult: (p0) =>
+                            $$StepsTableReferences(db, table, p0).tasksRefs,
+                        referencedItemsForCurrentItem: (item,
+                                referencedItems) =>
+                            referencedItems.where((e) => e.stepId == item.id),
                         typedResults: items)
                 ];
               },
@@ -1970,7 +2083,8 @@ typedef $$StepsTableProcessedTableManager = ProcessedTableManager<
     $$StepsTableUpdateCompanionBuilder,
     (StepData, $$StepsTableReferences),
     StepData,
-    PrefetchHooks Function({bool projectId, bool subStepsRefs})>;
+    PrefetchHooks Function(
+        {bool projectId, bool subStepsRefs, bool tasksRefs})>;
 typedef $$SubStepsTableCreateCompanionBuilder = SubStepsCompanion Function({
   required String id,
   required String title,
@@ -2510,7 +2624,8 @@ typedef $$TasksTableCreateCompanionBuilder = TasksCompanion Function({
   required String id,
   required String title,
   Value<bool> isCompleted,
-  required String subStepId,
+  Value<String?> subStepId,
+  Value<String?> stepId,
   Value<int> orderIndex,
   Value<int?> completedByUserId,
   Value<DateTime?> completedAt,
@@ -2520,7 +2635,8 @@ typedef $$TasksTableUpdateCompanionBuilder = TasksCompanion Function({
   Value<String> id,
   Value<String> title,
   Value<bool> isCompleted,
-  Value<String> subStepId,
+  Value<String?> subStepId,
+  Value<String?> stepId,
   Value<int> orderIndex,
   Value<int?> completedByUserId,
   Value<DateTime?> completedAt,
@@ -2534,12 +2650,26 @@ final class $$TasksTableReferences
   static $SubStepsTable _subStepIdTable(_$AppDatabase db) => db.subSteps
       .createAlias($_aliasNameGenerator(db.tasks.subStepId, db.subSteps.id));
 
-  $$SubStepsTableProcessedTableManager get subStepId {
-    final $_column = $_itemColumn<String>('sub_step_id')!;
-
+  $$SubStepsTableProcessedTableManager? get subStepId {
+    final $_column = $_itemColumn<String>('sub_step_id');
+    if ($_column == null) return null;
     final manager = $$SubStepsTableTableManager($_db, $_db.subSteps)
         .filter((f) => f.id.sqlEquals($_column));
     final item = $_typedResult.readTableOrNull(_subStepIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+        manager.$state.copyWith(prefetchedData: [item]));
+  }
+
+  static $StepsTable _stepIdTable(_$AppDatabase db) =>
+      db.steps.createAlias($_aliasNameGenerator(db.tasks.stepId, db.steps.id));
+
+  $$StepsTableProcessedTableManager? get stepId {
+    final $_column = $_itemColumn<String>('step_id');
+    if ($_column == null) return null;
+    final manager = $$StepsTableTableManager($_db, $_db.steps)
+        .filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_stepIdTable($_db));
     if (item == null) return manager;
     return ProcessedTableManager(
         manager.$state.copyWith(prefetchedData: [item]));
@@ -2596,6 +2726,26 @@ class $$TasksTableFilterComposer extends Composer<_$AppDatabase, $TasksTable> {
             $$SubStepsTableFilterComposer(
               $db: $db,
               $table: $db.subSteps,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return composer;
+  }
+
+  $$StepsTableFilterComposer get stepId {
+    final $$StepsTableFilterComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.stepId,
+        referencedTable: $db.steps,
+        getReferencedColumn: (t) => t.id,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$StepsTableFilterComposer(
+              $db: $db,
+              $table: $db.steps,
               $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
               joinBuilder: joinBuilder,
               $removeJoinBuilderFromRootComposer:
@@ -2669,6 +2819,26 @@ class $$TasksTableOrderingComposer
     return composer;
   }
 
+  $$StepsTableOrderingComposer get stepId {
+    final $$StepsTableOrderingComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.stepId,
+        referencedTable: $db.steps,
+        getReferencedColumn: (t) => t.id,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$StepsTableOrderingComposer(
+              $db: $db,
+              $table: $db.steps,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return composer;
+  }
+
   $$UsersTableOrderingComposer get completedByUserId {
     final $$UsersTableOrderingComposer composer = $composerBuilder(
         composer: this,
@@ -2734,6 +2904,26 @@ class $$TasksTableAnnotationComposer
     return composer;
   }
 
+  $$StepsTableAnnotationComposer get stepId {
+    final $$StepsTableAnnotationComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.stepId,
+        referencedTable: $db.steps,
+        getReferencedColumn: (t) => t.id,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$StepsTableAnnotationComposer(
+              $db: $db,
+              $table: $db.steps,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return composer;
+  }
+
   $$UsersTableAnnotationComposer get completedByUserId {
     final $$UsersTableAnnotationComposer composer = $composerBuilder(
         composer: this,
@@ -2766,7 +2956,8 @@ class $$TasksTableTableManager extends RootTableManager<
     $$TasksTableUpdateCompanionBuilder,
     (TaskData, $$TasksTableReferences),
     TaskData,
-    PrefetchHooks Function({bool subStepId, bool completedByUserId})> {
+    PrefetchHooks Function(
+        {bool subStepId, bool stepId, bool completedByUserId})> {
   $$TasksTableTableManager(_$AppDatabase db, $TasksTable table)
       : super(TableManagerState(
           db: db,
@@ -2781,7 +2972,8 @@ class $$TasksTableTableManager extends RootTableManager<
             Value<String> id = const Value.absent(),
             Value<String> title = const Value.absent(),
             Value<bool> isCompleted = const Value.absent(),
-            Value<String> subStepId = const Value.absent(),
+            Value<String?> subStepId = const Value.absent(),
+            Value<String?> stepId = const Value.absent(),
             Value<int> orderIndex = const Value.absent(),
             Value<int?> completedByUserId = const Value.absent(),
             Value<DateTime?> completedAt = const Value.absent(),
@@ -2792,6 +2984,7 @@ class $$TasksTableTableManager extends RootTableManager<
             title: title,
             isCompleted: isCompleted,
             subStepId: subStepId,
+            stepId: stepId,
             orderIndex: orderIndex,
             completedByUserId: completedByUserId,
             completedAt: completedAt,
@@ -2801,7 +2994,8 @@ class $$TasksTableTableManager extends RootTableManager<
             required String id,
             required String title,
             Value<bool> isCompleted = const Value.absent(),
-            required String subStepId,
+            Value<String?> subStepId = const Value.absent(),
+            Value<String?> stepId = const Value.absent(),
             Value<int> orderIndex = const Value.absent(),
             Value<int?> completedByUserId = const Value.absent(),
             Value<DateTime?> completedAt = const Value.absent(),
@@ -2812,6 +3006,7 @@ class $$TasksTableTableManager extends RootTableManager<
             title: title,
             isCompleted: isCompleted,
             subStepId: subStepId,
+            stepId: stepId,
             orderIndex: orderIndex,
             completedByUserId: completedByUserId,
             completedAt: completedAt,
@@ -2822,7 +3017,7 @@ class $$TasksTableTableManager extends RootTableManager<
                   (e.readTable(table), $$TasksTableReferences(db, table, e)))
               .toList(),
           prefetchHooksCallback: (
-              {subStepId = false, completedByUserId = false}) {
+              {subStepId = false, stepId = false, completedByUserId = false}) {
             return PrefetchHooks(
               db: db,
               explicitlyWatchedTables: [],
@@ -2846,6 +3041,15 @@ class $$TasksTableTableManager extends RootTableManager<
                     referencedTable: $$TasksTableReferences._subStepIdTable(db),
                     referencedColumn:
                         $$TasksTableReferences._subStepIdTable(db).id,
+                  ) as T;
+                }
+                if (stepId) {
+                  state = state.withJoin(
+                    currentTable: table,
+                    currentColumn: table.stepId,
+                    referencedTable: $$TasksTableReferences._stepIdTable(db),
+                    referencedColumn:
+                        $$TasksTableReferences._stepIdTable(db).id,
                   ) as T;
                 }
                 if (completedByUserId) {
@@ -2880,7 +3084,8 @@ typedef $$TasksTableProcessedTableManager = ProcessedTableManager<
     $$TasksTableUpdateCompanionBuilder,
     (TaskData, $$TasksTableReferences),
     TaskData,
-    PrefetchHooks Function({bool subStepId, bool completedByUserId})>;
+    PrefetchHooks Function(
+        {bool subStepId, bool stepId, bool completedByUserId})>;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;

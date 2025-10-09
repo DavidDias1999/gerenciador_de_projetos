@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../domain/models/project_model.dart' as domain;
 import '../../../domain/models/sub_step_model.dart' as domain;
+import '../../auth/view_models/auth_viewmodel.dart';
 import '../view_models/project_viewmodel.dart';
 import 'project_dialogs.dart';
 import 'task_list_item.dart';
@@ -19,10 +20,17 @@ class SubStepListItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final viewModel = context.read<ProjectViewModel>();
+    final authViewModel = context.read<AuthViewModel>();
+
+    final bool allTasksCompleted = subStep.tasks.isNotEmpty &&
+        subStep.tasks.every((task) => task.isCompleted);
+    final bool anyTasksIncomplete =
+        subStep.tasks.any((task) => !task.isCompleted);
 
     return Padding(
       padding: const EdgeInsets.fromLTRB(32, 0, 16, 0),
       child: ExpansionTile(
+        shape: const Border(),
         key: ValueKey(subStep.id),
         title: Row(
           children: [
@@ -52,10 +60,15 @@ class SubStepListItem extends StatelessWidget {
             PopupMenuButton<String>(
               icon: const Icon(Icons.more_vert, size: 18.0),
               onSelected: (String result) {
+                final currentUser = authViewModel.currentUser;
+                if (currentUser == null) return;
+
                 if (result == 'selectAll') {
                   viewModel.selectAllTasksInSubStep(
                     project: project,
                     subStepId: subStep.id,
+                    userId: currentUser.id,
+                    username: currentUser.username,
                     onProjectReached100: (p) =>
                         showMoveToCompletedDialog(context, p),
                   );
@@ -64,10 +77,12 @@ class SubStepListItem extends StatelessWidget {
                 }
               },
               itemBuilder: (context) => [
-                const PopupMenuItem(
-                    value: 'selectAll', child: Text('Selecionar todas')),
-                const PopupMenuItem(
-                    value: 'deselectAll', child: Text('Desmarcar todas')),
+                if (anyTasksIncomplete)
+                  const PopupMenuItem(
+                      value: 'selectAll', child: Text('Selecionar todas')),
+                if (allTasksCompleted)
+                  const PopupMenuItem(
+                      value: 'deselectAll', child: Text('Desmarcar todas')),
               ],
             ),
           ],

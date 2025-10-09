@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../../../domain/models/project_model.dart' as domain;
 import '../../app/widgets/app.dart';
+import '../view_models/project_viewmodel.dart';
 import 'project_dialogs.dart';
 import 'step_list_item.dart';
 
@@ -16,6 +18,8 @@ class ProjectListItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final viewModel = context.read<ProjectViewModel>();
+
     return Card(
       clipBehavior: Clip.antiAlias,
       margin: const EdgeInsets.symmetric(vertical: 8.0),
@@ -52,13 +56,28 @@ class ProjectListItem extends StatelessWidget {
             ),
             PopupMenuButton<String>(
               onSelected: (String result) {
-                if (result == 'delete') {
+                if (result == 'complete') {
+                  viewModel.completeProject(project.id);
+                } else if (result == 'activate') {
+                  viewModel.activateProject(project.id);
+                } else if (result == 'delete') {
                   showDeleteConfirmationDialog(context, project);
                 } else if (result == 'restore_steps') {
                   showRestoreStepsDialog(context, project);
                 }
               },
               itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
+                if (projectType == ProjectType.active)
+                  const PopupMenuItem<String>(
+                    value: 'complete',
+                    child: Text('Finalizar projeto'),
+                  ),
+                if (projectType == ProjectType.completed)
+                  const PopupMenuItem<String>(
+                    value: 'activate',
+                    child: Text('Ativar projeto'),
+                  ),
+                const PopupMenuDivider(),
                 const PopupMenuItem<String>(
                   value: 'restore_steps',
                   child: Text('Restaurar etapas'),

@@ -1,46 +1,22 @@
 [
   {
-    "step_name": "ANT",
+    "step_name": "ANT (Com Sub-Etapas)",
     "sub_steps": [
-      {
-        "sub_step_name": "Levantamento Inicial",
-        "tasks": [
-          { "task_name": "Briefing do cliente" },
-          { "task_name": "Visita técnica e medições" }
-        ]
-      },
       {
         "sub_step_name": "Apresentação Preliminar",
         "tasks": [
           { "task_name": "Layout" },
-          { "task_name": "Modelo tridimensional 3D" },
-          { "task_name": "Vídeo do modelo tridimensional" },
-          { "task_name": "Render" },
-          { "task_name": "Render 360º" },
-          { "task_name": "Apresentação" }
+          { "task_name": "Modelo tridimensional 3D" }
         ]
       }
     ]
   },
   {
-    "step_name": "REF",
-    "sub_steps": [
-      {
-        "sub_step_name": "Desenho Técnico",
-        "tasks": [
-           { "task_name": "DESENHAR PLANTAS NO PONTO DE ORIGEM..." },
-           { "task_name": "Cotas (internas e externas)" }
-        ]
-      },
-      {
-        "sub_step_name": "Elementos e Layers",
-        "tasks": [
-          { "task_name": "Mobiliário" },
-          { "task_name": "Demolição" },
-          { "task_name": "Alvenaria" },
-          { "task_name": "Layers" }
-        ]
-      }
+    "step_name": "DET (Tarefas Diretas)",
+    "tasks": [
+      { "task_name": "Memorial descritivo" },
+      { "task_name": "Compatibilização de projetos" },
+      { "task_name": "Lista de materiais" }
     ]
   }
 ]
