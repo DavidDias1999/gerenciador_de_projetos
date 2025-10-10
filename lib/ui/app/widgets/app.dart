@@ -76,7 +76,7 @@ class _AppGDPState extends State<AppGDP> {
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          const Icon(Icons.person_outline),
+                          const Icon(Icons.person_rounded),
                           const SizedBox(height: 4),
                           if (user != null) Text(user.username),
                         ],
