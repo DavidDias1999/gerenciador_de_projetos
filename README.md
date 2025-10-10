@@ -40,37 +40,15 @@ Este projeto foi construído utilizando as seguintes tecnologias e pacotes:
 * Drift (SQLite): Framework de banco de dados local para persistência de dados de forma reativa e segura.
 
 
-### 🚀 Como Executar o Projeto
-Siga os passos abaixo para configurar e executar o ambiente de desenvolvimento.
+## 🚀 Instalação
 
-Pré-requisitos
-Antes de começar, você vai precisar ter instalado em sua máquina:
+Você pode baixar a versão mais recente do Gerenciador de Projetos para Windows diretamente da nossa página de Releases.
 
-* Flutter/Dart (Instalação Padrão)
+**[➡️ Baixar a Última Versão](https://github.com/DavidDias1999/gerenciador_de_projetos/releases/latest)**
 
-* Git
+Basta baixar o arquivo `Setup-Gerenciador-de-Projetos.exe` do release mais recente e executá-lo para instalar o aplicativo. O sistema de atualização automática irá notificá-lo sobre novas versões no futuro!
 
-#### Instalação
-Clone o repositório para sua máquina local e abra o terminal:
+### OBS: O aplicativo irá gerar um arquivo db.sqlite na pasta Documentos responsavel por armazenar todos os Projetos e Usuários locais. 
+ ***Posteriormente um serviço de nuvem será implementado.***
+ ## NÃO EXCLUA!!
 
-Bash
-
-> flutter pub get
-
-
-Execute o gerador de código do Drift (passo essencial):
-
-Bash
-
-> dart run build_runner build --delete-conflicting-outputs
-
-Execute o aplicativo no seu dispositivo Windows:
-
-Bash
-
-> flutter run -d windows
-
-
-
-### 📄 Licença
-Este projeto está sob a licença MIT. Veja o arquivo LICENSE.md para mais detalhes.
