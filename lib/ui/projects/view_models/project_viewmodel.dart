@@ -1,4 +1,4 @@
-import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
 import '../../../data/repositories/project_repository.dart';
 import '../../../domain/models/project_model.dart' as domain;
 import '../../../domain/models/step_model.dart' as domain;
@@ -28,6 +28,85 @@ class ProjectViewModel extends ChangeNotifier {
   final Set<String> _selectedStepsToRestore = {};
   Set<String> get selectedStepsToRestore => _selectedStepsToRestore;
 
+  String? _activeTimerId;
+  String? get activeTimerId => _activeTimerId;
+  DateTime? _timerStartTime;
+
+  String? _expandedItemId;
+  ExpansibleController? _expansionController;
+
+  void handleExpansionChange({
+    required String itemId,
+    required bool isExpanded,
+    required ExpansibleController controller,
+  }) {
+    if (_expandedItemId != null && _expandedItemId != itemId) {
+      _expansionController?.collapse();
+      stopTimer();
+    }
+
+    if (isExpanded) {
+      _expandedItemId = itemId;
+      _expansionController = controller;
+      startTimer(itemId);
+    } else {
+      _expandedItemId = null;
+      _expansionController = null;
+      stopTimer();
+    }
+  }
+
+  void startTimer(String itemId) {
+    if (_activeTimerId != null) {
+      stopTimer();
+    }
+    _activeTimerId = itemId;
+    _timerStartTime = DateTime.now();
+    notifyListeners();
+  }
+
+  Future<void> stopTimer() async {
+    if (_activeTimerId == null || _timerStartTime == null) return;
+
+    final String itemIdToStop = _activeTimerId!;
+    final elapsedSeconds =
+        DateTime.now().difference(_timerStartTime!).inSeconds;
+
+    _activeTimerId = null;
+    _timerStartTime = null;
+    notifyListeners();
+
+    if (elapsedSeconds == 0) return;
+
+    for (var project in _activeProjects) {
+      dynamic itemToUpdate;
+      bool isSubStep = false;
+      try {
+        itemToUpdate = project.steps.firstWhere((s) => s.id == itemIdToStop);
+      } catch (e) {
+        try {
+          itemToUpdate = project.steps
+              .expand((s) => s.subSteps)
+              .firstWhere((ss) => ss.id == itemIdToStop);
+          isSubStep = true;
+        } catch (e) {}
+      }
+
+      if (itemToUpdate != null) {
+        itemToUpdate.durationInSeconds += elapsedSeconds;
+
+        if (isSubStep) {
+          await _repository.updateSubStepDuration(
+              itemIdToStop, itemToUpdate.durationInSeconds);
+        } else {
+          await _repository.updateStepDuration(
+              itemIdToStop, itemToUpdate.durationInSeconds);
+        }
+        break;
+      }
+    }
+  }
+
   Future<void> loadProjects() async {
     _isLoading = true;
     notifyListeners();
@@ -44,6 +123,11 @@ class ProjectViewModel extends ChangeNotifier {
   }
 
   Future<void> completeProject(String projectId) async {
+    if (_expansionController != null) {
+      _expansionController?.collapse();
+    }
+    await stopTimer();
+
     await _repository.setProjectStatus(projectId, true);
     await loadProjects();
   }

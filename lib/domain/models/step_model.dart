@@ -8,14 +8,15 @@ class Step {
   List<Task> directTasks;
   List<SubStep> subSteps;
   DateTime? deletedAt;
+  int durationInSeconds;
 
-  Step({
-    required this.id,
-    required this.title,
-    required this.subSteps,
-    required this.directTasks,
-    this.deletedAt,
-  });
+  Step(
+      {required this.id,
+      required this.title,
+      required this.subSteps,
+      required this.directTasks,
+      this.deletedAt,
+      required this.durationInSeconds});
 
   double get progress {
     final allTasks = [

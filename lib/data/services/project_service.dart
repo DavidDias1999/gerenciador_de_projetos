@@ -13,7 +13,6 @@ class ProjectService {
     final fullProjects = await _db.getAllProjects();
     final allUsersData = await _db.select(_db.users).get();
     final userMap = {for (var user in allUsersData) user.id: user.username};
-
     return fullProjects.map((fullProject) {
       return domain.Project(
         id: fullProject.project.id,
@@ -24,11 +23,13 @@ class ProjectService {
             id: fullStep.step.id,
             title: fullStep.step.title,
             deletedAt: fullStep.step.deletedAt,
+            durationInSeconds: fullStep.step.durationInSeconds,
             subSteps: fullStep.subSteps.map((fullSubStep) {
               return domain.SubStep(
                 id: fullSubStep.subStep.id,
                 title: fullSubStep.subStep.title,
                 orderIndex: fullSubStep.subStep.orderIndex,
+                durationInSeconds: fullSubStep.subStep.durationInSeconds,
                 tasks: fullSubStep.tasks.map((taskData) {
                   return domain.Task(
                     id: taskData.id,
@@ -98,6 +99,14 @@ class ProjectService {
     await _db.softDeleteStep(stepId);
   }
 
+  Future<void> updateStepDuration(String stepId, int newDuration) async {
+    await _db.updateStepDuration(stepId, newDuration);
+  }
+
+  Future<void> updateSubStepDuration(String subStepId, int newDuration) async {
+    await _db.updateSubStepDuration(subStepId, newDuration);
+  }
+
   Future<List<domain.Step>> getDeletedStepsForProject(String projectId) async {
     final deletedStepsData = await _db.getDeletedStepsForProject(projectId);
     return deletedStepsData.map((stepData) {
@@ -107,6 +116,7 @@ class ProjectService {
         subSteps: [],
         directTasks: [],
         deletedAt: stepData.deletedAt,
+        durationInSeconds: stepData.durationInSeconds,
       );
     }).toList();
   }

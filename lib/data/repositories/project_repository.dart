@@ -42,4 +42,10 @@ class ProjectRepository {
 
   Future<void> restoreSteps(List<String> stepIds) =>
       _projectService.restoreSteps(stepIds);
+
+  Future<void> updateStepDuration(String stepId, int newDuration) =>
+      _projectService.updateStepDuration(stepId, newDuration);
+
+  Future<void> updateSubStepDuration(String subStepId, int newDuration) =>
+      _projectService.updateSubStepDuration(subStepId, newDuration);
 }

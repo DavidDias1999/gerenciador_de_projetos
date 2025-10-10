@@ -77,12 +77,10 @@ class ProjectListItem extends StatelessWidget {
                     value: 'activate',
                     child: Text('Ativar projeto'),
                   ),
-                const PopupMenuDivider(),
                 const PopupMenuItem<String>(
                   value: 'restore_steps',
                   child: Text('Restaurar etapas'),
                 ),
-                const PopupMenuDivider(),
                 const PopupMenuItem<String>(
                   value: 'delete',
                   child: Text(
@@ -95,7 +93,11 @@ class ProjectListItem extends StatelessWidget {
           ],
         ),
         children: project.steps
-            .map((step) => StepListItem(project: project, step: step))
+            .map((step) => StepListItem(
+                  project: project,
+                  step: step,
+                  projectType: projectType,
+                ))
             .toList(),
       ),
     );

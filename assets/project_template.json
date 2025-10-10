@@ -8,6 +8,20 @@
           { "task_name": "Layout" },
           { "task_name": "Modelo tridimensional 3D" }
         ]
+      },
+      {
+        "sub_step_name": "Apresentação Preliminar",
+        "tasks": [
+          { "task_name": "Layout" },
+          { "task_name": "Modelo tridimensional 3D" }
+        ]
+      },
+      {
+        "sub_step_name": "Apresentação Preliminar",
+        "tasks": [
+          { "task_name": "Layout" },
+          { "task_name": "Modelo tridimensional 3D" }
+        ]
       }
     ]
   },

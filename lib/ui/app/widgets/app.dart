@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:gerenciador_de_projetos/ui/auth/view_models/auth_viewmodel.dart';
 import 'package:gerenciador_de_projetos/ui/projects/widgets/project_list_screen.dart';
+import 'package:gerenciador_de_projetos/ui/reports/reports_screen.dart';
 import 'package:provider/provider.dart';
 
 enum ProjectType { active, completed }
@@ -14,6 +15,11 @@ class AppGDP extends StatefulWidget {
 
 class _AppGDPState extends State<AppGDP> {
   int _selectedIndex = 0;
+  final _screens = [
+    const ProjectListScreen(projectType: ProjectType.active),
+    const ProjectListScreen(projectType: ProjectType.completed),
+    const ReportsScreen(),
+  ];
 
   @override
   Widget build(BuildContext context) {
@@ -43,6 +49,11 @@ class _AppGDPState extends State<AppGDP> {
                   icon: Icon(Icons.folder_zip_outlined),
                   selectedIcon: Icon(Icons.folder_zip),
                   label: Text('Finalizados'),
+                ),
+                NavigationRailDestination(
+                  icon: Icon(Icons.analytics_outlined),
+                  selectedIcon: Icon(Icons.analytics),
+                  label: Text('Relatórios'),
                 ),
               ],
               trailing: Expanded(
@@ -82,11 +93,7 @@ class _AppGDPState extends State<AppGDP> {
             indent: 20,
             endIndent: 20,
           ),
-          Expanded(
-            child: _selectedIndex == 0
-                ? const ProjectListScreen(projectType: ProjectType.active)
-                : const ProjectListScreen(projectType: ProjectType.completed),
-          ),
+          Expanded(child: _screens[_selectedIndex]),
         ],
       ),
     );

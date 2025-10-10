@@ -23,6 +23,7 @@ class Steps extends Table {
   TextColumn get title => text()();
   TextColumn get projectId => text().references(Projects, #id)();
   DateTimeColumn get deletedAt => dateTime().nullable()();
+  IntColumn get durationInSeconds => integer().withDefault(const Constant(0))();
   @override
   Set<Column> get primaryKey => {id};
 }
@@ -33,6 +34,7 @@ class SubSteps extends Table {
   TextColumn get title => text()();
   IntColumn get orderIndex => integer().withDefault(const Constant(0))();
   TextColumn get stepId => text().references(Steps, #id)();
+  IntColumn get durationInSeconds => integer().withDefault(const Constant(0))();
   @override
   Set<Column> get primaryKey => {id};
 }
@@ -94,7 +96,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(_openConnection());
 
   @override
-  int get schemaVersion => 8;
+  int get schemaVersion => 9;
 
   @override
   MigrationStrategy get migration {
@@ -109,6 +111,10 @@ class AppDatabase extends _$AppDatabase {
           await m.addColumn(tasks, tasks.completedAt);
         }
         if (from < 8) await m.addColumn(tasks, tasks.stepId);
+        if (from < 9) {
+          await m.addColumn(steps, steps.durationInSeconds);
+          await m.addColumn(subSteps, subSteps.durationInSeconds);
+        }
       },
     );
   }
@@ -310,6 +316,18 @@ class AppDatabase extends _$AppDatabase {
 
   Future<UserData?> getUserById(int id) {
     return (select(users)..where((tbl) => tbl.id.equals(id))).getSingleOrNull();
+  }
+
+  Future<void> updateStepDuration(String stepId, int newDuration) {
+    return (update(steps)..where((s) => s.id.equals(stepId))).write(
+      StepsCompanion(durationInSeconds: Value(newDuration)),
+    );
+  }
+
+  Future<void> updateSubStepDuration(String subStepId, int newDuration) {
+    return (update(subSteps)..where((ss) => ss.id.equals(subStepId))).write(
+      SubStepsCompanion(durationInSeconds: Value(newDuration)),
+    );
   }
 }
 

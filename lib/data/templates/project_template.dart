@@ -18,11 +18,9 @@ Future<List<Step>> createDefaultSteps() async {
 
     if (stepJson['sub_steps'] != null) {
       final List<dynamic> subStepsJson = stepJson['sub_steps'];
-
       for (int i = 0; i < subStepsJson.length; i++) {
         final subStepJson = subStepsJson[i];
         final List<dynamic> tasksJson = subStepJson['tasks'] ?? [];
-
         final List<Task> tasks = [];
         for (int j = 0; j < tasksJson.length; j++) {
           final taskJson = tasksJson[j];
@@ -33,12 +31,12 @@ Future<List<Step>> createDefaultSteps() async {
             orderIndex: j,
           ));
         }
-
         subSteps.add(SubStep(
           id: uuid.v4(),
           title: subStepJson['sub_step_name'],
           orderIndex: i,
           tasks: tasks,
+          durationInSeconds: 0,
         ));
       }
     } else if (stepJson['tasks'] != null) {
@@ -59,6 +57,7 @@ Future<List<Step>> createDefaultSteps() async {
       title: stepJson['step_name'],
       subSteps: subSteps,
       directTasks: directTasks,
+      durationInSeconds: 0,
     );
   }).toList();
 

@@ -269,8 +269,17 @@ class $StepsTable extends Steps with TableInfo<$StepsTable, StepData> {
   late final GeneratedColumn<DateTime> deletedAt = GeneratedColumn<DateTime>(
       'deleted_at', aliasedName, true,
       type: DriftSqlType.dateTime, requiredDuringInsert: false);
+  static const VerificationMeta _durationInSecondsMeta =
+      const VerificationMeta('durationInSeconds');
   @override
-  List<GeneratedColumn> get $columns => [id, title, projectId, deletedAt];
+  late final GeneratedColumn<int> durationInSeconds = GeneratedColumn<int>(
+      'duration_in_seconds', aliasedName, false,
+      type: DriftSqlType.int,
+      requiredDuringInsert: false,
+      defaultValue: const Constant(0));
+  @override
+  List<GeneratedColumn> get $columns =>
+      [id, title, projectId, deletedAt, durationInSeconds];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
@@ -302,6 +311,12 @@ class $StepsTable extends Steps with TableInfo<$StepsTable, StepData> {
       context.handle(_deletedAtMeta,
           deletedAt.isAcceptableOrUnknown(data['deleted_at']!, _deletedAtMeta));
     }
+    if (data.containsKey('duration_in_seconds')) {
+      context.handle(
+          _durationInSecondsMeta,
+          durationInSeconds.isAcceptableOrUnknown(
+              data['duration_in_seconds']!, _durationInSecondsMeta));
+    }
     return context;
   }
 
@@ -319,6 +334,8 @@ class $StepsTable extends Steps with TableInfo<$StepsTable, StepData> {
           .read(DriftSqlType.string, data['${effectivePrefix}project_id'])!,
       deletedAt: attachedDatabase.typeMapping
           .read(DriftSqlType.dateTime, data['${effectivePrefix}deleted_at']),
+      durationInSeconds: attachedDatabase.typeMapping.read(
+          DriftSqlType.int, data['${effectivePrefix}duration_in_seconds'])!,
     );
   }
 
@@ -333,11 +350,13 @@ class StepData extends DataClass implements Insertable<StepData> {
   final String title;
   final String projectId;
   final DateTime? deletedAt;
+  final int durationInSeconds;
   const StepData(
       {required this.id,
       required this.title,
       required this.projectId,
-      this.deletedAt});
+      this.deletedAt,
+      required this.durationInSeconds});
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
@@ -347,6 +366,7 @@ class StepData extends DataClass implements Insertable<StepData> {
     if (!nullToAbsent || deletedAt != null) {
       map['deleted_at'] = Variable<DateTime>(deletedAt);
     }
+    map['duration_in_seconds'] = Variable<int>(durationInSeconds);
     return map;
   }
 
@@ -358,6 +378,7 @@ class StepData extends DataClass implements Insertable<StepData> {
       deletedAt: deletedAt == null && nullToAbsent
           ? const Value.absent()
           : Value(deletedAt),
+      durationInSeconds: Value(durationInSeconds),
     );
   }
 
@@ -369,6 +390,7 @@ class StepData extends DataClass implements Insertable<StepData> {
       title: serializer.fromJson<String>(json['title']),
       projectId: serializer.fromJson<String>(json['projectId']),
       deletedAt: serializer.fromJson<DateTime?>(json['deletedAt']),
+      durationInSeconds: serializer.fromJson<int>(json['durationInSeconds']),
     );
   }
   @override
@@ -379,6 +401,7 @@ class StepData extends DataClass implements Insertable<StepData> {
       'title': serializer.toJson<String>(title),
       'projectId': serializer.toJson<String>(projectId),
       'deletedAt': serializer.toJson<DateTime?>(deletedAt),
+      'durationInSeconds': serializer.toJson<int>(durationInSeconds),
     };
   }
 
@@ -386,12 +409,14 @@ class StepData extends DataClass implements Insertable<StepData> {
           {String? id,
           String? title,
           String? projectId,
-          Value<DateTime?> deletedAt = const Value.absent()}) =>
+          Value<DateTime?> deletedAt = const Value.absent(),
+          int? durationInSeconds}) =>
       StepData(
         id: id ?? this.id,
         title: title ?? this.title,
         projectId: projectId ?? this.projectId,
         deletedAt: deletedAt.present ? deletedAt.value : this.deletedAt,
+        durationInSeconds: durationInSeconds ?? this.durationInSeconds,
       );
   StepData copyWithCompanion(StepsCompanion data) {
     return StepData(
@@ -399,6 +424,9 @@ class StepData extends DataClass implements Insertable<StepData> {
       title: data.title.present ? data.title.value : this.title,
       projectId: data.projectId.present ? data.projectId.value : this.projectId,
       deletedAt: data.deletedAt.present ? data.deletedAt.value : this.deletedAt,
+      durationInSeconds: data.durationInSeconds.present
+          ? data.durationInSeconds.value
+          : this.durationInSeconds,
     );
   }
 
@@ -408,13 +436,15 @@ class StepData extends DataClass implements Insertable<StepData> {
           ..write('id: $id, ')
           ..write('title: $title, ')
           ..write('projectId: $projectId, ')
-          ..write('deletedAt: $deletedAt')
+          ..write('deletedAt: $deletedAt, ')
+          ..write('durationInSeconds: $durationInSeconds')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode => Object.hash(id, title, projectId, deletedAt);
+  int get hashCode =>
+      Object.hash(id, title, projectId, deletedAt, durationInSeconds);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -422,7 +452,8 @@ class StepData extends DataClass implements Insertable<StepData> {
           other.id == this.id &&
           other.title == this.title &&
           other.projectId == this.projectId &&
-          other.deletedAt == this.deletedAt);
+          other.deletedAt == this.deletedAt &&
+          other.durationInSeconds == this.durationInSeconds);
 }
 
 class StepsCompanion extends UpdateCompanion<StepData> {
@@ -430,12 +461,14 @@ class StepsCompanion extends UpdateCompanion<StepData> {
   final Value<String> title;
   final Value<String> projectId;
   final Value<DateTime?> deletedAt;
+  final Value<int> durationInSeconds;
   final Value<int> rowid;
   const StepsCompanion({
     this.id = const Value.absent(),
     this.title = const Value.absent(),
     this.projectId = const Value.absent(),
     this.deletedAt = const Value.absent(),
+    this.durationInSeconds = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   StepsCompanion.insert({
@@ -443,6 +476,7 @@ class StepsCompanion extends UpdateCompanion<StepData> {
     required String title,
     required String projectId,
     this.deletedAt = const Value.absent(),
+    this.durationInSeconds = const Value.absent(),
     this.rowid = const Value.absent(),
   })  : id = Value(id),
         title = Value(title),
@@ -452,6 +486,7 @@ class StepsCompanion extends UpdateCompanion<StepData> {
     Expression<String>? title,
     Expression<String>? projectId,
     Expression<DateTime>? deletedAt,
+    Expression<int>? durationInSeconds,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
@@ -459,6 +494,7 @@ class StepsCompanion extends UpdateCompanion<StepData> {
       if (title != null) 'title': title,
       if (projectId != null) 'project_id': projectId,
       if (deletedAt != null) 'deleted_at': deletedAt,
+      if (durationInSeconds != null) 'duration_in_seconds': durationInSeconds,
       if (rowid != null) 'rowid': rowid,
     });
   }
@@ -468,12 +504,14 @@ class StepsCompanion extends UpdateCompanion<StepData> {
       Value<String>? title,
       Value<String>? projectId,
       Value<DateTime?>? deletedAt,
+      Value<int>? durationInSeconds,
       Value<int>? rowid}) {
     return StepsCompanion(
       id: id ?? this.id,
       title: title ?? this.title,
       projectId: projectId ?? this.projectId,
       deletedAt: deletedAt ?? this.deletedAt,
+      durationInSeconds: durationInSeconds ?? this.durationInSeconds,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -493,6 +531,9 @@ class StepsCompanion extends UpdateCompanion<StepData> {
     if (deletedAt.present) {
       map['deleted_at'] = Variable<DateTime>(deletedAt.value);
     }
+    if (durationInSeconds.present) {
+      map['duration_in_seconds'] = Variable<int>(durationInSeconds.value);
+    }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
     }
@@ -506,6 +547,7 @@ class StepsCompanion extends UpdateCompanion<StepData> {
           ..write('title: $title, ')
           ..write('projectId: $projectId, ')
           ..write('deletedAt: $deletedAt, ')
+          ..write('durationInSeconds: $durationInSeconds, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -544,8 +586,17 @@ class $SubStepsTable extends SubSteps
       requiredDuringInsert: true,
       defaultConstraints:
           GeneratedColumn.constraintIsAlways('REFERENCES steps (id)'));
+  static const VerificationMeta _durationInSecondsMeta =
+      const VerificationMeta('durationInSeconds');
   @override
-  List<GeneratedColumn> get $columns => [id, title, orderIndex, stepId];
+  late final GeneratedColumn<int> durationInSeconds = GeneratedColumn<int>(
+      'duration_in_seconds', aliasedName, false,
+      type: DriftSqlType.int,
+      requiredDuringInsert: false,
+      defaultValue: const Constant(0));
+  @override
+  List<GeneratedColumn> get $columns =>
+      [id, title, orderIndex, stepId, durationInSeconds];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
@@ -579,6 +630,12 @@ class $SubStepsTable extends SubSteps
     } else if (isInserting) {
       context.missing(_stepIdMeta);
     }
+    if (data.containsKey('duration_in_seconds')) {
+      context.handle(
+          _durationInSecondsMeta,
+          durationInSeconds.isAcceptableOrUnknown(
+              data['duration_in_seconds']!, _durationInSecondsMeta));
+    }
     return context;
   }
 
@@ -596,6 +653,8 @@ class $SubStepsTable extends SubSteps
           .read(DriftSqlType.int, data['${effectivePrefix}order_index'])!,
       stepId: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}step_id'])!,
+      durationInSeconds: attachedDatabase.typeMapping.read(
+          DriftSqlType.int, data['${effectivePrefix}duration_in_seconds'])!,
     );
   }
 
@@ -610,11 +669,13 @@ class SubStepData extends DataClass implements Insertable<SubStepData> {
   final String title;
   final int orderIndex;
   final String stepId;
+  final int durationInSeconds;
   const SubStepData(
       {required this.id,
       required this.title,
       required this.orderIndex,
-      required this.stepId});
+      required this.stepId,
+      required this.durationInSeconds});
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
@@ -622,6 +683,7 @@ class SubStepData extends DataClass implements Insertable<SubStepData> {
     map['title'] = Variable<String>(title);
     map['order_index'] = Variable<int>(orderIndex);
     map['step_id'] = Variable<String>(stepId);
+    map['duration_in_seconds'] = Variable<int>(durationInSeconds);
     return map;
   }
 
@@ -631,6 +693,7 @@ class SubStepData extends DataClass implements Insertable<SubStepData> {
       title: Value(title),
       orderIndex: Value(orderIndex),
       stepId: Value(stepId),
+      durationInSeconds: Value(durationInSeconds),
     );
   }
 
@@ -642,6 +705,7 @@ class SubStepData extends DataClass implements Insertable<SubStepData> {
       title: serializer.fromJson<String>(json['title']),
       orderIndex: serializer.fromJson<int>(json['orderIndex']),
       stepId: serializer.fromJson<String>(json['stepId']),
+      durationInSeconds: serializer.fromJson<int>(json['durationInSeconds']),
     );
   }
   @override
@@ -652,16 +716,22 @@ class SubStepData extends DataClass implements Insertable<SubStepData> {
       'title': serializer.toJson<String>(title),
       'orderIndex': serializer.toJson<int>(orderIndex),
       'stepId': serializer.toJson<String>(stepId),
+      'durationInSeconds': serializer.toJson<int>(durationInSeconds),
     };
   }
 
   SubStepData copyWith(
-          {String? id, String? title, int? orderIndex, String? stepId}) =>
+          {String? id,
+          String? title,
+          int? orderIndex,
+          String? stepId,
+          int? durationInSeconds}) =>
       SubStepData(
         id: id ?? this.id,
         title: title ?? this.title,
         orderIndex: orderIndex ?? this.orderIndex,
         stepId: stepId ?? this.stepId,
+        durationInSeconds: durationInSeconds ?? this.durationInSeconds,
       );
   SubStepData copyWithCompanion(SubStepsCompanion data) {
     return SubStepData(
@@ -670,6 +740,9 @@ class SubStepData extends DataClass implements Insertable<SubStepData> {
       orderIndex:
           data.orderIndex.present ? data.orderIndex.value : this.orderIndex,
       stepId: data.stepId.present ? data.stepId.value : this.stepId,
+      durationInSeconds: data.durationInSeconds.present
+          ? data.durationInSeconds.value
+          : this.durationInSeconds,
     );
   }
 
@@ -679,13 +752,15 @@ class SubStepData extends DataClass implements Insertable<SubStepData> {
           ..write('id: $id, ')
           ..write('title: $title, ')
           ..write('orderIndex: $orderIndex, ')
-          ..write('stepId: $stepId')
+          ..write('stepId: $stepId, ')
+          ..write('durationInSeconds: $durationInSeconds')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode => Object.hash(id, title, orderIndex, stepId);
+  int get hashCode =>
+      Object.hash(id, title, orderIndex, stepId, durationInSeconds);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -693,7 +768,8 @@ class SubStepData extends DataClass implements Insertable<SubStepData> {
           other.id == this.id &&
           other.title == this.title &&
           other.orderIndex == this.orderIndex &&
-          other.stepId == this.stepId);
+          other.stepId == this.stepId &&
+          other.durationInSeconds == this.durationInSeconds);
 }
 
 class SubStepsCompanion extends UpdateCompanion<SubStepData> {
@@ -701,12 +777,14 @@ class SubStepsCompanion extends UpdateCompanion<SubStepData> {
   final Value<String> title;
   final Value<int> orderIndex;
   final Value<String> stepId;
+  final Value<int> durationInSeconds;
   final Value<int> rowid;
   const SubStepsCompanion({
     this.id = const Value.absent(),
     this.title = const Value.absent(),
     this.orderIndex = const Value.absent(),
     this.stepId = const Value.absent(),
+    this.durationInSeconds = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   SubStepsCompanion.insert({
@@ -714,6 +792,7 @@ class SubStepsCompanion extends UpdateCompanion<SubStepData> {
     required String title,
     this.orderIndex = const Value.absent(),
     required String stepId,
+    this.durationInSeconds = const Value.absent(),
     this.rowid = const Value.absent(),
   })  : id = Value(id),
         title = Value(title),
@@ -723,6 +802,7 @@ class SubStepsCompanion extends UpdateCompanion<SubStepData> {
     Expression<String>? title,
     Expression<int>? orderIndex,
     Expression<String>? stepId,
+    Expression<int>? durationInSeconds,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
@@ -730,6 +810,7 @@ class SubStepsCompanion extends UpdateCompanion<SubStepData> {
       if (title != null) 'title': title,
       if (orderIndex != null) 'order_index': orderIndex,
       if (stepId != null) 'step_id': stepId,
+      if (durationInSeconds != null) 'duration_in_seconds': durationInSeconds,
       if (rowid != null) 'rowid': rowid,
     });
   }
@@ -739,12 +820,14 @@ class SubStepsCompanion extends UpdateCompanion<SubStepData> {
       Value<String>? title,
       Value<int>? orderIndex,
       Value<String>? stepId,
+      Value<int>? durationInSeconds,
       Value<int>? rowid}) {
     return SubStepsCompanion(
       id: id ?? this.id,
       title: title ?? this.title,
       orderIndex: orderIndex ?? this.orderIndex,
       stepId: stepId ?? this.stepId,
+      durationInSeconds: durationInSeconds ?? this.durationInSeconds,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -764,6 +847,9 @@ class SubStepsCompanion extends UpdateCompanion<SubStepData> {
     if (stepId.present) {
       map['step_id'] = Variable<String>(stepId.value);
     }
+    if (durationInSeconds.present) {
+      map['duration_in_seconds'] = Variable<int>(durationInSeconds.value);
+    }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
     }
@@ -777,6 +863,7 @@ class SubStepsCompanion extends UpdateCompanion<SubStepData> {
           ..write('title: $title, ')
           ..write('orderIndex: $orderIndex, ')
           ..write('stepId: $stepId, ')
+          ..write('durationInSeconds: $durationInSeconds, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -1695,6 +1782,7 @@ typedef $$StepsTableCreateCompanionBuilder = StepsCompanion Function({
   required String title,
   required String projectId,
   Value<DateTime?> deletedAt,
+  Value<int> durationInSeconds,
   Value<int> rowid,
 });
 typedef $$StepsTableUpdateCompanionBuilder = StepsCompanion Function({
@@ -1702,6 +1790,7 @@ typedef $$StepsTableUpdateCompanionBuilder = StepsCompanion Function({
   Value<String> title,
   Value<String> projectId,
   Value<DateTime?> deletedAt,
+  Value<int> durationInSeconds,
   Value<int> rowid,
 });
 
@@ -1768,6 +1857,10 @@ class $$StepsTableFilterComposer extends Composer<_$AppDatabase, $StepsTable> {
 
   ColumnFilters<DateTime> get deletedAt => $composableBuilder(
       column: $table.deletedAt, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<int> get durationInSeconds => $composableBuilder(
+      column: $table.durationInSeconds,
+      builder: (column) => ColumnFilters(column));
 
   $$ProjectsTableFilterComposer get projectId {
     final $$ProjectsTableFilterComposer composer = $composerBuilder(
@@ -1850,6 +1943,10 @@ class $$StepsTableOrderingComposer
   ColumnOrderings<DateTime> get deletedAt => $composableBuilder(
       column: $table.deletedAt, builder: (column) => ColumnOrderings(column));
 
+  ColumnOrderings<int> get durationInSeconds => $composableBuilder(
+      column: $table.durationInSeconds,
+      builder: (column) => ColumnOrderings(column));
+
   $$ProjectsTableOrderingComposer get projectId {
     final $$ProjectsTableOrderingComposer composer = $composerBuilder(
         composer: this,
@@ -1888,6 +1985,9 @@ class $$StepsTableAnnotationComposer
 
   GeneratedColumn<DateTime> get deletedAt =>
       $composableBuilder(column: $table.deletedAt, builder: (column) => column);
+
+  GeneratedColumn<int> get durationInSeconds => $composableBuilder(
+      column: $table.durationInSeconds, builder: (column) => column);
 
   $$ProjectsTableAnnotationComposer get projectId {
     final $$ProjectsTableAnnotationComposer composer = $composerBuilder(
@@ -1980,6 +2080,7 @@ class $$StepsTableTableManager extends RootTableManager<
             Value<String> title = const Value.absent(),
             Value<String> projectId = const Value.absent(),
             Value<DateTime?> deletedAt = const Value.absent(),
+            Value<int> durationInSeconds = const Value.absent(),
             Value<int> rowid = const Value.absent(),
           }) =>
               StepsCompanion(
@@ -1987,6 +2088,7 @@ class $$StepsTableTableManager extends RootTableManager<
             title: title,
             projectId: projectId,
             deletedAt: deletedAt,
+            durationInSeconds: durationInSeconds,
             rowid: rowid,
           ),
           createCompanionCallback: ({
@@ -1994,6 +2096,7 @@ class $$StepsTableTableManager extends RootTableManager<
             required String title,
             required String projectId,
             Value<DateTime?> deletedAt = const Value.absent(),
+            Value<int> durationInSeconds = const Value.absent(),
             Value<int> rowid = const Value.absent(),
           }) =>
               StepsCompanion.insert(
@@ -2001,6 +2104,7 @@ class $$StepsTableTableManager extends RootTableManager<
             title: title,
             projectId: projectId,
             deletedAt: deletedAt,
+            durationInSeconds: durationInSeconds,
             rowid: rowid,
           ),
           withReferenceMapper: (p0) => p0
@@ -2090,6 +2194,7 @@ typedef $$SubStepsTableCreateCompanionBuilder = SubStepsCompanion Function({
   required String title,
   Value<int> orderIndex,
   required String stepId,
+  Value<int> durationInSeconds,
   Value<int> rowid,
 });
 typedef $$SubStepsTableUpdateCompanionBuilder = SubStepsCompanion Function({
@@ -2097,6 +2202,7 @@ typedef $$SubStepsTableUpdateCompanionBuilder = SubStepsCompanion Function({
   Value<String> title,
   Value<int> orderIndex,
   Value<String> stepId,
+  Value<int> durationInSeconds,
   Value<int> rowid,
 });
 
@@ -2150,6 +2256,10 @@ class $$SubStepsTableFilterComposer
 
   ColumnFilters<int> get orderIndex => $composableBuilder(
       column: $table.orderIndex, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<int> get durationInSeconds => $composableBuilder(
+      column: $table.durationInSeconds,
+      builder: (column) => ColumnFilters(column));
 
   $$StepsTableFilterComposer get stepId {
     final $$StepsTableFilterComposer composer = $composerBuilder(
@@ -2211,6 +2321,10 @@ class $$SubStepsTableOrderingComposer
   ColumnOrderings<int> get orderIndex => $composableBuilder(
       column: $table.orderIndex, builder: (column) => ColumnOrderings(column));
 
+  ColumnOrderings<int> get durationInSeconds => $composableBuilder(
+      column: $table.durationInSeconds,
+      builder: (column) => ColumnOrderings(column));
+
   $$StepsTableOrderingComposer get stepId {
     final $$StepsTableOrderingComposer composer = $composerBuilder(
         composer: this,
@@ -2249,6 +2363,9 @@ class $$SubStepsTableAnnotationComposer
 
   GeneratedColumn<int> get orderIndex => $composableBuilder(
       column: $table.orderIndex, builder: (column) => column);
+
+  GeneratedColumn<int> get durationInSeconds => $composableBuilder(
+      column: $table.durationInSeconds, builder: (column) => column);
 
   $$StepsTableAnnotationComposer get stepId {
     final $$StepsTableAnnotationComposer composer = $composerBuilder(
@@ -2319,6 +2436,7 @@ class $$SubStepsTableTableManager extends RootTableManager<
             Value<String> title = const Value.absent(),
             Value<int> orderIndex = const Value.absent(),
             Value<String> stepId = const Value.absent(),
+            Value<int> durationInSeconds = const Value.absent(),
             Value<int> rowid = const Value.absent(),
           }) =>
               SubStepsCompanion(
@@ -2326,6 +2444,7 @@ class $$SubStepsTableTableManager extends RootTableManager<
             title: title,
             orderIndex: orderIndex,
             stepId: stepId,
+            durationInSeconds: durationInSeconds,
             rowid: rowid,
           ),
           createCompanionCallback: ({
@@ -2333,6 +2452,7 @@ class $$SubStepsTableTableManager extends RootTableManager<
             required String title,
             Value<int> orderIndex = const Value.absent(),
             required String stepId,
+            Value<int> durationInSeconds = const Value.absent(),
             Value<int> rowid = const Value.absent(),
           }) =>
               SubStepsCompanion.insert(
@@ -2340,6 +2460,7 @@ class $$SubStepsTableTableManager extends RootTableManager<
             title: title,
             orderIndex: orderIndex,
             stepId: stepId,
+            durationInSeconds: durationInSeconds,
             rowid: rowid,
           ),
           withReferenceMapper: (p0) => p0
