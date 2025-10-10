@@ -1,7 +1,7 @@
 import '../local/database.dart';
-
 import '../../domain/models/project_model.dart' as domain;
 import '../../domain/models/step_model.dart' as domain;
+import '../../domain/models/sub_step_model.dart' as domain;
 import '../../domain/models/task_model.dart' as domain;
 
 class ProjectService {
@@ -9,38 +9,66 @@ class ProjectService {
 
   ProjectService({required AppDatabase database}) : _db = database;
 
-  domain.Project _mapFullProjectToDomain(FullProject fullProject) {
-    return domain.Project(
-      id: fullProject.project.id,
-      projectName: fullProject.project.projectName,
-      isCompleted: fullProject.project.isCompleted,
-      steps: fullProject.steps.map((fullStep) {
-        return domain.Step(
-          id: fullStep.step.id,
-          title: fullStep.step.title,
-          tasks: fullStep.tasks.map((task) {
-            return domain.Task(
-              id: task.id,
-              title: task.title,
-              isCompleted: task.isCompleted,
-            );
-          }).toList(),
-        );
-      }).toList(),
-    );
-  }
-
   Future<List<domain.Project>> fetchProjects() async {
     final fullProjects = await _db.getAllProjects();
-    return fullProjects.map(_mapFullProjectToDomain).toList();
+    final allUsersData = await _db.select(_db.users).get();
+    final userMap = {for (var user in allUsersData) user.id: user.username};
+    return fullProjects.map((fullProject) {
+      return domain.Project(
+        id: fullProject.project.id,
+        projectName: fullProject.project.projectName,
+        isCompleted: fullProject.project.isCompleted,
+        steps: fullProject.steps.map((fullStep) {
+          return domain.Step(
+            id: fullStep.step.id,
+            title: fullStep.step.title,
+            deletedAt: fullStep.step.deletedAt,
+            durationInSeconds: fullStep.step.durationInSeconds,
+            subSteps: fullStep.subSteps.map((fullSubStep) {
+              return domain.SubStep(
+                id: fullSubStep.subStep.id,
+                title: fullSubStep.subStep.title,
+                orderIndex: fullSubStep.subStep.orderIndex,
+                durationInSeconds: fullSubStep.subStep.durationInSeconds,
+                tasks: fullSubStep.tasks.map((taskData) {
+                  return domain.Task(
+                    id: taskData.id,
+                    title: taskData.title,
+                    isCompleted: taskData.isCompleted,
+                    orderIndex: taskData.orderIndex,
+                    completedAt: taskData.completedAt,
+                    completedByUsername: userMap[taskData.completedByUserId],
+                  );
+                }).toList(),
+              );
+            }).toList(),
+            directTasks: fullStep.directTasks.map((taskData) {
+              return domain.Task(
+                id: taskData.id,
+                title: taskData.title,
+                isCompleted: taskData.isCompleted,
+                orderIndex: taskData.orderIndex,
+                completedAt: taskData.completedAt,
+                completedByUsername: userMap[taskData.completedByUserId],
+              );
+            }).toList(),
+          );
+        }).toList(),
+      );
+    }).toList();
   }
 
   Future<void> createNewProject(String projectName) async {
     await _db.createNewProject(projectName);
   }
 
-  Future<void> updateTask(String taskId, bool isCompleted) async {
-    await _db.updateTaskStatus(taskId, isCompleted);
+  Future<void> updateTask(
+      String taskId, bool isCompleted, int currentUserId) async {
+    await _db.updateTaskStatus(
+      taskId: taskId,
+      isCompleted: isCompleted,
+      userId: currentUserId,
+    );
   }
 
   Future<void> setProjectStatus(String projectId, bool isCompleted) async {
@@ -51,15 +79,49 @@ class ProjectService {
     await _db.deleteProject(projectId);
   }
 
-  Future<void> selectAllTasksInStep(String stepId) async {
-    await _db.selectAllTasksInStep(stepId);
+  Future<void> selectAllTasksInSubStep(String subStepId, int userId) async {
+    await _db.selectAllTasksInSubStep(subStepId, userId);
+  }
+
+  Future<void> deselectAllTasksInSubStep(String subStepId) async {
+    await _db.deselectAllTasksInSubStep(subStepId);
+  }
+
+  Future<void> selectAllTasksInStep(String stepId, int userId) async {
+    await _db.selectAllTasksInStep(stepId, userId);
   }
 
   Future<void> deselectAllTasksInStep(String stepId) async {
     await _db.deselectAllTasksInStep(stepId);
   }
 
-  Future<void> deleteStep(String stepId) async {
-    await _db.deleteStep(stepId);
+  Future<void> softDeleteStep(String stepId) async {
+    await _db.softDeleteStep(stepId);
+  }
+
+  Future<void> updateStepDuration(String stepId, int newDuration) async {
+    await _db.updateStepDuration(stepId, newDuration);
+  }
+
+  Future<void> updateSubStepDuration(String subStepId, int newDuration) async {
+    await _db.updateSubStepDuration(subStepId, newDuration);
+  }
+
+  Future<List<domain.Step>> getDeletedStepsForProject(String projectId) async {
+    final deletedStepsData = await _db.getDeletedStepsForProject(projectId);
+    return deletedStepsData.map((stepData) {
+      return domain.Step(
+        id: stepData.id,
+        title: stepData.title,
+        subSteps: [],
+        directTasks: [],
+        deletedAt: stepData.deletedAt,
+        durationInSeconds: stepData.durationInSeconds,
+      );
+    }).toList();
+  }
+
+  Future<void> restoreSteps(List<String> stepIds) async {
+    await _db.restoreSteps(stepIds);
   }
 }

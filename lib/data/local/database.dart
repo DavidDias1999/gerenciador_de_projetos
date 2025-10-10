@@ -22,8 +22,28 @@ class Steps extends Table {
   TextColumn get id => text()();
   TextColumn get title => text()();
   TextColumn get projectId => text().references(Projects, #id)();
+  DateTimeColumn get deletedAt => dateTime().nullable()();
+  IntColumn get durationInSeconds => integer().withDefault(const Constant(0))();
   @override
   Set<Column> get primaryKey => {id};
+}
+
+@DataClassName('SubStepData')
+class SubSteps extends Table {
+  TextColumn get id => text()();
+  TextColumn get title => text()();
+  IntColumn get orderIndex => integer().withDefault(const Constant(0))();
+  TextColumn get stepId => text().references(Steps, #id)();
+  IntColumn get durationInSeconds => integer().withDefault(const Constant(0))();
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
+@DataClassName('UserData')
+class Users extends Table {
+  IntColumn get id => integer().autoIncrement()();
+  TextColumn get username => text().unique()();
+  TextColumn get password => text()();
 }
 
 @DataClassName('TaskData')
@@ -31,9 +51,20 @@ class Tasks extends Table {
   TextColumn get id => text()();
   TextColumn get title => text()();
   BoolColumn get isCompleted => boolean().withDefault(const Constant(false))();
-  TextColumn get stepId => text().references(Steps, #id)();
+  TextColumn get subStepId => text().nullable().references(SubSteps, #id)();
+  TextColumn get stepId => text().nullable().references(Steps, #id)();
+  IntColumn get orderIndex => integer().withDefault(const Constant(0))();
+  IntColumn get completedByUserId =>
+      integer().nullable().references(Users, #id)();
+  DateTimeColumn get completedAt => dateTime().nullable()();
+
   @override
   Set<Column> get primaryKey => {id};
+
+  @override
+  List<String> get customConstraints => [
+        'CHECK ((sub_step_id IS NOT NULL AND step_id IS NULL) OR (sub_step_id IS NULL AND step_id IS NOT NULL))'
+      ];
 }
 
 class FullProject {
@@ -44,16 +75,28 @@ class FullProject {
 
 class FullStep {
   final StepData step;
-  final List<TaskData> tasks;
-  FullStep({required this.step, required this.tasks});
+  final List<FullSubStep> subSteps;
+  final List<TaskData> directTasks;
+
+  FullStep({
+    required this.step,
+    required this.subSteps,
+    required this.directTasks,
+  });
 }
 
-@DriftDatabase(tables: [Projects, Steps, Tasks])
+class FullSubStep {
+  final SubStepData subStep;
+  final List<TaskData> tasks;
+  FullSubStep({required this.subStep, required this.tasks});
+}
+
+@DriftDatabase(tables: [Projects, Steps, SubSteps, Tasks, Users])
 class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(_openConnection());
 
   @override
-  int get schemaVersion => 2;
+  int get schemaVersion => 9;
 
   @override
   MigrationStrategy get migration {
@@ -62,8 +105,15 @@ class AppDatabase extends _$AppDatabase {
         await m.createAll();
       },
       onUpgrade: (Migrator m, int from, int to) async {
-        if (from == 1) {
-          await m.addColumn(projects, projects.isCompleted);
+        if (from < 6) await m.createTable(subSteps);
+        if (from < 7) {
+          await m.addColumn(tasks, tasks.completedByUserId);
+          await m.addColumn(tasks, tasks.completedAt);
+        }
+        if (from < 8) await m.addColumn(tasks, tasks.stepId);
+        if (from < 9) {
+          await m.addColumn(steps, steps.durationInSeconds);
+          await m.addColumn(subSteps, subSteps.durationInSeconds);
         }
       },
     );
@@ -72,18 +122,32 @@ class AppDatabase extends _$AppDatabase {
   Future<List<FullProject>> getAllProjects() async {
     final projectsData = await select(projects).get();
     final List<FullProject> fullProjects = [];
-
     for (final projectData in projectsData) {
       final stepsQuery = select(steps)
-        ..where((tbl) => tbl.projectId.equals(projectData.id));
+        ..where((tbl) => tbl.projectId.equals(projectData.id))
+        ..where((tbl) => tbl.deletedAt.isNull());
       final projectStepsData = await stepsQuery.get();
       final List<FullStep> fullSteps = [];
-
       for (final stepData in projectStepsData) {
-        final tasksQuery = select(tasks)
+        final subStepsQuery = select(subSteps)
           ..where((tbl) => tbl.stepId.equals(stepData.id));
-        final stepTasksData = await tasksQuery.get();
-        fullSteps.add(FullStep(step: stepData, tasks: stepTasksData));
+        final projectSubStepsData = await subStepsQuery.get();
+        final List<FullSubStep> fullSubSteps = [];
+        for (final subStepData in projectSubStepsData) {
+          final tasksQuery = select(tasks)
+            ..where((tbl) => tbl.subStepId.equals(subStepData.id));
+          final stepTasksData = await tasksQuery.get();
+          fullSubSteps
+              .add(FullSubStep(subStep: subStepData, tasks: stepTasksData));
+        }
+        final directTasksQuery = select(tasks)
+          ..where((tbl) => tbl.stepId.equals(stepData.id));
+        final directTasksData = await directTasksQuery.get();
+        fullSteps.add(FullStep(
+          step: stepData,
+          subSteps: fullSubSteps,
+          directTasks: directTasksData,
+        ));
       }
       fullProjects.add(FullProject(project: projectData, steps: fullSteps));
     }
@@ -97,7 +161,6 @@ class AppDatabase extends _$AppDatabase {
       await into(projects).insert(
         ProjectsCompanion.insert(id: newProjectId, projectName: projectName),
       );
-
       final defaultSteps = await createDefaultSteps();
       for (final step in defaultSteps) {
         await into(steps).insert(
@@ -107,22 +170,54 @@ class AppDatabase extends _$AppDatabase {
             projectId: newProjectId,
           ),
         );
-        for (final task in step.tasks) {
-          await into(tasks).insert(
-            TasksCompanion.insert(
-              id: task.id,
-              title: task.title,
-              stepId: step.id,
-            ),
-          );
+        if (step.subSteps.isNotEmpty) {
+          for (final subStep in step.subSteps) {
+            await into(subSteps).insert(
+              SubStepsCompanion.insert(
+                id: subStep.id,
+                title: subStep.title,
+                orderIndex: Value(subStep.orderIndex),
+                stepId: step.id,
+              ),
+            );
+            for (final task in subStep.tasks) {
+              await into(tasks).insert(
+                TasksCompanion.insert(
+                  id: task.id,
+                  title: task.title,
+                  orderIndex: Value(task.orderIndex),
+                  subStepId: Value(subStep.id),
+                ),
+              );
+            }
+          }
+        } else if (step.directTasks.isNotEmpty) {
+          for (final task in step.directTasks) {
+            await into(tasks).insert(
+              TasksCompanion.insert(
+                id: task.id,
+                title: task.title,
+                orderIndex: Value(task.orderIndex),
+                stepId: Value(step.id),
+              ),
+            );
+          }
         }
       }
     });
   }
 
-  Future<void> updateTaskStatus(String taskId, bool isCompleted) {
+  Future<void> updateTaskStatus({
+    required String taskId,
+    required bool isCompleted,
+    int? userId,
+  }) {
     return (update(tasks)..where((tbl) => tbl.id.equals(taskId))).write(
-      TasksCompanion(isCompleted: Value(isCompleted)),
+      TasksCompanion(
+        isCompleted: Value(isCompleted),
+        completedByUserId: Value(isCompleted ? userId : null),
+        completedAt: Value(isCompleted ? DateTime.now() : null),
+      ),
     );
   }
 
@@ -134,39 +229,105 @@ class AppDatabase extends _$AppDatabase {
 
   Future<void> deleteProject(String projectId) async {
     await transaction(() async {
-      final associatedSteps = await (select(
-        steps,
-      )..where((s) => s.projectId.equals(projectId)))
-          .get();
-      final stepIds = associatedSteps.map((s) => s.id).toList();
-
+      final stepIdsQuery = select(steps, distinct: true)
+        ..where((s) => s.projectId.equals(projectId));
+      final stepIds = await stepIdsQuery.map((s) => s.id).get();
       if (stepIds.isNotEmpty) {
+        final subStepIdsQuery = select(subSteps, distinct: true)
+          ..where((ss) => ss.stepId.isIn(stepIds));
+        final subStepIds = await subStepIdsQuery.map((ss) => ss.id).get();
+        if (subStepIds.isNotEmpty) {
+          await (delete(tasks)..where((t) => t.subStepId.isIn(subStepIds)))
+              .go();
+        }
         await (delete(tasks)..where((t) => t.stepId.isIn(stepIds))).go();
+        await (delete(subSteps)..where((ss) => ss.stepId.isIn(stepIds))).go();
       }
-
       await (delete(steps)..where((s) => s.projectId.equals(projectId))).go();
-
       await (delete(projects)..where((p) => p.id.equals(projectId))).go();
     });
   }
 
-  Future<void> selectAllTasksInStep(String stepId) {
+  Future<void> selectAllTasksInSubStep(String subStepId, int userId) {
+    return (update(tasks)..where((t) => t.subStepId.equals(subStepId))).write(
+      TasksCompanion(
+        isCompleted: const Value(true),
+        completedByUserId: Value(userId),
+        completedAt: Value(DateTime.now()),
+      ),
+    );
+  }
+
+  Future<void> deselectAllTasksInSubStep(String subStepId) {
+    return (update(tasks)..where((t) => t.subStepId.equals(subStepId))).write(
+      const TasksCompanion(
+          isCompleted: Value(false),
+          completedByUserId: Value(null),
+          completedAt: Value(null)),
+    );
+  }
+
+  Future<void> selectAllTasksInStep(String stepId, int userId) {
     return (update(tasks)..where((t) => t.stepId.equals(stepId))).write(
-      const TasksCompanion(isCompleted: Value(true)),
+      TasksCompanion(
+        isCompleted: const Value(true),
+        completedByUserId: Value(userId),
+        completedAt: Value(DateTime.now()),
+      ),
     );
   }
 
   Future<void> deselectAllTasksInStep(String stepId) {
     return (update(tasks)..where((t) => t.stepId.equals(stepId))).write(
-      const TasksCompanion(isCompleted: Value(false)),
+      const TasksCompanion(
+          isCompleted: Value(false),
+          completedByUserId: Value(null),
+          completedAt: Value(null)),
     );
   }
 
-  Future<void> deleteStep(String stepId) async {
-    await transaction(() async {
-      await (delete(tasks)..where((t) => t.stepId.equals(stepId))).go();
-      await (delete(steps)..where((s) => s.id.equals(stepId))).go();
-    });
+  Future<void> softDeleteStep(String stepId) {
+    return (update(steps)..where((s) => s.id.equals(stepId))).write(
+      StepsCompanion(deletedAt: Value(DateTime.now())),
+    );
+  }
+
+  Future<List<StepData>> getDeletedStepsForProject(String projectId) {
+    return (select(steps)
+          ..where((s) => s.projectId.equals(projectId))
+          ..where((s) => s.deletedAt.isNotNull()))
+        .get();
+  }
+
+  Future<void> restoreSteps(List<String> stepIds) {
+    return (update(steps)..where((s) => s.id.isIn(stepIds))).write(
+      const StepsCompanion(deletedAt: Value(null)),
+    );
+  }
+
+  Future<UserData?> getUserByUsername(String username) {
+    return (select(users)..where((tbl) => tbl.username.equals(username)))
+        .getSingleOrNull();
+  }
+
+  Future<int> createUser(UsersCompanion user) {
+    return into(users).insert(user);
+  }
+
+  Future<UserData?> getUserById(int id) {
+    return (select(users)..where((tbl) => tbl.id.equals(id))).getSingleOrNull();
+  }
+
+  Future<void> updateStepDuration(String stepId, int newDuration) {
+    return (update(steps)..where((s) => s.id.equals(stepId))).write(
+      StepsCompanion(durationInSeconds: Value(newDuration)),
+    );
+  }
+
+  Future<void> updateSubStepDuration(String subStepId, int newDuration) {
+    return (update(subSteps)..where((ss) => ss.id.equals(subStepId))).write(
+      SubStepsCompanion(durationInSeconds: Value(newDuration)),
+    );
   }
 }
 

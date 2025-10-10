@@ -2,9 +2,12 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:gerenciador_de_projetos/data/local/database.dart';
+import 'package:gerenciador_de_projetos/data/repositories/auth_repository.dart';
 import 'package:gerenciador_de_projetos/data/repositories/project_repository.dart';
 import 'package:gerenciador_de_projetos/data/services/project_service.dart';
-import 'package:gerenciador_de_projetos/ui/app/widgets/app.dart';
+import 'package:gerenciador_de_projetos/data/services/session_service.dart';
+import 'package:gerenciador_de_projetos/ui/auth/view_models/auth_viewmodel.dart';
+import 'package:gerenciador_de_projetos/ui/auth/widgets/auth_gate.dart';
 import 'package:gerenciador_de_projetos/ui/projects/view_models/project_viewmodel.dart';
 import 'package:provider/provider.dart';
 import 'package:window_manager/window_manager.dart';
@@ -13,7 +16,7 @@ import '/ui/core/themes/theme.dart';
 // import 'package:path_provider/path_provider.dart';
 
 void main() async {
-  // // DELETAR O BANCO DE DADOS NO WINDOWS
+  // DELETAR O BANCO DE DADOS NO WINDOWS
   // const bool DELETAR_BANCO_DE_DADOS_AO_INICIAR = true;
   // if (DELETAR_BANCO_DE_DADOS_AO_INICIAR) {
   //   final dbFolder = await getApplicationDocumentsDirectory();
@@ -45,15 +48,26 @@ void main() async {
     });
   }
   final AppDatabase dataBase = AppDatabase();
+  final SessionService sessionService = SessionService();
   runApp(
-    ChangeNotifierProvider(
-      create: (context) {
-        final projectService = ProjectService(database: dataBase);
-        final projectRepository = ProjectRepository(
-          projectService: projectService,
-        );
-        return ProjectViewModel(repository: projectRepository);
-      },
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider(
+          create: (context) {
+            final authRepository = AuthRepository(
+                database: dataBase, sessionService: sessionService);
+            return AuthViewModel(repository: authRepository)..checkSession();
+          },
+        ),
+        ChangeNotifierProvider(
+          create: (context) {
+            final projectService = ProjectService(database: dataBase);
+            final projectRepository =
+                ProjectRepository(projectService: projectService);
+            return ProjectViewModel(repository: projectRepository);
+          },
+        ),
+      ],
       child: const MyApp(),
     ),
   );
@@ -70,8 +84,7 @@ class MyApp extends StatelessWidget {
       theme: AppTheme.lightTheme,
       darkTheme: AppTheme.darkTheme,
       themeMode: ThemeMode.system,
-
-      home: const AppGDP(),
+      home: const AuthGate(),
     );
   }
 }

@@ -14,18 +14,24 @@ class Project {
   });
 
   double get progress {
-    final totalTasks = steps.fold<int>(
-      0,
-      (sum, step) => sum + step.tasks.length,
-    );
-    if (totalTasks == 0) {
-      return 0.0;
-    }
+    final allTasks = steps
+        .expand((step) => [
+              ...step.directTasks,
+              ...step.subSteps.expand((subStep) => subStep.tasks)
+            ])
+        .toList();
 
-    final completedTasks = steps.fold<int>(
-      0,
-      (sum, step) => sum + step.tasks.where((task) => task.isCompleted).length,
-    );
-    return completedTasks / totalTasks;
+    if (allTasks.isEmpty) return 0.0;
+
+    final completedTasks = allTasks.where((task) => task.isCompleted).length;
+    return completedTasks / allTasks.length;
+  }
+
+  int get totalDurationInSeconds {
+    return steps.fold<int>(0, (sum, step) {
+      final subStepsDuration = step.subSteps.fold<int>(
+          0, (subSum, subStep) => subSum + subStep.durationInSeconds);
+      return sum + step.durationInSeconds + subStepsDuration;
+    });
   }
 }
