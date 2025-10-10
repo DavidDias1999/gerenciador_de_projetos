@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:gerenciador_de_projetos/data/local/database.dart';
 import 'package:gerenciador_de_projetos/data/repositories/auth_repository.dart';
 import 'package:gerenciador_de_projetos/data/repositories/project_repository.dart';
+
 import 'package:gerenciador_de_projetos/data/services/project_service.dart';
 import 'package:gerenciador_de_projetos/data/services/session_service.dart';
 import 'package:gerenciador_de_projetos/ui/auth/view_models/auth_viewmodel.dart';
@@ -31,41 +32,36 @@ void main() async {
   // }
 
   WidgetsFlutterBinding.ensureInitialized();
-
   if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
     await windowManager.ensureInitialized();
-
     WindowOptions windowOptions = const WindowOptions(
       size: Size(800, 900),
       minimumSize: Size(600, 500),
       center: true,
       title: 'Gerenciador de Projetos',
     );
-
     windowManager.waitUntilReadyToShow(windowOptions, () async {
       await windowManager.show();
       await windowManager.focus();
     });
   }
+
   final AppDatabase dataBase = AppDatabase();
   final SessionService sessionService = SessionService();
+  final AuthRepository authRepository =
+      AuthRepository(database: dataBase, sessionService: sessionService);
+  final ProjectService projectService = ProjectService(database: dataBase);
+  final ProjectRepository projectRepository =
+      ProjectRepository(projectService: projectService);
+
   runApp(
     MultiProvider(
       providers: [
         ChangeNotifierProvider(
-          create: (context) {
-            final authRepository = AuthRepository(
-                database: dataBase, sessionService: sessionService);
-            return AuthViewModel(repository: authRepository)..checkSession();
-          },
+          create: (context) => AuthViewModel(repository: authRepository),
         ),
         ChangeNotifierProvider(
-          create: (context) {
-            final projectService = ProjectService(database: dataBase);
-            final projectRepository =
-                ProjectRepository(projectService: projectService);
-            return ProjectViewModel(repository: projectRepository);
-          },
+          create: (context) => ProjectViewModel(repository: projectRepository),
         ),
       ],
       child: const MyApp(),

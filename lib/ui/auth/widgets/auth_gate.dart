@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:gerenciador_de_projetos/data/services/updater_service.dart';
 import 'package:provider/provider.dart';
 import '../view_models/auth_viewmodel.dart';
 import '../../app/widgets/app.dart';
@@ -16,8 +15,9 @@ class _AuthGateState extends State<AuthGate> {
   @override
   void initState() {
     super.initState();
-
-    Future.delayed(Duration.zero, () => checkForUpdates(context));
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<AuthViewModel>().checkSession();
+    });
   }
 
   @override

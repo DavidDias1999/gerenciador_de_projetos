@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:gerenciador_de_projetos/data/services/updater_service.dart';
 import 'package:provider/provider.dart';
 import '../../app/widgets/app.dart';
 import '../view_models/project_viewmodel.dart';
@@ -24,6 +25,7 @@ class _ProjectListScreenState extends State<ProjectListScreen> {
           viewModel.completedProjects.isEmpty) {
         viewModel.loadProjects();
       }
+      checkForUpdates(context);
     });
   }
 
