@@ -6,7 +6,7 @@
 AppId={{E9E3D5D6-3687-4041-BA8D-7B49A5646D5B}}
 AppName=Gerenciador de Projetos
 ; IMPORTANTE: Esta versão DEVE ser a mesma do seu pubspec.yaml
-AppVersion=1.1.0
+AppVersion=1.1.1
 AppPublisher=David Dias
 DefaultDirName={autopf}\Gerenciador de Projetos
 DefaultGroupName=Gerenciador de Projetos
