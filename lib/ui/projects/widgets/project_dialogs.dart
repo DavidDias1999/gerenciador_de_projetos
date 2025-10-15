@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../domain/models/project_model.dart' as domain;
 import '../../../domain/models/step_model.dart' as domain;
+import '../../../domain/models/sub_step_model.dart' as domain;
 import '../view_models/project_viewmodel.dart';
 import 'restore_steps_dialog.dart';
+import 'restore_sub_steps_dialog.dart';
 
 void showCreateProjectDialog(BuildContext context) {
   final viewModel = Provider.of<ProjectViewModel>(context, listen: false);
@@ -108,7 +110,7 @@ void showDeleteStepConfirmationDialog(
     builder: (dialogContext) => AlertDialog(
       title: const Text('Confirmar Exclusão'),
       content: Text(
-        'Você tem certeza que deseja deletar a etapa "${step.title}"? Suas sub-etapas e tarefas também serão ocultadas mas poderão ser restauradas.',
+        'Você tem certeza que deseja deletar a etapa "${step.title}"? Suas subetapas e tarefas também serão ocultadas mas poderão ser restauradas.',
       ),
       actions: [
         TextButton(
@@ -131,6 +133,37 @@ void showDeleteStepConfirmationDialog(
   );
 }
 
+void showDeleteSubStepConfirmationDialog(
+    BuildContext context, domain.Project project, domain.SubStep subStep) {
+  final viewModel = Provider.of<ProjectViewModel>(context, listen: false);
+  showDialog(
+    context: context,
+    builder: (dialogContext) => AlertDialog(
+      title: const Text('Confirmar Exclusão'),
+      content: Text(
+        'Você tem certeza que deseja deletar a subetapa "${subStep.title}"? Suas tarefas também serão ocultadas mas poderão ser restauradas.',
+      ),
+      actions: [
+        TextButton(
+          child: const Text('Cancelar'),
+          onPressed: () => Navigator.of(dialogContext).pop(),
+        ),
+        FilledButton.tonal(
+          style: FilledButton.styleFrom(
+            backgroundColor: Theme.of(context).colorScheme.errorContainer,
+            foregroundColor: Theme.of(context).colorScheme.onErrorContainer,
+          ),
+          child: const Text('Deletar SubEtapa'),
+          onPressed: () {
+            viewModel.softDeleteSubStep(project.id, subStep.id);
+            Navigator.of(dialogContext).pop();
+          },
+        ),
+      ],
+    ),
+  );
+}
+
 void showRestoreStepsDialog(BuildContext context, domain.Project project) {
   final viewModel = Provider.of<ProjectViewModel>(context, listen: false);
   viewModel.fetchDeletedSteps(project.id);
@@ -139,6 +172,18 @@ void showRestoreStepsDialog(BuildContext context, domain.Project project) {
     builder: (_) => ChangeNotifierProvider.value(
       value: viewModel,
       child: const RestoreStepsDialog(),
+    ),
+  );
+}
+
+void showRestoreSubStepsDialog(BuildContext context, domain.Project project) {
+  final viewModel = Provider.of<ProjectViewModel>(context, listen: false);
+  viewModel.fetchDeletedSubSteps(project.id);
+  showDialog(
+    context: context,
+    builder: (_) => ChangeNotifierProvider.value(
+      value: viewModel,
+      child: const RestoreSubStepsDialog(),
     ),
   );
 }

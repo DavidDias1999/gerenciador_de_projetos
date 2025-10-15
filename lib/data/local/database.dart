@@ -35,6 +35,7 @@ class SubSteps extends Table {
   IntColumn get orderIndex => integer().withDefault(const Constant(0))();
   TextColumn get stepId => text().references(Steps, #id)();
   IntColumn get durationInSeconds => integer().withDefault(const Constant(0))();
+  DateTimeColumn get deletedAt => dateTime().nullable()();
   @override
   Set<Column> get primaryKey => {id};
 }
@@ -96,7 +97,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(_openConnection());
 
   @override
-  int get schemaVersion => 9;
+  int get schemaVersion => 10;
 
   @override
   MigrationStrategy get migration {
@@ -115,6 +116,9 @@ class AppDatabase extends _$AppDatabase {
           await m.addColumn(steps, steps.durationInSeconds);
           await m.addColumn(subSteps, subSteps.durationInSeconds);
         }
+        if (from < 10) {
+          await m.addColumn(subSteps, subSteps.deletedAt);
+        }
       },
     );
   }
@@ -130,7 +134,8 @@ class AppDatabase extends _$AppDatabase {
       final List<FullStep> fullSteps = [];
       for (final stepData in projectStepsData) {
         final subStepsQuery = select(subSteps)
-          ..where((tbl) => tbl.stepId.equals(stepData.id));
+          ..where((tbl) => tbl.stepId.equals(stepData.id))
+          ..where((tbl) => tbl.deletedAt.isNull());
         final projectSubStepsData = await subStepsQuery.get();
         final List<FullSubStep> fullSubSteps = [];
         for (final subStepData in projectSubStepsData) {
@@ -327,6 +332,27 @@ class AppDatabase extends _$AppDatabase {
   Future<void> updateSubStepDuration(String subStepId, int newDuration) {
     return (update(subSteps)..where((ss) => ss.id.equals(subStepId))).write(
       SubStepsCompanion(durationInSeconds: Value(newDuration)),
+    );
+  }
+
+  Future<void> softDeleteSubStep(String subStepId) {
+    return (update(subSteps)..where((ss) => ss.id.equals(subStepId))).write(
+      SubStepsCompanion(deletedAt: Value(DateTime.now())),
+    );
+  }
+
+  Future<List<SubStepData>> getDeletedSubStepsForProject(String projectId) {
+    final query = select(steps)
+        .join([innerJoin(subSteps, subSteps.stepId.equalsExp(steps.id))])
+      ..where(steps.projectId.equals(projectId))
+      ..where(subSteps.deletedAt.isNotNull());
+
+    return query.map((row) => row.readTable(subSteps)).get();
+  }
+
+  Future<void> restoreSubSteps(List<String> subStepIds) {
+    return (update(subSteps)..where((ss) => ss.id.isIn(subStepIds))).write(
+      const SubStepsCompanion(deletedAt: Value(null)),
     );
   }
 }

@@ -1,3 +1,5 @@
+import 'package:gerenciador_de_projetos/domain/models/sub_step_model.dart';
+
 import '../services/project_service.dart';
 import '../../domain/models/project_model.dart';
 import '../../domain/models/step_model.dart';
@@ -48,4 +50,12 @@ class ProjectRepository {
 
   Future<void> updateSubStepDuration(String subStepId, int newDuration) =>
       _projectService.updateSubStepDuration(subStepId, newDuration);
+  Future<void> softDeleteSubStep(String subStepId) =>
+      _projectService.softDeleteSubStep(subStepId);
+
+  Future<List<SubStep>> getDeletedSubStepsForProject(String projectId) =>
+      _projectService.getDeletedSubStepsForProject(projectId);
+
+  Future<void> restoreSubSteps(List<String> subStepIds) =>
+      _projectService.restoreSubSteps(subStepIds);
 }

@@ -6,6 +6,7 @@ import '../../app/widgets/app.dart';
 import '../../auth/view_models/auth_viewmodel.dart';
 import '../view_models/project_viewmodel.dart';
 import 'project_dialogs.dart';
+import 'restore_sub_steps_dialog.dart';
 import 'sub_step_list_item.dart';
 import 'task_list_item.dart';
 
@@ -117,6 +118,9 @@ class _StepListItemState extends State<StepListItem> {
                 viewModel.deselectAllTasksInStep(
                     widget.step.id, widget.project);
               }
+              if (result == 'restore_sub_steps') {
+                showRestoreSubStepsDialog(context, widget.project);
+              }
             },
             itemBuilder: (BuildContext context) {
               return [
@@ -130,14 +134,18 @@ class _StepListItemState extends State<StepListItem> {
                     value: 'deselectAllDirect',
                     child: Text('Desmarcar todas'),
                   ),
-                if (widget.step.directTasks.isNotEmpty)
-                  const PopupMenuItem<String>(
-                    value: 'deleteStep',
-                    child: Text(
-                      'Deletar etapa',
-                      style: TextStyle(color: Colors.red),
-                    ),
+                const PopupMenuItem<String>(
+                  value: 'restore_sub_steps',
+                  child: Text('Restaurar Subetapas'),
+                ),
+                const PopupMenuDivider(),
+                const PopupMenuItem<String>(
+                  value: 'deleteStep',
+                  child: Text(
+                    'Deletar etapa',
+                    style: TextStyle(color: Colors.red),
                   ),
+                ),
               ];
             },
           ),

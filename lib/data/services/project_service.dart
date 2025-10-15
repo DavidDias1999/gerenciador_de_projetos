@@ -124,4 +124,28 @@ class ProjectService {
   Future<void> restoreSteps(List<String> stepIds) async {
     await _db.restoreSteps(stepIds);
   }
+
+  Future<void> softDeleteSubStep(String subStepId) async {
+    await _db.softDeleteSubStep(subStepId);
+  }
+
+  Future<List<domain.SubStep>> getDeletedSubStepsForProject(
+      String projectId) async {
+    final deletedSubStepsData =
+        await _db.getDeletedSubStepsForProject(projectId);
+    return deletedSubStepsData.map((subStepData) {
+      return domain.SubStep(
+        id: subStepData.id,
+        title: subStepData.title,
+        orderIndex: subStepData.orderIndex,
+        durationInSeconds: subStepData.durationInSeconds,
+        deletedAt: subStepData.deletedAt,
+        tasks: [],
+      );
+    }).toList();
+  }
+
+  Future<void> restoreSubSteps(List<String> subStepIds) async {
+    await _db.restoreSubSteps(subStepIds);
+  }
 }

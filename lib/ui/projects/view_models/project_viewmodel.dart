@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:gerenciador_de_projetos/domain/models/sub_step_model.dart'
+    as domain;
 import '../../../data/repositories/project_repository.dart';
 import '../../../domain/models/project_model.dart' as domain;
 import '../../../domain/models/step_model.dart' as domain;
@@ -34,6 +36,15 @@ class ProjectViewModel extends ChangeNotifier {
 
   String? _expandedItemId;
   ExpansibleController? _expansionController;
+
+  bool _isLoadingDeletedSubSteps = false;
+  bool get isLoadingDeletedSubSteps => _isLoadingDeletedSubSteps;
+
+  List<domain.SubStep> _deletedSubSteps = [];
+  List<domain.SubStep> get deletedSubSteps => _deletedSubSteps;
+
+  final Set<String> _selectedSubStepsToRestore = {};
+  Set<String> get selectedSubStepsToRestore => _selectedSubStepsToRestore;
 
   void handleExpansionChange({
     required String itemId,
@@ -301,6 +312,50 @@ class ProjectViewModel extends ChangeNotifier {
     await _repository.restoreSteps(_selectedStepsToRestore.toList());
     _selectedStepsToRestore.clear();
     _deletedSteps = [];
+    await loadProjects();
+  }
+
+  Future<void> softDeleteSubStep(String projectId, String subStepId) async {
+    domain.Project project;
+    try {
+      project = _activeProjects.firstWhere((p) => p.id == projectId);
+    } catch (e) {
+      project = _completedProjects.firstWhere((p) => p.id == projectId);
+    }
+
+    for (var step in project.steps) {
+      step.subSteps.removeWhere((subStep) => subStep.id == subStepId);
+    }
+
+    notifyListeners();
+    await _repository.softDeleteSubStep(subStepId);
+  }
+
+  Future<void> fetchDeletedSubSteps(String projectId) async {
+    _isLoadingDeletedSubSteps = true;
+    _deletedSubSteps = [];
+    _selectedSubStepsToRestore.clear();
+    notifyListeners();
+    _deletedSubSteps =
+        await _repository.getDeletedSubStepsForProject(projectId);
+    _isLoadingDeletedSubSteps = false;
+    notifyListeners();
+  }
+
+  void toggleSubStepSelectionForRestore(String subStepId) {
+    if (_selectedSubStepsToRestore.contains(subStepId)) {
+      _selectedSubStepsToRestore.remove(subStepId);
+    } else {
+      _selectedSubStepsToRestore.add(subStepId);
+    }
+    notifyListeners();
+  }
+
+  Future<void> restoreSelectedSubSteps() async {
+    if (_selectedSubStepsToRestore.isEmpty) return;
+    await _repository.restoreSubSteps(_selectedSubStepsToRestore.toList());
+    _selectedSubStepsToRestore.clear();
+    _deletedSubSteps = [];
     await loadProjects();
   }
 }

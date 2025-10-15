@@ -107,6 +107,9 @@ class _SubStepListItemState extends State<SubStepListItem> {
                 } else if (result == 'deselectAll') {
                   viewModel.deselectAllTasksInSubStep(
                       widget.project.id, widget.subStep.id);
+                } else if (result == 'deleteSubStep') {
+                  showDeleteSubStepConfirmationDialog(
+                      context, widget.project, widget.subStep);
                 }
               },
               itemBuilder: (context) => [
@@ -116,6 +119,13 @@ class _SubStepListItemState extends State<SubStepListItem> {
                 if (allTasksCompleted)
                   const PopupMenuItem(
                       value: 'deselectAll', child: Text('Desmarcar todas')),
+                const PopupMenuItem<String>(
+                  value: 'deleteSubStep',
+                  child: Text(
+                    'Deletar Subetapa',
+                    style: TextStyle(color: Colors.red),
+                  ),
+                ),
               ],
             ),
           ],

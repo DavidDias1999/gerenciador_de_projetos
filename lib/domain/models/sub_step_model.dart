@@ -6,13 +6,16 @@ class SubStep {
   int orderIndex;
   List<Task> tasks;
   int durationInSeconds;
+  DateTime? deletedAt;
 
-  SubStep(
-      {required this.id,
-      required this.title,
-      required this.orderIndex,
-      required this.tasks,
-      required this.durationInSeconds});
+  SubStep({
+    required this.id,
+    required this.title,
+    required this.orderIndex,
+    required this.tasks,
+    required this.durationInSeconds,
+    this.deletedAt,
+  });
 
   double get progress {
     if (tasks.isEmpty) return 0.0;
