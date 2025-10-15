@@ -17,10 +17,13 @@ class _LoginScreenState extends State<LoginScreen> {
   final _passwordController = TextEditingController();
   bool _isLoading = false;
 
+  final _passwordFocusNode = FocusNode();
+
   @override
   void dispose() {
     _usernameController.dispose();
     _passwordController.dispose();
+    _passwordFocusNode.dispose();
     super.dispose();
   }
 
@@ -97,10 +100,14 @@ class _LoginScreenState extends State<LoginScreen> {
                         }
                         return null;
                       },
+                      onFieldSubmitted: (_) {
+                        FocusScope.of(context).requestFocus(_passwordFocusNode);
+                      },
                     ),
                     const SizedBox(height: 16),
                     TextFormField(
                       controller: _passwordController,
+                      focusNode: _passwordFocusNode,
                       obscureText: true,
                       decoration: const InputDecoration(
                         labelText: 'Senha',
@@ -113,6 +120,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         }
                         return null;
                       },
+                      onFieldSubmitted: (_) => _login(),
                     ),
                     const SizedBox(height: 24),
                     _isLoading

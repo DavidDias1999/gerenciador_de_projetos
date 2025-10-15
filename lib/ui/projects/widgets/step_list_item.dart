@@ -6,7 +6,6 @@ import '../../app/widgets/app.dart';
 import '../../auth/view_models/auth_viewmodel.dart';
 import '../view_models/project_viewmodel.dart';
 import 'project_dialogs.dart';
-import 'restore_sub_steps_dialog.dart';
 import 'sub_step_list_item.dart';
 import 'task_list_item.dart';
 
