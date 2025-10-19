@@ -908,223 +908,6 @@ class SubStepsCompanion extends UpdateCompanion<SubStepData> {
   }
 }
 
-class $UsersTable extends Users with TableInfo<$UsersTable, UserData> {
-  @override
-  final GeneratedDatabase attachedDatabase;
-  final String? _alias;
-  $UsersTable(this.attachedDatabase, [this._alias]);
-  static const VerificationMeta _idMeta = const VerificationMeta('id');
-  @override
-  late final GeneratedColumn<int> id = GeneratedColumn<int>(
-      'id', aliasedName, false,
-      hasAutoIncrement: true,
-      type: DriftSqlType.int,
-      requiredDuringInsert: false,
-      defaultConstraints:
-          GeneratedColumn.constraintIsAlways('PRIMARY KEY AUTOINCREMENT'));
-  static const VerificationMeta _usernameMeta =
-      const VerificationMeta('username');
-  @override
-  late final GeneratedColumn<String> username = GeneratedColumn<String>(
-      'username', aliasedName, false,
-      type: DriftSqlType.string,
-      requiredDuringInsert: true,
-      defaultConstraints: GeneratedColumn.constraintIsAlways('UNIQUE'));
-  static const VerificationMeta _passwordMeta =
-      const VerificationMeta('password');
-  @override
-  late final GeneratedColumn<String> password = GeneratedColumn<String>(
-      'password', aliasedName, false,
-      type: DriftSqlType.string, requiredDuringInsert: true);
-  @override
-  List<GeneratedColumn> get $columns => [id, username, password];
-  @override
-  String get aliasedName => _alias ?? actualTableName;
-  @override
-  String get actualTableName => $name;
-  static const String $name = 'users';
-  @override
-  VerificationContext validateIntegrity(Insertable<UserData> instance,
-      {bool isInserting = false}) {
-    final context = VerificationContext();
-    final data = instance.toColumns(true);
-    if (data.containsKey('id')) {
-      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
-    }
-    if (data.containsKey('username')) {
-      context.handle(_usernameMeta,
-          username.isAcceptableOrUnknown(data['username']!, _usernameMeta));
-    } else if (isInserting) {
-      context.missing(_usernameMeta);
-    }
-    if (data.containsKey('password')) {
-      context.handle(_passwordMeta,
-          password.isAcceptableOrUnknown(data['password']!, _passwordMeta));
-    } else if (isInserting) {
-      context.missing(_passwordMeta);
-    }
-    return context;
-  }
-
-  @override
-  Set<GeneratedColumn> get $primaryKey => {id};
-  @override
-  UserData map(Map<String, dynamic> data, {String? tablePrefix}) {
-    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
-    return UserData(
-      id: attachedDatabase.typeMapping
-          .read(DriftSqlType.int, data['${effectivePrefix}id'])!,
-      username: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}username'])!,
-      password: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}password'])!,
-    );
-  }
-
-  @override
-  $UsersTable createAlias(String alias) {
-    return $UsersTable(attachedDatabase, alias);
-  }
-}
-
-class UserData extends DataClass implements Insertable<UserData> {
-  final int id;
-  final String username;
-  final String password;
-  const UserData(
-      {required this.id, required this.username, required this.password});
-  @override
-  Map<String, Expression> toColumns(bool nullToAbsent) {
-    final map = <String, Expression>{};
-    map['id'] = Variable<int>(id);
-    map['username'] = Variable<String>(username);
-    map['password'] = Variable<String>(password);
-    return map;
-  }
-
-  UsersCompanion toCompanion(bool nullToAbsent) {
-    return UsersCompanion(
-      id: Value(id),
-      username: Value(username),
-      password: Value(password),
-    );
-  }
-
-  factory UserData.fromJson(Map<String, dynamic> json,
-      {ValueSerializer? serializer}) {
-    serializer ??= driftRuntimeOptions.defaultSerializer;
-    return UserData(
-      id: serializer.fromJson<int>(json['id']),
-      username: serializer.fromJson<String>(json['username']),
-      password: serializer.fromJson<String>(json['password']),
-    );
-  }
-  @override
-  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
-    serializer ??= driftRuntimeOptions.defaultSerializer;
-    return <String, dynamic>{
-      'id': serializer.toJson<int>(id),
-      'username': serializer.toJson<String>(username),
-      'password': serializer.toJson<String>(password),
-    };
-  }
-
-  UserData copyWith({int? id, String? username, String? password}) => UserData(
-        id: id ?? this.id,
-        username: username ?? this.username,
-        password: password ?? this.password,
-      );
-  UserData copyWithCompanion(UsersCompanion data) {
-    return UserData(
-      id: data.id.present ? data.id.value : this.id,
-      username: data.username.present ? data.username.value : this.username,
-      password: data.password.present ? data.password.value : this.password,
-    );
-  }
-
-  @override
-  String toString() {
-    return (StringBuffer('UserData(')
-          ..write('id: $id, ')
-          ..write('username: $username, ')
-          ..write('password: $password')
-          ..write(')'))
-        .toString();
-  }
-
-  @override
-  int get hashCode => Object.hash(id, username, password);
-  @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      (other is UserData &&
-          other.id == this.id &&
-          other.username == this.username &&
-          other.password == this.password);
-}
-
-class UsersCompanion extends UpdateCompanion<UserData> {
-  final Value<int> id;
-  final Value<String> username;
-  final Value<String> password;
-  const UsersCompanion({
-    this.id = const Value.absent(),
-    this.username = const Value.absent(),
-    this.password = const Value.absent(),
-  });
-  UsersCompanion.insert({
-    this.id = const Value.absent(),
-    required String username,
-    required String password,
-  })  : username = Value(username),
-        password = Value(password);
-  static Insertable<UserData> custom({
-    Expression<int>? id,
-    Expression<String>? username,
-    Expression<String>? password,
-  }) {
-    return RawValuesInsertable({
-      if (id != null) 'id': id,
-      if (username != null) 'username': username,
-      if (password != null) 'password': password,
-    });
-  }
-
-  UsersCompanion copyWith(
-      {Value<int>? id, Value<String>? username, Value<String>? password}) {
-    return UsersCompanion(
-      id: id ?? this.id,
-      username: username ?? this.username,
-      password: password ?? this.password,
-    );
-  }
-
-  @override
-  Map<String, Expression> toColumns(bool nullToAbsent) {
-    final map = <String, Expression>{};
-    if (id.present) {
-      map['id'] = Variable<int>(id.value);
-    }
-    if (username.present) {
-      map['username'] = Variable<String>(username.value);
-    }
-    if (password.present) {
-      map['password'] = Variable<String>(password.value);
-    }
-    return map;
-  }
-
-  @override
-  String toString() {
-    return (StringBuffer('UsersCompanion(')
-          ..write('id: $id, ')
-          ..write('username: $username, ')
-          ..write('password: $password')
-          ..write(')'))
-        .toString();
-  }
-}
-
 class $TasksTable extends Tasks with TableInfo<$TasksTable, TaskData> {
   @override
   final GeneratedDatabase attachedDatabase;
@@ -1175,15 +958,12 @@ class $TasksTable extends Tasks with TableInfo<$TasksTable, TaskData> {
       type: DriftSqlType.int,
       requiredDuringInsert: false,
       defaultValue: const Constant(0));
-  static const VerificationMeta _completedByUserIdMeta =
-      const VerificationMeta('completedByUserId');
+  static const VerificationMeta _completedByUsernameMeta =
+      const VerificationMeta('completedByUsername');
   @override
-  late final GeneratedColumn<int> completedByUserId = GeneratedColumn<int>(
-      'completed_by_user_id', aliasedName, true,
-      type: DriftSqlType.int,
-      requiredDuringInsert: false,
-      defaultConstraints:
-          GeneratedColumn.constraintIsAlways('REFERENCES users (id)'));
+  late final GeneratedColumn<String> completedByUsername =
+      GeneratedColumn<String>('completed_by_username', aliasedName, true,
+          type: DriftSqlType.string, requiredDuringInsert: false);
   static const VerificationMeta _completedAtMeta =
       const VerificationMeta('completedAt');
   @override
@@ -1198,7 +978,7 @@ class $TasksTable extends Tasks with TableInfo<$TasksTable, TaskData> {
         subStepId,
         stepId,
         orderIndex,
-        completedByUserId,
+        completedByUsername,
         completedAt
       ];
   @override
@@ -1244,11 +1024,11 @@ class $TasksTable extends Tasks with TableInfo<$TasksTable, TaskData> {
           orderIndex.isAcceptableOrUnknown(
               data['order_index']!, _orderIndexMeta));
     }
-    if (data.containsKey('completed_by_user_id')) {
+    if (data.containsKey('completed_by_username')) {
       context.handle(
-          _completedByUserIdMeta,
-          completedByUserId.isAcceptableOrUnknown(
-              data['completed_by_user_id']!, _completedByUserIdMeta));
+          _completedByUsernameMeta,
+          completedByUsername.isAcceptableOrUnknown(
+              data['completed_by_username']!, _completedByUsernameMeta));
     }
     if (data.containsKey('completed_at')) {
       context.handle(
@@ -1277,8 +1057,8 @@ class $TasksTable extends Tasks with TableInfo<$TasksTable, TaskData> {
           .read(DriftSqlType.string, data['${effectivePrefix}step_id']),
       orderIndex: attachedDatabase.typeMapping
           .read(DriftSqlType.int, data['${effectivePrefix}order_index'])!,
-      completedByUserId: attachedDatabase.typeMapping.read(
-          DriftSqlType.int, data['${effectivePrefix}completed_by_user_id']),
+      completedByUsername: attachedDatabase.typeMapping.read(
+          DriftSqlType.string, data['${effectivePrefix}completed_by_username']),
       completedAt: attachedDatabase.typeMapping
           .read(DriftSqlType.dateTime, data['${effectivePrefix}completed_at']),
     );
@@ -1297,7 +1077,7 @@ class TaskData extends DataClass implements Insertable<TaskData> {
   final String? subStepId;
   final String? stepId;
   final int orderIndex;
-  final int? completedByUserId;
+  final String? completedByUsername;
   final DateTime? completedAt;
   const TaskData(
       {required this.id,
@@ -1306,7 +1086,7 @@ class TaskData extends DataClass implements Insertable<TaskData> {
       this.subStepId,
       this.stepId,
       required this.orderIndex,
-      this.completedByUserId,
+      this.completedByUsername,
       this.completedAt});
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -1321,8 +1101,8 @@ class TaskData extends DataClass implements Insertable<TaskData> {
       map['step_id'] = Variable<String>(stepId);
     }
     map['order_index'] = Variable<int>(orderIndex);
-    if (!nullToAbsent || completedByUserId != null) {
-      map['completed_by_user_id'] = Variable<int>(completedByUserId);
+    if (!nullToAbsent || completedByUsername != null) {
+      map['completed_by_username'] = Variable<String>(completedByUsername);
     }
     if (!nullToAbsent || completedAt != null) {
       map['completed_at'] = Variable<DateTime>(completedAt);
@@ -1341,9 +1121,9 @@ class TaskData extends DataClass implements Insertable<TaskData> {
       stepId:
           stepId == null && nullToAbsent ? const Value.absent() : Value(stepId),
       orderIndex: Value(orderIndex),
-      completedByUserId: completedByUserId == null && nullToAbsent
+      completedByUsername: completedByUsername == null && nullToAbsent
           ? const Value.absent()
-          : Value(completedByUserId),
+          : Value(completedByUsername),
       completedAt: completedAt == null && nullToAbsent
           ? const Value.absent()
           : Value(completedAt),
@@ -1360,7 +1140,8 @@ class TaskData extends DataClass implements Insertable<TaskData> {
       subStepId: serializer.fromJson<String?>(json['subStepId']),
       stepId: serializer.fromJson<String?>(json['stepId']),
       orderIndex: serializer.fromJson<int>(json['orderIndex']),
-      completedByUserId: serializer.fromJson<int?>(json['completedByUserId']),
+      completedByUsername:
+          serializer.fromJson<String?>(json['completedByUsername']),
       completedAt: serializer.fromJson<DateTime?>(json['completedAt']),
     );
   }
@@ -1374,7 +1155,7 @@ class TaskData extends DataClass implements Insertable<TaskData> {
       'subStepId': serializer.toJson<String?>(subStepId),
       'stepId': serializer.toJson<String?>(stepId),
       'orderIndex': serializer.toJson<int>(orderIndex),
-      'completedByUserId': serializer.toJson<int?>(completedByUserId),
+      'completedByUsername': serializer.toJson<String?>(completedByUsername),
       'completedAt': serializer.toJson<DateTime?>(completedAt),
     };
   }
@@ -1386,7 +1167,7 @@ class TaskData extends DataClass implements Insertable<TaskData> {
           Value<String?> subStepId = const Value.absent(),
           Value<String?> stepId = const Value.absent(),
           int? orderIndex,
-          Value<int?> completedByUserId = const Value.absent(),
+          Value<String?> completedByUsername = const Value.absent(),
           Value<DateTime?> completedAt = const Value.absent()}) =>
       TaskData(
         id: id ?? this.id,
@@ -1395,9 +1176,9 @@ class TaskData extends DataClass implements Insertable<TaskData> {
         subStepId: subStepId.present ? subStepId.value : this.subStepId,
         stepId: stepId.present ? stepId.value : this.stepId,
         orderIndex: orderIndex ?? this.orderIndex,
-        completedByUserId: completedByUserId.present
-            ? completedByUserId.value
-            : this.completedByUserId,
+        completedByUsername: completedByUsername.present
+            ? completedByUsername.value
+            : this.completedByUsername,
         completedAt: completedAt.present ? completedAt.value : this.completedAt,
       );
   TaskData copyWithCompanion(TasksCompanion data) {
@@ -1410,9 +1191,9 @@ class TaskData extends DataClass implements Insertable<TaskData> {
       stepId: data.stepId.present ? data.stepId.value : this.stepId,
       orderIndex:
           data.orderIndex.present ? data.orderIndex.value : this.orderIndex,
-      completedByUserId: data.completedByUserId.present
-          ? data.completedByUserId.value
-          : this.completedByUserId,
+      completedByUsername: data.completedByUsername.present
+          ? data.completedByUsername.value
+          : this.completedByUsername,
       completedAt:
           data.completedAt.present ? data.completedAt.value : this.completedAt,
     );
@@ -1427,7 +1208,7 @@ class TaskData extends DataClass implements Insertable<TaskData> {
           ..write('subStepId: $subStepId, ')
           ..write('stepId: $stepId, ')
           ..write('orderIndex: $orderIndex, ')
-          ..write('completedByUserId: $completedByUserId, ')
+          ..write('completedByUsername: $completedByUsername, ')
           ..write('completedAt: $completedAt')
           ..write(')'))
         .toString();
@@ -1435,7 +1216,7 @@ class TaskData extends DataClass implements Insertable<TaskData> {
 
   @override
   int get hashCode => Object.hash(id, title, isCompleted, subStepId, stepId,
-      orderIndex, completedByUserId, completedAt);
+      orderIndex, completedByUsername, completedAt);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -1446,7 +1227,7 @@ class TaskData extends DataClass implements Insertable<TaskData> {
           other.subStepId == this.subStepId &&
           other.stepId == this.stepId &&
           other.orderIndex == this.orderIndex &&
-          other.completedByUserId == this.completedByUserId &&
+          other.completedByUsername == this.completedByUsername &&
           other.completedAt == this.completedAt);
 }
 
@@ -1457,7 +1238,7 @@ class TasksCompanion extends UpdateCompanion<TaskData> {
   final Value<String?> subStepId;
   final Value<String?> stepId;
   final Value<int> orderIndex;
-  final Value<int?> completedByUserId;
+  final Value<String?> completedByUsername;
   final Value<DateTime?> completedAt;
   final Value<int> rowid;
   const TasksCompanion({
@@ -1467,7 +1248,7 @@ class TasksCompanion extends UpdateCompanion<TaskData> {
     this.subStepId = const Value.absent(),
     this.stepId = const Value.absent(),
     this.orderIndex = const Value.absent(),
-    this.completedByUserId = const Value.absent(),
+    this.completedByUsername = const Value.absent(),
     this.completedAt = const Value.absent(),
     this.rowid = const Value.absent(),
   });
@@ -1478,7 +1259,7 @@ class TasksCompanion extends UpdateCompanion<TaskData> {
     this.subStepId = const Value.absent(),
     this.stepId = const Value.absent(),
     this.orderIndex = const Value.absent(),
-    this.completedByUserId = const Value.absent(),
+    this.completedByUsername = const Value.absent(),
     this.completedAt = const Value.absent(),
     this.rowid = const Value.absent(),
   })  : id = Value(id),
@@ -1490,7 +1271,7 @@ class TasksCompanion extends UpdateCompanion<TaskData> {
     Expression<String>? subStepId,
     Expression<String>? stepId,
     Expression<int>? orderIndex,
-    Expression<int>? completedByUserId,
+    Expression<String>? completedByUsername,
     Expression<DateTime>? completedAt,
     Expression<int>? rowid,
   }) {
@@ -1501,7 +1282,8 @@ class TasksCompanion extends UpdateCompanion<TaskData> {
       if (subStepId != null) 'sub_step_id': subStepId,
       if (stepId != null) 'step_id': stepId,
       if (orderIndex != null) 'order_index': orderIndex,
-      if (completedByUserId != null) 'completed_by_user_id': completedByUserId,
+      if (completedByUsername != null)
+        'completed_by_username': completedByUsername,
       if (completedAt != null) 'completed_at': completedAt,
       if (rowid != null) 'rowid': rowid,
     });
@@ -1514,7 +1296,7 @@ class TasksCompanion extends UpdateCompanion<TaskData> {
       Value<String?>? subStepId,
       Value<String?>? stepId,
       Value<int>? orderIndex,
-      Value<int?>? completedByUserId,
+      Value<String?>? completedByUsername,
       Value<DateTime?>? completedAt,
       Value<int>? rowid}) {
     return TasksCompanion(
@@ -1524,7 +1306,7 @@ class TasksCompanion extends UpdateCompanion<TaskData> {
       subStepId: subStepId ?? this.subStepId,
       stepId: stepId ?? this.stepId,
       orderIndex: orderIndex ?? this.orderIndex,
-      completedByUserId: completedByUserId ?? this.completedByUserId,
+      completedByUsername: completedByUsername ?? this.completedByUsername,
       completedAt: completedAt ?? this.completedAt,
       rowid: rowid ?? this.rowid,
     );
@@ -1551,8 +1333,9 @@ class TasksCompanion extends UpdateCompanion<TaskData> {
     if (orderIndex.present) {
       map['order_index'] = Variable<int>(orderIndex.value);
     }
-    if (completedByUserId.present) {
-      map['completed_by_user_id'] = Variable<int>(completedByUserId.value);
+    if (completedByUsername.present) {
+      map['completed_by_username'] =
+          Variable<String>(completedByUsername.value);
     }
     if (completedAt.present) {
       map['completed_at'] = Variable<DateTime>(completedAt.value);
@@ -1572,7 +1355,7 @@ class TasksCompanion extends UpdateCompanion<TaskData> {
           ..write('subStepId: $subStepId, ')
           ..write('stepId: $stepId, ')
           ..write('orderIndex: $orderIndex, ')
-          ..write('completedByUserId: $completedByUserId, ')
+          ..write('completedByUsername: $completedByUsername, ')
           ..write('completedAt: $completedAt, ')
           ..write('rowid: $rowid')
           ..write(')'))
@@ -1586,14 +1369,13 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $ProjectsTable projects = $ProjectsTable(this);
   late final $StepsTable steps = $StepsTable(this);
   late final $SubStepsTable subSteps = $SubStepsTable(this);
-  late final $UsersTable users = $UsersTable(this);
   late final $TasksTable tasks = $TasksTable(this);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
   @override
   List<DatabaseSchemaEntity> get allSchemaEntities =>
-      [projects, steps, subSteps, users, tasks];
+      [projects, steps, subSteps, tasks];
 }
 
 typedef $$ProjectsTableCreateCompanionBuilder = ProjectsCompanion Function({
@@ -2582,218 +2364,6 @@ typedef $$SubStepsTableProcessedTableManager = ProcessedTableManager<
     (SubStepData, $$SubStepsTableReferences),
     SubStepData,
     PrefetchHooks Function({bool stepId, bool tasksRefs})>;
-typedef $$UsersTableCreateCompanionBuilder = UsersCompanion Function({
-  Value<int> id,
-  required String username,
-  required String password,
-});
-typedef $$UsersTableUpdateCompanionBuilder = UsersCompanion Function({
-  Value<int> id,
-  Value<String> username,
-  Value<String> password,
-});
-
-final class $$UsersTableReferences
-    extends BaseReferences<_$AppDatabase, $UsersTable, UserData> {
-  $$UsersTableReferences(super.$_db, super.$_table, super.$_typedResult);
-
-  static MultiTypedResultKey<$TasksTable, List<TaskData>> _tasksRefsTable(
-          _$AppDatabase db) =>
-      MultiTypedResultKey.fromTable(db.tasks,
-          aliasName:
-              $_aliasNameGenerator(db.users.id, db.tasks.completedByUserId));
-
-  $$TasksTableProcessedTableManager get tasksRefs {
-    final manager = $$TasksTableTableManager($_db, $_db.tasks).filter(
-        (f) => f.completedByUserId.id.sqlEquals($_itemColumn<int>('id')!));
-
-    final cache = $_typedResult.readTableOrNull(_tasksRefsTable($_db));
-    return ProcessedTableManager(
-        manager.$state.copyWith(prefetchedData: cache));
-  }
-}
-
-class $$UsersTableFilterComposer extends Composer<_$AppDatabase, $UsersTable> {
-  $$UsersTableFilterComposer({
-    required super.$db,
-    required super.$table,
-    super.joinBuilder,
-    super.$addJoinBuilderToRootComposer,
-    super.$removeJoinBuilderFromRootComposer,
-  });
-  ColumnFilters<int> get id => $composableBuilder(
-      column: $table.id, builder: (column) => ColumnFilters(column));
-
-  ColumnFilters<String> get username => $composableBuilder(
-      column: $table.username, builder: (column) => ColumnFilters(column));
-
-  ColumnFilters<String> get password => $composableBuilder(
-      column: $table.password, builder: (column) => ColumnFilters(column));
-
-  Expression<bool> tasksRefs(
-      Expression<bool> Function($$TasksTableFilterComposer f) f) {
-    final $$TasksTableFilterComposer composer = $composerBuilder(
-        composer: this,
-        getCurrentColumn: (t) => t.id,
-        referencedTable: $db.tasks,
-        getReferencedColumn: (t) => t.completedByUserId,
-        builder: (joinBuilder,
-                {$addJoinBuilderToRootComposer,
-                $removeJoinBuilderFromRootComposer}) =>
-            $$TasksTableFilterComposer(
-              $db: $db,
-              $table: $db.tasks,
-              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-              joinBuilder: joinBuilder,
-              $removeJoinBuilderFromRootComposer:
-                  $removeJoinBuilderFromRootComposer,
-            ));
-    return f(composer);
-  }
-}
-
-class $$UsersTableOrderingComposer
-    extends Composer<_$AppDatabase, $UsersTable> {
-  $$UsersTableOrderingComposer({
-    required super.$db,
-    required super.$table,
-    super.joinBuilder,
-    super.$addJoinBuilderToRootComposer,
-    super.$removeJoinBuilderFromRootComposer,
-  });
-  ColumnOrderings<int> get id => $composableBuilder(
-      column: $table.id, builder: (column) => ColumnOrderings(column));
-
-  ColumnOrderings<String> get username => $composableBuilder(
-      column: $table.username, builder: (column) => ColumnOrderings(column));
-
-  ColumnOrderings<String> get password => $composableBuilder(
-      column: $table.password, builder: (column) => ColumnOrderings(column));
-}
-
-class $$UsersTableAnnotationComposer
-    extends Composer<_$AppDatabase, $UsersTable> {
-  $$UsersTableAnnotationComposer({
-    required super.$db,
-    required super.$table,
-    super.joinBuilder,
-    super.$addJoinBuilderToRootComposer,
-    super.$removeJoinBuilderFromRootComposer,
-  });
-  GeneratedColumn<int> get id =>
-      $composableBuilder(column: $table.id, builder: (column) => column);
-
-  GeneratedColumn<String> get username =>
-      $composableBuilder(column: $table.username, builder: (column) => column);
-
-  GeneratedColumn<String> get password =>
-      $composableBuilder(column: $table.password, builder: (column) => column);
-
-  Expression<T> tasksRefs<T extends Object>(
-      Expression<T> Function($$TasksTableAnnotationComposer a) f) {
-    final $$TasksTableAnnotationComposer composer = $composerBuilder(
-        composer: this,
-        getCurrentColumn: (t) => t.id,
-        referencedTable: $db.tasks,
-        getReferencedColumn: (t) => t.completedByUserId,
-        builder: (joinBuilder,
-                {$addJoinBuilderToRootComposer,
-                $removeJoinBuilderFromRootComposer}) =>
-            $$TasksTableAnnotationComposer(
-              $db: $db,
-              $table: $db.tasks,
-              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-              joinBuilder: joinBuilder,
-              $removeJoinBuilderFromRootComposer:
-                  $removeJoinBuilderFromRootComposer,
-            ));
-    return f(composer);
-  }
-}
-
-class $$UsersTableTableManager extends RootTableManager<
-    _$AppDatabase,
-    $UsersTable,
-    UserData,
-    $$UsersTableFilterComposer,
-    $$UsersTableOrderingComposer,
-    $$UsersTableAnnotationComposer,
-    $$UsersTableCreateCompanionBuilder,
-    $$UsersTableUpdateCompanionBuilder,
-    (UserData, $$UsersTableReferences),
-    UserData,
-    PrefetchHooks Function({bool tasksRefs})> {
-  $$UsersTableTableManager(_$AppDatabase db, $UsersTable table)
-      : super(TableManagerState(
-          db: db,
-          table: table,
-          createFilteringComposer: () =>
-              $$UsersTableFilterComposer($db: db, $table: table),
-          createOrderingComposer: () =>
-              $$UsersTableOrderingComposer($db: db, $table: table),
-          createComputedFieldComposer: () =>
-              $$UsersTableAnnotationComposer($db: db, $table: table),
-          updateCompanionCallback: ({
-            Value<int> id = const Value.absent(),
-            Value<String> username = const Value.absent(),
-            Value<String> password = const Value.absent(),
-          }) =>
-              UsersCompanion(
-            id: id,
-            username: username,
-            password: password,
-          ),
-          createCompanionCallback: ({
-            Value<int> id = const Value.absent(),
-            required String username,
-            required String password,
-          }) =>
-              UsersCompanion.insert(
-            id: id,
-            username: username,
-            password: password,
-          ),
-          withReferenceMapper: (p0) => p0
-              .map((e) =>
-                  (e.readTable(table), $$UsersTableReferences(db, table, e)))
-              .toList(),
-          prefetchHooksCallback: ({tasksRefs = false}) {
-            return PrefetchHooks(
-              db: db,
-              explicitlyWatchedTables: [if (tasksRefs) db.tasks],
-              addJoins: null,
-              getPrefetchedDataCallback: (items) async {
-                return [
-                  if (tasksRefs)
-                    await $_getPrefetchedData<UserData, $UsersTable, TaskData>(
-                        currentTable: table,
-                        referencedTable:
-                            $$UsersTableReferences._tasksRefsTable(db),
-                        managerFromTypedResult: (p0) =>
-                            $$UsersTableReferences(db, table, p0).tasksRefs,
-                        referencedItemsForCurrentItem:
-                            (item, referencedItems) => referencedItems
-                                .where((e) => e.completedByUserId == item.id),
-                        typedResults: items)
-                ];
-              },
-            );
-          },
-        ));
-}
-
-typedef $$UsersTableProcessedTableManager = ProcessedTableManager<
-    _$AppDatabase,
-    $UsersTable,
-    UserData,
-    $$UsersTableFilterComposer,
-    $$UsersTableOrderingComposer,
-    $$UsersTableAnnotationComposer,
-    $$UsersTableCreateCompanionBuilder,
-    $$UsersTableUpdateCompanionBuilder,
-    (UserData, $$UsersTableReferences),
-    UserData,
-    PrefetchHooks Function({bool tasksRefs})>;
 typedef $$TasksTableCreateCompanionBuilder = TasksCompanion Function({
   required String id,
   required String title,
@@ -2801,7 +2371,7 @@ typedef $$TasksTableCreateCompanionBuilder = TasksCompanion Function({
   Value<String?> subStepId,
   Value<String?> stepId,
   Value<int> orderIndex,
-  Value<int?> completedByUserId,
+  Value<String?> completedByUsername,
   Value<DateTime?> completedAt,
   Value<int> rowid,
 });
@@ -2812,7 +2382,7 @@ typedef $$TasksTableUpdateCompanionBuilder = TasksCompanion Function({
   Value<String?> subStepId,
   Value<String?> stepId,
   Value<int> orderIndex,
-  Value<int?> completedByUserId,
+  Value<String?> completedByUsername,
   Value<DateTime?> completedAt,
   Value<int> rowid,
 });
@@ -2848,21 +2418,6 @@ final class $$TasksTableReferences
     return ProcessedTableManager(
         manager.$state.copyWith(prefetchedData: [item]));
   }
-
-  static $UsersTable _completedByUserIdTable(_$AppDatabase db) =>
-      db.users.createAlias(
-          $_aliasNameGenerator(db.tasks.completedByUserId, db.users.id));
-
-  $$UsersTableProcessedTableManager? get completedByUserId {
-    final $_column = $_itemColumn<int>('completed_by_user_id');
-    if ($_column == null) return null;
-    final manager = $$UsersTableTableManager($_db, $_db.users)
-        .filter((f) => f.id.sqlEquals($_column));
-    final item = $_typedResult.readTableOrNull(_completedByUserIdTable($_db));
-    if (item == null) return manager;
-    return ProcessedTableManager(
-        manager.$state.copyWith(prefetchedData: [item]));
-  }
 }
 
 class $$TasksTableFilterComposer extends Composer<_$AppDatabase, $TasksTable> {
@@ -2884,6 +2439,10 @@ class $$TasksTableFilterComposer extends Composer<_$AppDatabase, $TasksTable> {
 
   ColumnFilters<int> get orderIndex => $composableBuilder(
       column: $table.orderIndex, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get completedByUsername => $composableBuilder(
+      column: $table.completedByUsername,
+      builder: (column) => ColumnFilters(column));
 
   ColumnFilters<DateTime> get completedAt => $composableBuilder(
       column: $table.completedAt, builder: (column) => ColumnFilters(column));
@@ -2927,26 +2486,6 @@ class $$TasksTableFilterComposer extends Composer<_$AppDatabase, $TasksTable> {
             ));
     return composer;
   }
-
-  $$UsersTableFilterComposer get completedByUserId {
-    final $$UsersTableFilterComposer composer = $composerBuilder(
-        composer: this,
-        getCurrentColumn: (t) => t.completedByUserId,
-        referencedTable: $db.users,
-        getReferencedColumn: (t) => t.id,
-        builder: (joinBuilder,
-                {$addJoinBuilderToRootComposer,
-                $removeJoinBuilderFromRootComposer}) =>
-            $$UsersTableFilterComposer(
-              $db: $db,
-              $table: $db.users,
-              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-              joinBuilder: joinBuilder,
-              $removeJoinBuilderFromRootComposer:
-                  $removeJoinBuilderFromRootComposer,
-            ));
-    return composer;
-  }
 }
 
 class $$TasksTableOrderingComposer
@@ -2969,6 +2508,10 @@ class $$TasksTableOrderingComposer
 
   ColumnOrderings<int> get orderIndex => $composableBuilder(
       column: $table.orderIndex, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get completedByUsername => $composableBuilder(
+      column: $table.completedByUsername,
+      builder: (column) => ColumnOrderings(column));
 
   ColumnOrderings<DateTime> get completedAt => $composableBuilder(
       column: $table.completedAt, builder: (column) => ColumnOrderings(column));
@@ -3012,26 +2555,6 @@ class $$TasksTableOrderingComposer
             ));
     return composer;
   }
-
-  $$UsersTableOrderingComposer get completedByUserId {
-    final $$UsersTableOrderingComposer composer = $composerBuilder(
-        composer: this,
-        getCurrentColumn: (t) => t.completedByUserId,
-        referencedTable: $db.users,
-        getReferencedColumn: (t) => t.id,
-        builder: (joinBuilder,
-                {$addJoinBuilderToRootComposer,
-                $removeJoinBuilderFromRootComposer}) =>
-            $$UsersTableOrderingComposer(
-              $db: $db,
-              $table: $db.users,
-              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-              joinBuilder: joinBuilder,
-              $removeJoinBuilderFromRootComposer:
-                  $removeJoinBuilderFromRootComposer,
-            ));
-    return composer;
-  }
 }
 
 class $$TasksTableAnnotationComposer
@@ -3054,6 +2577,9 @@ class $$TasksTableAnnotationComposer
 
   GeneratedColumn<int> get orderIndex => $composableBuilder(
       column: $table.orderIndex, builder: (column) => column);
+
+  GeneratedColumn<String> get completedByUsername => $composableBuilder(
+      column: $table.completedByUsername, builder: (column) => column);
 
   GeneratedColumn<DateTime> get completedAt => $composableBuilder(
       column: $table.completedAt, builder: (column) => column);
@@ -3097,26 +2623,6 @@ class $$TasksTableAnnotationComposer
             ));
     return composer;
   }
-
-  $$UsersTableAnnotationComposer get completedByUserId {
-    final $$UsersTableAnnotationComposer composer = $composerBuilder(
-        composer: this,
-        getCurrentColumn: (t) => t.completedByUserId,
-        referencedTable: $db.users,
-        getReferencedColumn: (t) => t.id,
-        builder: (joinBuilder,
-                {$addJoinBuilderToRootComposer,
-                $removeJoinBuilderFromRootComposer}) =>
-            $$UsersTableAnnotationComposer(
-              $db: $db,
-              $table: $db.users,
-              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-              joinBuilder: joinBuilder,
-              $removeJoinBuilderFromRootComposer:
-                  $removeJoinBuilderFromRootComposer,
-            ));
-    return composer;
-  }
 }
 
 class $$TasksTableTableManager extends RootTableManager<
@@ -3130,8 +2636,7 @@ class $$TasksTableTableManager extends RootTableManager<
     $$TasksTableUpdateCompanionBuilder,
     (TaskData, $$TasksTableReferences),
     TaskData,
-    PrefetchHooks Function(
-        {bool subStepId, bool stepId, bool completedByUserId})> {
+    PrefetchHooks Function({bool subStepId, bool stepId})> {
   $$TasksTableTableManager(_$AppDatabase db, $TasksTable table)
       : super(TableManagerState(
           db: db,
@@ -3149,7 +2654,7 @@ class $$TasksTableTableManager extends RootTableManager<
             Value<String?> subStepId = const Value.absent(),
             Value<String?> stepId = const Value.absent(),
             Value<int> orderIndex = const Value.absent(),
-            Value<int?> completedByUserId = const Value.absent(),
+            Value<String?> completedByUsername = const Value.absent(),
             Value<DateTime?> completedAt = const Value.absent(),
             Value<int> rowid = const Value.absent(),
           }) =>
@@ -3160,7 +2665,7 @@ class $$TasksTableTableManager extends RootTableManager<
             subStepId: subStepId,
             stepId: stepId,
             orderIndex: orderIndex,
-            completedByUserId: completedByUserId,
+            completedByUsername: completedByUsername,
             completedAt: completedAt,
             rowid: rowid,
           ),
@@ -3171,7 +2676,7 @@ class $$TasksTableTableManager extends RootTableManager<
             Value<String?> subStepId = const Value.absent(),
             Value<String?> stepId = const Value.absent(),
             Value<int> orderIndex = const Value.absent(),
-            Value<int?> completedByUserId = const Value.absent(),
+            Value<String?> completedByUsername = const Value.absent(),
             Value<DateTime?> completedAt = const Value.absent(),
             Value<int> rowid = const Value.absent(),
           }) =>
@@ -3182,7 +2687,7 @@ class $$TasksTableTableManager extends RootTableManager<
             subStepId: subStepId,
             stepId: stepId,
             orderIndex: orderIndex,
-            completedByUserId: completedByUserId,
+            completedByUsername: completedByUsername,
             completedAt: completedAt,
             rowid: rowid,
           ),
@@ -3190,8 +2695,7 @@ class $$TasksTableTableManager extends RootTableManager<
               .map((e) =>
                   (e.readTable(table), $$TasksTableReferences(db, table, e)))
               .toList(),
-          prefetchHooksCallback: (
-              {subStepId = false, stepId = false, completedByUserId = false}) {
+          prefetchHooksCallback: ({subStepId = false, stepId = false}) {
             return PrefetchHooks(
               db: db,
               explicitlyWatchedTables: [],
@@ -3226,16 +2730,6 @@ class $$TasksTableTableManager extends RootTableManager<
                         $$TasksTableReferences._stepIdTable(db).id,
                   ) as T;
                 }
-                if (completedByUserId) {
-                  state = state.withJoin(
-                    currentTable: table,
-                    currentColumn: table.completedByUserId,
-                    referencedTable:
-                        $$TasksTableReferences._completedByUserIdTable(db),
-                    referencedColumn:
-                        $$TasksTableReferences._completedByUserIdTable(db).id,
-                  ) as T;
-                }
 
                 return state;
               },
@@ -3258,8 +2752,7 @@ typedef $$TasksTableProcessedTableManager = ProcessedTableManager<
     $$TasksTableUpdateCompanionBuilder,
     (TaskData, $$TasksTableReferences),
     TaskData,
-    PrefetchHooks Function(
-        {bool subStepId, bool stepId, bool completedByUserId})>;
+    PrefetchHooks Function({bool subStepId, bool stepId})>;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
@@ -3270,8 +2763,6 @@ class $AppDatabaseManager {
       $$StepsTableTableManager(_db, _db.steps);
   $$SubStepsTableTableManager get subSteps =>
       $$SubStepsTableTableManager(_db, _db.subSteps);
-  $$UsersTableTableManager get users =>
-      $$UsersTableTableManager(_db, _db.users);
   $$TasksTableTableManager get tasks =>
       $$TasksTableTableManager(_db, _db.tasks);
 }

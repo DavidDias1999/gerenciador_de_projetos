@@ -13,7 +13,7 @@ class LoginScreen extends StatefulWidget {
 
 class _LoginScreenState extends State<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
-  final _usernameController = TextEditingController();
+  final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   bool _isLoading = false;
 
@@ -21,7 +21,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   void dispose() {
-    _usernameController.dispose();
+    _emailController.dispose();
     _passwordController.dispose();
     _passwordFocusNode.dispose();
     super.dispose();
@@ -38,7 +38,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
     final authViewModel = context.read<AuthViewModel>();
     final success = await authViewModel.login(
-      _usernameController.text,
+      _emailController.text,
       _passwordController.text,
     );
 
@@ -50,7 +50,7 @@ class _LoginScreenState extends State<LoginScreen> {
       if (!success) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('Usuário ou senha inválidos.'),
+            content: Text('Email ou senha inválidos.'),
             backgroundColor: Colors.red,
           ),
         );
@@ -88,15 +88,19 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                     const SizedBox(height: 24),
                     TextFormField(
-                      controller: _usernameController,
+                      controller: _emailController,
+                      keyboardType: TextInputType.emailAddress,
                       decoration: const InputDecoration(
-                        labelText: 'Usuário',
+                        labelText: 'Email',
                         border: OutlineInputBorder(),
-                        prefixIcon: Icon(Icons.person_outline),
+                        prefixIcon: Icon(Icons.email_outlined),
                       ),
                       validator: (value) {
                         if (value == null || value.isEmpty) {
                           return 'Campo obrigatório';
+                        }
+                        if (!value.contains('@')) {
+                          return 'Por favor, insira um email válido.';
                         }
                         return null;
                       },

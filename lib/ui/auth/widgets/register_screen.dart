@@ -12,7 +12,7 @@ class RegisterScreen extends StatefulWidget {
 
 class _RegisterScreenState extends State<RegisterScreen> {
   final _formKey = GlobalKey<FormState>();
-  final _usernameController = TextEditingController();
+  final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
   bool _isLoading = false;
@@ -20,9 +20,29 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final _passwordFocusNode = FocusNode();
   final _confirmPasswordFocusNode = FocusNode();
 
+  late AuthViewModel _authViewModel;
+
+  @override
+  void initState() {
+    super.initState();
+
+    _authViewModel = context.read<AuthViewModel>();
+    _authViewModel.addListener(_onAuthStateChanged);
+  }
+
+  void _onAuthStateChanged() {
+    if (_authViewModel.authState == AuthState.authenticated) {
+      if (Navigator.of(context).canPop()) {
+        Navigator.of(context).pop();
+      }
+    }
+  }
+
   @override
   void dispose() {
-    _usernameController.dispose();
+    _authViewModel.removeListener(_onAuthStateChanged);
+
+    _emailController.dispose();
     _passwordController.dispose();
     _confirmPasswordController.dispose();
     _passwordFocusNode.dispose();
@@ -31,6 +51,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
   }
 
   Future<void> _register() async {
+    FocusScope.of(context).unfocus();
+
     if (!_formKey.currentState!.validate()) {
       return;
     }
@@ -39,30 +61,20 @@ class _RegisterScreenState extends State<RegisterScreen> {
       _isLoading = true;
     });
 
-    final authViewModel = context.read<AuthViewModel>();
-    final success = await authViewModel.register(
-      _usernameController.text,
+    final success = await _authViewModel.register(
+      _emailController.text,
       _passwordController.text,
     );
 
     if (!mounted) return;
 
-    if (success) {
-      if (mounted) {
-        Navigator.of(context).pop();
-      }
-    } else {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Este nome de usuário já está em uso.'),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
-    }
-
-    if (mounted) {
+    if (!success) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Erro ao registrar. O email pode já estar em uso.'),
+          backgroundColor: Colors.red,
+        ),
+      );
       setState(() {
         _isLoading = false;
       });
@@ -98,18 +110,19 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     ),
                     const SizedBox(height: 24),
                     TextFormField(
-                      controller: _usernameController,
+                      controller: _emailController,
+                      keyboardType: TextInputType.emailAddress,
                       decoration: const InputDecoration(
-                        labelText: 'Usuário',
+                        labelText: 'Email',
                         border: OutlineInputBorder(),
-                        prefixIcon: Icon(Icons.person_outline),
+                        prefixIcon: Icon(Icons.email_outlined),
                       ),
                       validator: (value) {
                         if (value == null || value.isEmpty) {
                           return 'Campo obrigatório';
                         }
-                        if (value.length < 3) {
-                          return 'O usuário deve ter pelo menos 3 caracteres';
+                        if (!value.contains('@') || !value.contains('.')) {
+                          return 'Por favor, insira um email válido.';
                         }
                         return null;
                       },

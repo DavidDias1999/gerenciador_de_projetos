@@ -62,6 +62,7 @@ class _AppGDPState extends State<AppGDP> {
                   child: Padding(
                     padding: const EdgeInsets.only(bottom: 8.0),
                     child: PopupMenuButton<String>(
+                      tooltip: user?.email,
                       onSelected: (value) {
                         if (value == 'logout') {
                           authViewModel.logout();
@@ -78,7 +79,11 @@ class _AppGDPState extends State<AppGDP> {
                         children: [
                           const Icon(Icons.person_rounded),
                           const SizedBox(height: 4),
-                          if (user != null) Text(user.username),
+                          if (user != null)
+                            Text(
+                              user.email,
+                              overflow: TextOverflow.ellipsis,
+                            ),
                         ],
                       ),
                     ),

@@ -15,8 +15,9 @@ class ProjectRepository {
   Future<void> createNewProject(String projectName) =>
       _projectService.createNewProject(projectName);
 
-  Future<void> updateTask(String taskId, bool isCompleted, int currentUserId) =>
-      _projectService.updateTask(taskId, isCompleted, currentUserId);
+  Future<void> updateTask(
+          String taskId, bool isCompleted, String currentUsername) =>
+      _projectService.updateTask(taskId, isCompleted, currentUsername);
 
   Future<void> setProjectStatus(String projectId, bool isCompleted) =>
       _projectService.setProjectStatus(projectId, isCompleted);
@@ -24,14 +25,14 @@ class ProjectRepository {
   Future<void> deleteProject(String projectId) =>
       _projectService.deleteProject(projectId);
 
-  Future<void> selectAllTasksInSubStep(String subStepId, int userId) =>
-      _projectService.selectAllTasksInSubStep(subStepId, userId);
+  Future<void> selectAllTasksInSubStep(String subStepId, String username) =>
+      _projectService.selectAllTasksInSubStep(subStepId, username);
 
   Future<void> deselectAllTasksInSubStep(String subStepId) =>
       _projectService.deselectAllTasksInSubStep(subStepId);
 
-  Future<void> selectAllTasksInStep(String stepId, int userId) =>
-      _projectService.selectAllTasksInStep(stepId, userId);
+  Future<void> selectAllTasksInStep(String stepId, String username) =>
+      _projectService.selectAllTasksInStep(stepId, username);
 
   Future<void> deselectAllTasksInStep(String stepId) =>
       _projectService.deselectAllTasksInStep(stepId);

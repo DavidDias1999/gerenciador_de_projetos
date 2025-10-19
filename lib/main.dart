@@ -1,12 +1,14 @@
 import 'dart:io';
-
 import 'package:flutter/material.dart';
+
+import 'firebase_options.dart';
+import 'package:firebase_core/firebase_core.dart';
+
 import 'package:gerenciador_de_projetos/data/local/database.dart';
 import 'package:gerenciador_de_projetos/data/repositories/auth_repository.dart';
 import 'package:gerenciador_de_projetos/data/repositories/project_repository.dart';
 
 import 'package:gerenciador_de_projetos/data/services/project_service.dart';
-import 'package:gerenciador_de_projetos/data/services/session_service.dart';
 import 'package:gerenciador_de_projetos/ui/auth/view_models/auth_viewmodel.dart';
 import 'package:gerenciador_de_projetos/ui/auth/widgets/auth_gate.dart';
 import 'package:gerenciador_de_projetos/ui/projects/view_models/project_viewmodel.dart';
@@ -32,6 +34,11 @@ void main() async {
   // }
 
   WidgetsFlutterBinding.ensureInitialized();
+
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
+
   if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
     await windowManager.ensureInitialized();
     WindowOptions windowOptions = const WindowOptions(
@@ -47,9 +54,7 @@ void main() async {
   }
 
   final AppDatabase dataBase = AppDatabase();
-  final SessionService sessionService = SessionService();
-  final AuthRepository authRepository =
-      AuthRepository(database: dataBase, sessionService: sessionService);
+  final AuthRepository authRepository = AuthRepository();
   final ProjectService projectService = ProjectService(database: dataBase);
   final ProjectRepository projectRepository =
       ProjectRepository(projectService: projectService);

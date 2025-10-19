@@ -33,8 +33,7 @@ class TaskListItem extends StatelessWidget {
               taskId: task.id,
               onProjectReached100: (completedProject) =>
                   showMoveToCompletedDialog(context, completedProject),
-              currentUserId: currentUser.id,
-              currentUsername: currentUser.username,
+              currentUsername: currentUser.email,
             );
           }
         },

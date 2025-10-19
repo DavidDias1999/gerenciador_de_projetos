@@ -11,8 +11,6 @@ class ProjectService {
 
   Future<List<domain.Project>> fetchProjects() async {
     final fullProjects = await _db.getAllProjects();
-    final allUsersData = await _db.select(_db.users).get();
-    final userMap = {for (var user in allUsersData) user.id: user.username};
     return fullProjects.map((fullProject) {
       return domain.Project(
         id: fullProject.project.id,
@@ -37,7 +35,7 @@ class ProjectService {
                     isCompleted: taskData.isCompleted,
                     orderIndex: taskData.orderIndex,
                     completedAt: taskData.completedAt,
-                    completedByUsername: userMap[taskData.completedByUserId],
+                    completedByUsername: taskData.completedByUsername,
                   );
                 }).toList(),
               );
@@ -49,7 +47,7 @@ class ProjectService {
                 isCompleted: taskData.isCompleted,
                 orderIndex: taskData.orderIndex,
                 completedAt: taskData.completedAt,
-                completedByUsername: userMap[taskData.completedByUserId],
+                completedByUsername: taskData.completedByUsername,
               );
             }).toList(),
           );
@@ -58,17 +56,26 @@ class ProjectService {
     }).toList();
   }
 
-  Future<void> createNewProject(String projectName) async {
-    await _db.createNewProject(projectName);
-  }
-
   Future<void> updateTask(
-      String taskId, bool isCompleted, int currentUserId) async {
+      String taskId, bool isCompleted, String currentUsername) async {
     await _db.updateTaskStatus(
       taskId: taskId,
       isCompleted: isCompleted,
-      userId: currentUserId,
+      username: currentUsername,
     );
+  }
+
+  Future<void> selectAllTasksInSubStep(
+      String subStepId, String username) async {
+    await _db.selectAllTasksInSubStep(subStepId, username);
+  }
+
+  Future<void> selectAllTasksInStep(String stepId, String username) async {
+    await _db.selectAllTasksInStep(stepId, username);
+  }
+
+  Future<void> createNewProject(String projectName) async {
+    await _db.createNewProject(projectName);
   }
 
   Future<void> setProjectStatus(String projectId, bool isCompleted) async {
@@ -79,16 +86,8 @@ class ProjectService {
     await _db.deleteProject(projectId);
   }
 
-  Future<void> selectAllTasksInSubStep(String subStepId, int userId) async {
-    await _db.selectAllTasksInSubStep(subStepId, userId);
-  }
-
   Future<void> deselectAllTasksInSubStep(String subStepId) async {
     await _db.deselectAllTasksInSubStep(subStepId);
-  }
-
-  Future<void> selectAllTasksInStep(String stepId, int userId) async {
-    await _db.selectAllTasksInStep(stepId, userId);
   }
 
   Future<void> deselectAllTasksInStep(String stepId) async {

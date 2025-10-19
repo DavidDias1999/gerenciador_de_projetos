@@ -35,7 +35,7 @@ class ProjectViewModel extends ChangeNotifier {
   DateTime? _timerStartTime;
 
   String? _expandedItemId;
-  ExpansibleController? _expansionController;
+  dynamic _expansionController;
 
   bool _isLoadingDeletedSubSteps = false;
   bool get isLoadingDeletedSubSteps => _isLoadingDeletedSubSteps;
@@ -49,7 +49,7 @@ class ProjectViewModel extends ChangeNotifier {
   void handleExpansionChange({
     required String itemId,
     required bool isExpanded,
-    required ExpansibleController controller,
+    required dynamic controller,
   }) {
     if (_expandedItemId != null && _expandedItemId != itemId) {
       _expansionController?.collapse();
@@ -169,7 +169,6 @@ class ProjectViewModel extends ChangeNotifier {
     required domain.Project project,
     required String taskId,
     required Function(domain.Project project) onProjectReached100,
-    required int currentUserId,
     required String currentUsername,
   }) async {
     final progressBefore = project.progress;
@@ -208,7 +207,7 @@ class ProjectViewModel extends ChangeNotifier {
       });
       notifyListeners();
       await _repository.updateTask(
-          taskId, targetTask.isCompleted, currentUserId);
+          taskId, targetTask.isCompleted, currentUsername);
     }
     final progressAfter = project.progress;
     if (progressBefore < 1.0 && progressAfter == 1.0) {
@@ -220,7 +219,6 @@ class ProjectViewModel extends ChangeNotifier {
     required domain.Project project,
     required String subStepId,
     required Function(domain.Project project) onProjectReached100,
-    required int userId,
     required String username,
   }) async {
     final progressBefore = project.progress;
@@ -233,7 +231,7 @@ class ProjectViewModel extends ChangeNotifier {
       task.completedAt = DateTime.now();
     }
     notifyListeners();
-    await _repository.selectAllTasksInSubStep(subStepId, userId);
+    await _repository.selectAllTasksInSubStep(subStepId, username);
     final progressAfter = project.progress;
     if (progressBefore < 1.0 && progressAfter == 1.0) {
       onProjectReached100(project);
@@ -263,7 +261,6 @@ class ProjectViewModel extends ChangeNotifier {
   Future<void> selectAllTasksInStep({
     required String stepId,
     required domain.Project project,
-    required int userId,
     required String username,
   }) async {
     final step = project.steps.firstWhere((s) => s.id == stepId);
@@ -273,7 +270,7 @@ class ProjectViewModel extends ChangeNotifier {
       task.completedAt = DateTime.now();
     }
     notifyListeners();
-    await _repository.selectAllTasksInStep(stepId, userId);
+    await _repository.selectAllTasksInStep(stepId, username);
   }
 
   Future<void> deselectAllTasksInStep(

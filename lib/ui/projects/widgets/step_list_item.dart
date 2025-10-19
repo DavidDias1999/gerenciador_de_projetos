@@ -109,8 +109,7 @@ class _StepListItemState extends State<StepListItem> {
                 viewModel.selectAllTasksInStep(
                   stepId: widget.step.id,
                   project: widget.project,
-                  userId: currentUser.id,
-                  username: currentUser.username,
+                  username: currentUser.email,
                 );
               }
               if (result == 'deselectAllDirect') {

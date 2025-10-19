@@ -40,13 +40,6 @@ class SubSteps extends Table {
   Set<Column> get primaryKey => {id};
 }
 
-@DataClassName('UserData')
-class Users extends Table {
-  IntColumn get id => integer().autoIncrement()();
-  TextColumn get username => text().unique()();
-  TextColumn get password => text()();
-}
-
 @DataClassName('TaskData')
 class Tasks extends Table {
   TextColumn get id => text()();
@@ -55,8 +48,7 @@ class Tasks extends Table {
   TextColumn get subStepId => text().nullable().references(SubSteps, #id)();
   TextColumn get stepId => text().nullable().references(Steps, #id)();
   IntColumn get orderIndex => integer().withDefault(const Constant(0))();
-  IntColumn get completedByUserId =>
-      integer().nullable().references(Users, #id)();
+  TextColumn get completedByUsername => text().nullable()();
   DateTimeColumn get completedAt => dateTime().nullable()();
 
   @override
@@ -92,12 +84,12 @@ class FullSubStep {
   FullSubStep({required this.subStep, required this.tasks});
 }
 
-@DriftDatabase(tables: [Projects, Steps, SubSteps, Tasks, Users])
+@DriftDatabase(tables: [Projects, Steps, SubSteps, Tasks])
 class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(_openConnection());
 
   @override
-  int get schemaVersion => 10;
+  int get schemaVersion => 11;
 
   @override
   MigrationStrategy get migration {
@@ -108,7 +100,6 @@ class AppDatabase extends _$AppDatabase {
       onUpgrade: (Migrator m, int from, int to) async {
         if (from < 6) await m.createTable(subSteps);
         if (from < 7) {
-          await m.addColumn(tasks, tasks.completedByUserId);
           await m.addColumn(tasks, tasks.completedAt);
         }
         if (from < 8) await m.addColumn(tasks, tasks.stepId);
@@ -119,7 +110,62 @@ class AppDatabase extends _$AppDatabase {
         if (from < 10) {
           await m.addColumn(subSteps, subSteps.deletedAt);
         }
+        if (from < 11) {
+          await m.addColumn(tasks, tasks.completedByUsername);
+        }
       },
+    );
+  }
+
+  Future<void> updateTaskStatus({
+    required String taskId,
+    required bool isCompleted,
+    String? username,
+  }) {
+    return (update(tasks)..where((tbl) => tbl.id.equals(taskId))).write(
+      TasksCompanion(
+        isCompleted: Value(isCompleted),
+        completedByUsername: Value(isCompleted ? username : null),
+        completedAt: Value(isCompleted ? DateTime.now() : null),
+      ),
+    );
+  }
+
+  Future<void> selectAllTasksInSubStep(String subStepId, String username) {
+    return (update(tasks)..where((t) => t.subStepId.equals(subStepId))).write(
+      TasksCompanion(
+        isCompleted: const Value(true),
+        completedByUsername: Value(username),
+        completedAt: Value(DateTime.now()),
+      ),
+    );
+  }
+
+  Future<void> deselectAllTasksInSubStep(String subStepId) {
+    return (update(tasks)..where((t) => t.subStepId.equals(subStepId))).write(
+      const TasksCompanion(
+          isCompleted: Value(false),
+          completedByUsername: Value(null),
+          completedAt: Value(null)),
+    );
+  }
+
+  Future<void> selectAllTasksInStep(String stepId, String username) {
+    return (update(tasks)..where((t) => t.stepId.equals(stepId))).write(
+      TasksCompanion(
+        isCompleted: const Value(true),
+        completedByUsername: Value(username),
+        completedAt: Value(DateTime.now()),
+      ),
+    );
+  }
+
+  Future<void> deselectAllTasksInStep(String stepId) {
+    return (update(tasks)..where((t) => t.stepId.equals(stepId))).write(
+      const TasksCompanion(
+          isCompleted: Value(false),
+          completedByUsername: Value(null),
+          completedAt: Value(null)),
     );
   }
 
@@ -212,20 +258,6 @@ class AppDatabase extends _$AppDatabase {
     });
   }
 
-  Future<void> updateTaskStatus({
-    required String taskId,
-    required bool isCompleted,
-    int? userId,
-  }) {
-    return (update(tasks)..where((tbl) => tbl.id.equals(taskId))).write(
-      TasksCompanion(
-        isCompleted: Value(isCompleted),
-        completedByUserId: Value(isCompleted ? userId : null),
-        completedAt: Value(isCompleted ? DateTime.now() : null),
-      ),
-    );
-  }
-
   Future<void> setProjectCompletionStatus(String projectId, bool isCompleted) {
     return (update(projects)..where((tbl) => tbl.id.equals(projectId))).write(
       ProjectsCompanion(isCompleted: Value(isCompleted)),
@@ -253,44 +285,6 @@ class AppDatabase extends _$AppDatabase {
     });
   }
 
-  Future<void> selectAllTasksInSubStep(String subStepId, int userId) {
-    return (update(tasks)..where((t) => t.subStepId.equals(subStepId))).write(
-      TasksCompanion(
-        isCompleted: const Value(true),
-        completedByUserId: Value(userId),
-        completedAt: Value(DateTime.now()),
-      ),
-    );
-  }
-
-  Future<void> deselectAllTasksInSubStep(String subStepId) {
-    return (update(tasks)..where((t) => t.subStepId.equals(subStepId))).write(
-      const TasksCompanion(
-          isCompleted: Value(false),
-          completedByUserId: Value(null),
-          completedAt: Value(null)),
-    );
-  }
-
-  Future<void> selectAllTasksInStep(String stepId, int userId) {
-    return (update(tasks)..where((t) => t.stepId.equals(stepId))).write(
-      TasksCompanion(
-        isCompleted: const Value(true),
-        completedByUserId: Value(userId),
-        completedAt: Value(DateTime.now()),
-      ),
-    );
-  }
-
-  Future<void> deselectAllTasksInStep(String stepId) {
-    return (update(tasks)..where((t) => t.stepId.equals(stepId))).write(
-      const TasksCompanion(
-          isCompleted: Value(false),
-          completedByUserId: Value(null),
-          completedAt: Value(null)),
-    );
-  }
-
   Future<void> softDeleteStep(String stepId) {
     return (update(steps)..where((s) => s.id.equals(stepId))).write(
       StepsCompanion(deletedAt: Value(DateTime.now())),
@@ -308,19 +302,6 @@ class AppDatabase extends _$AppDatabase {
     return (update(steps)..where((s) => s.id.isIn(stepIds))).write(
       const StepsCompanion(deletedAt: Value(null)),
     );
-  }
-
-  Future<UserData?> getUserByUsername(String username) {
-    return (select(users)..where((tbl) => tbl.username.equals(username)))
-        .getSingleOrNull();
-  }
-
-  Future<int> createUser(UsersCompanion user) {
-    return into(users).insert(user);
-  }
-
-  Future<UserData?> getUserById(int id) {
-    return (select(users)..where((tbl) => tbl.id.equals(id))).getSingleOrNull();
   }
 
   Future<void> updateStepDuration(String stepId, int newDuration) {

@@ -1,53 +1,52 @@
-import 'package:drift/isolate.dart';
+import 'package:firebase_auth/firebase_auth.dart' as firebase;
 import '../../domain/models/user_model.dart';
-import '../local/database.dart';
-import '../services/session_service.dart';
 
 class AuthRepository {
-  final AppDatabase _db;
-  final SessionService _sessionService;
+  final firebase.FirebaseAuth _firebaseAuth;
 
-  AuthRepository(
-      {required AppDatabase database, required SessionService sessionService})
-      : _db = database,
-        _sessionService = sessionService;
+  AuthRepository({firebase.FirebaseAuth? firebaseAuth})
+      : _firebaseAuth = firebaseAuth ?? firebase.FirebaseAuth.instance;
 
-  Future<User?> login(String username, String password) async {
-    final user = await _db.getUserByUsername(username);
-    if (user != null && user.password == password) {
-      await _sessionService.saveSession(user.id);
-      return User(id: user.id, username: user.username);
+  User? _userFromFirebase(firebase.User? user) {
+    if (user == null) {
+      return null;
     }
-    return null;
+    return User(id: user.uid, email: user.email ?? '');
   }
 
-  Future<User?> register(String username, String password) async {
+  Stream<User?> get user {
+    return _firebaseAuth.authStateChanges().map(_userFromFirebase);
+  }
+
+  Future<User?> login(String email, String password) async {
     try {
-      final newUser =
-          UsersCompanion.insert(username: username, password: password);
-      final id = await _db.createUser(newUser);
-      await _sessionService.saveSession(id);
-      return User(id: id, username: username);
-    } on DriftRemoteException catch (e) {
-      if (e.remoteCause.toString().contains('UNIQUE constraint failed')) {
-        return null;
-      }
-      rethrow;
+      final credential = await _firebaseAuth.signInWithEmailAndPassword(
+        email: email,
+        password: password,
+      );
+      return _userFromFirebase(credential.user);
+    } on firebase.FirebaseAuthException {
+      return null;
+    }
+  }
+
+  Future<User?> register(String email, String password) async {
+    try {
+      final credential = await _firebaseAuth.createUserWithEmailAndPassword(
+        email: email,
+        password: password,
+      );
+      return _userFromFirebase(credential.user);
+    } on firebase.FirebaseAuthException {
+      return null;
     }
   }
 
   Future<void> logout() async {
-    await _sessionService.clearSession();
+    await _firebaseAuth.signOut();
   }
 
-  Future<User?> getLoggedInUser() async {
-    final userId = await _sessionService.getSessionUserId();
-    if (userId != null) {
-      final userData = await _db.getUserById(userId);
-      if (userData != null) {
-        return User(id: userData.id, username: userData.username);
-      }
-    }
-    return null;
+  User? getLoggedInUser() {
+    return _userFromFirebase(_firebaseAuth.currentUser);
   }
 }
