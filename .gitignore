@@ -49,3 +49,6 @@ app.*.map.json
 assets/project_template_copy.json
 lib/data/local/database.g.dart
 
+# Firebase credentials
+lib/firebase_options.dart
+
