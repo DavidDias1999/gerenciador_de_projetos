@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:gerenciador_de_projetos/ui/auth/view_models/auth_viewmodel.dart';
 import 'package:gerenciador_de_projetos/ui/projects/widgets/project_list_screen.dart';
 import 'package:gerenciador_de_projetos/ui/reports/reports_screen.dart';
-import 'package:provider/provider.dart';
+import 'user_menu.dart';
 
 enum ProjectType { active, completed }
 
@@ -21,86 +20,99 @@ class _AppGDPState extends State<AppGDP> {
     const ReportsScreen(),
   ];
 
+  final List<NavigationRailDestination> _navRailDestinations = const [
+    NavigationRailDestination(
+      icon: Icon(Icons.folder_open_outlined),
+      selectedIcon: Icon(Icons.folder_open),
+      label: Text('Ativos'),
+    ),
+    NavigationRailDestination(
+      icon: Icon(Icons.folder_zip_outlined),
+      selectedIcon: Icon(Icons.folder_zip),
+      label: Text('Finalizados'),
+    ),
+    NavigationRailDestination(
+      icon: Icon(Icons.analytics_outlined),
+      selectedIcon: Icon(Icons.analytics),
+      label: Text('Relatórios'),
+    ),
+  ];
+
+  final List<BottomNavigationBarItem> _bottomNavItems = const [
+    BottomNavigationBarItem(
+      icon: Icon(Icons.folder_open_outlined),
+      activeIcon: Icon(Icons.folder_open),
+      label: 'Ativos',
+    ),
+    BottomNavigationBarItem(
+      icon: Icon(Icons.folder_zip_outlined),
+      activeIcon: Icon(Icons.folder_zip),
+      label: 'Finalizados',
+    ),
+    BottomNavigationBarItem(
+      icon: Icon(Icons.analytics_outlined),
+      activeIcon: Icon(Icons.analytics),
+      label: 'Relatórios',
+    ),
+  ];
+
   @override
   Widget build(BuildContext context) {
-    final authViewModel = context.watch<AuthViewModel>();
-    final user = authViewModel.currentUser;
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final bool isMobile = constraints.maxWidth < 600;
 
-    return Scaffold(
-      body: Row(
-        children: [
-          Padding(
-            padding: const EdgeInsets.symmetric(vertical: 16),
-            child: NavigationRail(
-              selectedIndex: _selectedIndex,
-              onDestinationSelected: (int index) {
+        if (isMobile) {
+          return Scaffold(
+            body: _screens[_selectedIndex],
+            bottomNavigationBar: BottomNavigationBar(
+              items: _bottomNavItems,
+              currentIndex: _selectedIndex,
+              onTap: (int index) {
                 setState(() {
                   _selectedIndex = index;
                 });
               },
-              labelType: NavigationRailLabelType.selected,
-              destinations: const [
-                NavigationRailDestination(
-                  icon: Icon(Icons.folder_open_outlined),
-                  selectedIcon: Icon(Icons.folder_open),
-                  label: Text('Ativos'),
-                ),
-                NavigationRailDestination(
-                  icon: Icon(Icons.folder_zip_outlined),
-                  selectedIcon: Icon(Icons.folder_zip),
-                  label: Text('Finalizados'),
-                ),
-                NavigationRailDestination(
-                  icon: Icon(Icons.analytics_outlined),
-                  selectedIcon: Icon(Icons.analytics),
-                  label: Text('Relatórios'),
-                ),
-              ],
-              trailing: Expanded(
-                child: Align(
-                  alignment: Alignment.bottomCenter,
-                  child: Padding(
-                    padding: const EdgeInsets.only(bottom: 8.0),
-                    child: PopupMenuButton<String>(
-                      tooltip: user?.email,
-                      onSelected: (value) {
-                        if (value == 'logout') {
-                          authViewModel.logout();
-                        }
-                      },
-                      itemBuilder: (context) => [
-                        const PopupMenuItem(
-                          value: 'logout',
-                          child: Text('Deslogar'),
+            ),
+          );
+        } else {
+          return Scaffold(
+            body: Row(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  child: NavigationRail(
+                    selectedIndex: _selectedIndex,
+                    onDestinationSelected: (int index) {
+                      setState(() {
+                        _selectedIndex = index;
+                      });
+                    },
+                    labelType: NavigationRailLabelType.selected,
+                    destinations: _navRailDestinations,
+                    trailing: Expanded(
+                      child: Align(
+                        alignment: Alignment.bottomCenter,
+                        child: Padding(
+                          padding: const EdgeInsets.only(bottom: 8.0),
+                          child: const NavRailUserMenu(),
                         ),
-                      ],
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          const Icon(Icons.person_rounded),
-                          const SizedBox(height: 4),
-                          if (user != null)
-                            Text(
-                              user.email,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                        ],
                       ),
                     ),
                   ),
                 ),
-              ),
+                const VerticalDivider(
+                  thickness: 1,
+                  width: 1,
+                  indent: 20,
+                  endIndent: 20,
+                ),
+                Expanded(child: _screens[_selectedIndex]),
+              ],
             ),
-          ),
-          const VerticalDivider(
-            thickness: 1,
-            width: 1,
-            indent: 20,
-            endIndent: 20,
-          ),
-          Expanded(child: _screens[_selectedIndex]),
-        ],
-      ),
+          );
+        }
+      },
     );
   }
 }

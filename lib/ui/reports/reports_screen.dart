@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:gerenciador_de_projetos/ui/app/widgets/user_menu.dart';
 import 'package:provider/provider.dart';
 import '../projects/view_models/project_viewmodel.dart';
 
@@ -19,7 +20,21 @@ class ReportsScreen extends StatelessWidget {
     final completedProjects = viewModel.completedProjects;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Relatório de Projetos Finalizados')),
+      appBar: AppBar(
+        title: const Text('Relatório de Projetos'),
+        actions: [
+          LayoutBuilder(
+            builder: (context, constraints) {
+              final bool isMobile = MediaQuery.of(context).size.width < 600;
+              if (isMobile) {
+                return const UserMenu();
+              }
+              return const SizedBox.shrink();
+            },
+          ),
+          const SizedBox(width: 8),
+        ],
+      ),
       body: completedProjects.isEmpty
           ? const Center(child: Text('Nenhum projeto finalizado para exibir.'))
           : ListView.builder(

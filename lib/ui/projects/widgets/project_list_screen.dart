@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:gerenciador_de_projetos/data/services/updater_service.dart';
+import 'package:gerenciador_de_projetos/ui/app/widgets/user_menu.dart';
 import 'package:provider/provider.dart';
 import '../../app/widgets/app.dart';
 import '../view_models/project_viewmodel.dart';
@@ -36,7 +37,21 @@ class _ProjectListScreenState extends State<ProjectListScreen> {
         : 'Projetos Finalizados';
 
     return Scaffold(
-      appBar: AppBar(title: Text(title)),
+      appBar: AppBar(
+        title: Text(title),
+        actions: [
+          LayoutBuilder(
+            builder: (context, constraints) {
+              final bool isMobile = MediaQuery.of(context).size.width < 600;
+              if (isMobile) {
+                return const UserMenu();
+              }
+              return const SizedBox.shrink();
+            },
+          ),
+          const SizedBox(width: 8),
+        ],
+      ),
       body: Consumer<ProjectViewModel>(
         builder: (context, viewModel, child) {
           if (viewModel.isLoading) {
