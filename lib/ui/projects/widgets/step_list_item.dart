@@ -100,6 +100,7 @@ class _StepListItemState extends State<StepListItem> {
             onSelected: (String result) {
               final currentUser = authViewModel.currentUser;
               if (currentUser == null) return;
+              final completionUsername = currentUser.name ?? currentUser.email;
 
               if (result == 'deleteStep') {
                 showDeleteStepConfirmationDialog(
@@ -109,7 +110,7 @@ class _StepListItemState extends State<StepListItem> {
                 viewModel.selectAllTasksInStep(
                   stepId: widget.step.id,
                   project: widget.project,
-                  username: currentUser.email,
+                  username: completionUsername,
                 );
               }
               if (result == 'deselectAllDirect') {

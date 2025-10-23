@@ -118,6 +118,15 @@ class ProjectViewModel extends ChangeNotifier {
     }
   }
 
+  Future<void> stopTimerAndCollapse() async {
+    await stopTimer();
+    if (_expansionController != null) {
+      _expansionController?.collapse();
+      _expansionController = null;
+    }
+    _expandedItemId = null;
+  }
+
   Future<void> loadProjects() async {
     _isLoading = true;
     notifyListeners();

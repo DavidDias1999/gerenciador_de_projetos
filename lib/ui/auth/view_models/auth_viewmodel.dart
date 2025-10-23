@@ -56,4 +56,8 @@ class AuthViewModel extends ChangeNotifier {
   Future<void> logout() async {
     await _repository.logout();
   }
+
+  Future<void> updateDisplayName(String newName) async {
+    await _repository.updateDisplayName(newName);
+  }
 }

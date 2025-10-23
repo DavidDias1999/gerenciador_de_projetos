@@ -16,11 +16,19 @@ class ProjectListScreen extends StatefulWidget {
   State<ProjectListScreen> createState() => _ProjectListScreenState();
 }
 
-class _ProjectListScreenState extends State<ProjectListScreen> {
+class _ProjectListScreenState extends State<ProjectListScreen>
+    with WidgetsBindingObserver {
+  Size? _previousSize;
+
   @override
   void initState() {
     super.initState();
+
+    WidgetsBinding.instance.addObserver(this);
+
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      _previousSize = MediaQuery.of(context).size;
+
       final viewModel = Provider.of<ProjectViewModel>(context, listen: false);
       if (viewModel.activeProjects.isEmpty &&
           viewModel.completedProjects.isEmpty) {
@@ -28,6 +36,29 @@ class _ProjectListScreenState extends State<ProjectListScreen> {
       }
       checkForUpdates(context);
     });
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeMetrics() {
+    super.didChangeMetrics();
+
+    final newSize = MediaQuery.of(context).size;
+    if (_previousSize != null && _previousSize != newSize) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          context.read<ProjectViewModel>().stopTimerAndCollapse();
+        }
+      });
+      _previousSize = newSize;
+    } else {
+      _previousSize ??= newSize;
+    }
   }
 
   @override

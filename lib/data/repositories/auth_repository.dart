@@ -11,7 +11,11 @@ class AuthRepository {
     if (user == null) {
       return null;
     }
-    return User(id: user.uid, email: user.email ?? '');
+    return User(
+      id: user.uid,
+      email: user.email ?? '',
+      name: user.displayName,
+    );
   }
 
   Stream<User?> get user {
@@ -36,7 +40,14 @@ class AuthRepository {
         email: email,
         password: password,
       );
-      return _userFromFirebase(credential.user);
+
+      final defaultName = email.split('@').first;
+      await credential.user?.updateDisplayName(defaultName);
+
+      await credential.user?.reload();
+      final updatedUser = _firebaseAuth.currentUser;
+
+      return _userFromFirebase(updatedUser);
     } on firebase.FirebaseAuthException {
       return null;
     }
@@ -48,5 +59,15 @@ class AuthRepository {
 
   User? getLoggedInUser() {
     return _userFromFirebase(_firebaseAuth.currentUser);
+  }
+
+  Future<void> updateDisplayName(String newName) async {
+    try {
+      await _firebaseAuth.currentUser?.updateDisplayName(newName);
+
+      await _firebaseAuth.currentUser?.reload();
+    } on firebase.FirebaseAuthException catch (e) {
+      throw Exception('Erro ao atualizar o nome: ${e.message}');
+    }
   }
 }

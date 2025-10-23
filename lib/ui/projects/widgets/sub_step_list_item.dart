@@ -94,12 +94,14 @@ class _SubStepListItemState extends State<SubStepListItem> {
               onSelected: (String result) {
                 final currentUser = authViewModel.currentUser;
                 if (currentUser == null) return;
+                final completionUsername =
+                    currentUser.name ?? currentUser.email;
 
                 if (result == 'selectAll') {
                   viewModel.selectAllTasksInSubStep(
                     project: widget.project,
                     subStepId: widget.subStep.id,
-                    username: currentUser.email,
+                    username: completionUsername,
                     onProjectReached100: (p) =>
                         showMoveToCompletedDialog(context, p),
                   );

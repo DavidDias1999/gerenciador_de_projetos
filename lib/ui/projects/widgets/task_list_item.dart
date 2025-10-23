@@ -28,12 +28,13 @@ class TaskListItem extends StatelessWidget {
         onChanged: (bool? value) {
           final currentUser = authViewModel.currentUser;
           if (currentUser != null) {
+            final completionUsername = currentUser.name ?? currentUser.email;
             viewModel.toggleTaskStatus(
               project: project,
               taskId: task.id,
               onProjectReached100: (completedProject) =>
                   showMoveToCompletedDialog(context, completedProject),
-              currentUsername: currentUser.email,
+              currentUsername: completionUsername,
             );
           }
         },
