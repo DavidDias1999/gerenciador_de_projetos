@@ -13,14 +13,15 @@ dependencies:
   # Gestão de Estado
   provider: ^6.1.2
 
-  # Banco de Dados Local (Drift)
-  drift: ^2.14.1
-  sqlite3_flutter_libs: ^0.5.18
-  path_provider: ^2.1.2
-  path: ^1.9.0
+  # Firebase 
+  firebase_core: ^4.2.0 
+  firebase_auth: ^6.1.1 
+  cloud_firestore: ^6.0.3
+  
 
   # Utilitários
   uuid: ^4.3.3
+  json_annotation: ^4.9.0
 
   # Desktop
   window_manager: ^0.5.1
@@ -29,35 +30,33 @@ dependencies:
   cupertino_icons: ^1.0.8
   shared_preferences: ^2.5.3
 
+  # Verificador de Update
   http: ^1.5.0
   package_info_plus: ^9.0.0
   pub_semver: ^2.2.0
-  firebase_core: ^4.2.0
-  firebase_auth: ^6.1.1
+  path_provider: ^2.1.5
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
 
-  # Geração de Código (Drift)
-  drift_dev: ^2.14.1
-  build_runner: ^2.4.8
-
   # Análise de Código
   flutter_lints: ^6.0.0
-
   flutter_launcher_icons: ^0.14.4
+
+  # Geração de Código (Serialização)
+  build_runner: ^2.4.8
+  json_serializable: ^6.8.0
+
+
 
 flutter_launcher_icons:
   windows:
     generate: true
-    image_path: "assets/icon/app_icon.png" 
+    image_path: "assets/icon/app_icon.png"
     icon_size: 48
 
 flutter:
   uses-material-design: true
-
-  # Declaração dos assets do projeto
   assets:
     - assets/project_template.json
-

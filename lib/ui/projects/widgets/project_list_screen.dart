@@ -29,11 +29,10 @@ class _ProjectListScreenState extends State<ProjectListScreen>
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _previousSize = MediaQuery.of(context).size;
 
-      final viewModel = Provider.of<ProjectViewModel>(context, listen: false);
-      if (viewModel.activeProjects.isEmpty &&
-          viewModel.completedProjects.isEmpty) {
-        viewModel.loadProjects();
-      }
+      // **[REMOVIDO]** O bloco 'if (viewModel.activeProjects.isEmpty...)'
+      // que chamava 'viewModel.loadProjects()' foi removido.
+      // O ViewModel agora carrega e escuta automaticamente.
+
       checkForUpdates(context);
     });
   }
@@ -85,8 +84,23 @@ class _ProjectListScreenState extends State<ProjectListScreen>
       ),
       body: Consumer<ProjectViewModel>(
         builder: (context, viewModel, child) {
+          // O 'isLoading' agora reflete o estado inicial do Stream
           if (viewModel.isLoading) {
             return const Center(child: CircularProgressIndicator());
+          }
+
+          // **[ADICIONADO]** Tratamento de erro do Stream
+          if (viewModel.error != null) {
+            return Center(
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Text(
+                  'Erro ao carregar dados: ${viewModel.error}',
+                  style: const TextStyle(color: Colors.red),
+                  textAlign: TextAlign.center,
+                ),
+              ),
+            );
           }
 
           final projects = widget.projectType == ProjectType.active

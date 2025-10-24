@@ -24,8 +24,10 @@ class ProjectListItem extends StatelessWidget {
       clipBehavior: Clip.antiAlias,
       margin: const EdgeInsets.symmetric(vertical: 8.0),
       child: ExpansionTile(
+        // ADICIONADO: Preserva o estado de expansão na rotação
+        key: PageStorageKey(project.id),
+        // ---------------
         shape: const Border(),
-        key: ValueKey(project.id),
         title: Row(
           children: [
             Expanded(
@@ -93,6 +95,8 @@ class ProjectListItem extends StatelessWidget {
           ],
         ),
         children: project.steps
+            // Filtra etapas deletadas
+            .where((step) => step.deletedAt == null)
             .map((step) => StepListItem(
                   project: project,
                   step: step,

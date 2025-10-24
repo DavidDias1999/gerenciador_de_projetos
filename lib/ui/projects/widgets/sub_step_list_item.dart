@@ -25,6 +25,8 @@ class SubStepListItem extends StatefulWidget {
 }
 
 class _SubStepListItemState extends State<SubStepListItem> {
+  // O ExpansibleController ainda é útil se você o usa para
+  // controlar a expansão programaticamente (como no timer).
   late final ExpansibleController _controller;
 
   @override
@@ -38,18 +40,31 @@ class _SubStepListItemState extends State<SubStepListItem> {
     final viewModel = context.watch<ProjectViewModel>();
     final authViewModel = context.read<AuthViewModel>();
 
+    // Detectar orientação
+    final orientation = MediaQuery.of(context).orientation;
+    final isPortrait = orientation == Orientation.portrait;
+
+    // Definir tamanhos/espaçamentos condicionais
+    final double progressBarWidth = isPortrait ? 50.0 : 80.0;
+    final double percentageWidth = isPortrait ? 35.0 : 40.0;
+    final double spacingBeforeProgress = isPortrait ? 8.0 : 16.0;
+    final double spacingBeforePercentage = isPortrait ? 4.0 : 8.0;
+
     final bool allTasksCompleted = widget.subStep.tasks.isNotEmpty &&
         widget.subStep.tasks.every((task) => task.isCompleted);
     final bool anyTasksIncomplete =
         widget.subStep.tasks.any((task) => !task.isCompleted);
 
     return Padding(
-      padding: const EdgeInsets.fromLTRB(32, 0, 16, 0),
+      // Padding lateral ajustado na vertical
+      padding: EdgeInsets.fromLTRB(
+          isPortrait ? 24.0 : 32, 0, isPortrait ? 8.0 : 16, 0),
       child: ExpansionTile(
+        key: PageStorageKey(widget.subStep.id), // Preserva estado na rotação
         shape: const Border(),
-        controller: _controller,
-        key: ValueKey(widget.subStep.id),
+        controller: _controller, // Mantido para controle do timer
         onExpansionChanged: (isExpanded) {
+          // Lógica do timer continua aqui
           if (widget.projectType == ProjectType.active) {
             viewModel.handleExpansionChange(
               itemId: widget.subStep.id,
@@ -58,6 +73,9 @@ class _SubStepListItemState extends State<SubStepListItem> {
             );
           }
         },
+        // Padding interno ajustado na vertical
+        tilePadding: EdgeInsets.symmetric(
+            horizontal: isPortrait ? 8.0 : 16.0, vertical: 0),
         title: Row(
           children: [
             if (viewModel.activeTimerId == widget.subStep.id)
@@ -67,12 +85,16 @@ class _SubStepListItemState extends State<SubStepListItem> {
                     size: 18, color: Theme.of(context).colorScheme.primary),
               ),
             Expanded(
-              child: Text(widget.subStep.title,
-                  style: Theme.of(context).textTheme.bodyMedium),
+              child: Text(
+                widget.subStep.title,
+                style: Theme.of(context).textTheme.bodyMedium,
+                overflow: TextOverflow.ellipsis, // Evita quebra de linha
+                maxLines: 1, // Evita quebra de linha
+              ),
             ),
-            const SizedBox(width: 16),
+            SizedBox(width: spacingBeforeProgress), // Espaçamento condicional
             SizedBox(
-              width: 80,
+              width: progressBarWidth, // Largura condicional
               child: LinearProgressIndicator(
                 value: widget.subStep.progress,
                 backgroundColor:
@@ -81,16 +103,18 @@ class _SubStepListItemState extends State<SubStepListItem> {
                 borderRadius: BorderRadius.circular(5),
               ),
             ),
-            const SizedBox(width: 8),
+            SizedBox(width: spacingBeforePercentage), // Espaçamento condicional
             SizedBox(
-              width: 40,
+              width: percentageWidth, // Largura condicional
               child: Text(
                 '${(widget.subStep.progress * 100).toStringAsFixed(0)}%',
                 style: Theme.of(context).textTheme.labelSmall,
+                textAlign: TextAlign.end, // Alinha à direita
               ),
             ),
+            // CORRIGIDO: PopupMenuButton com IconButton como child
             PopupMenuButton<String>(
-              icon: const Icon(Icons.more_vert, size: 18.0),
+              tooltip: "Mais opções",
               onSelected: (String result) {
                 final currentUser = authViewModel.currentUser;
                 if (currentUser == null) return;
@@ -128,6 +152,17 @@ class _SubStepListItemState extends State<SubStepListItem> {
                   ),
                 ),
               ],
+              child: IconButton(
+                icon: const Icon(Icons.more_vert),
+                iconSize: 18.0,
+                padding: EdgeInsets.zero,
+                constraints: const BoxConstraints(),
+                visualDensity: isPortrait
+                    ? VisualDensity.compact
+                    : VisualDensity.standard, // Aplica aqui
+                tooltip: "Mais opções",
+                onPressed: null, // O PopupMenuButton cuida do toque
+              ),
             ),
           ],
         ),
