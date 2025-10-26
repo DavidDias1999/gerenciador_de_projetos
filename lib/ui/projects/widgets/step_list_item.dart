@@ -26,11 +26,8 @@ class StepListItem extends StatefulWidget {
 }
 
 class _StepListItemState extends State<StepListItem> {
-  // O ExpansibleController ainda é útil se você o usa para
-  // controlar a expansão programaticamente (como no timer).
   late final ExpansibleController _controller;
 
-  // Determina se esta etapa pode ter um timer ativo
   bool get canHaveTimer => widget.step.directTasks.isNotEmpty;
 
   @override
@@ -44,11 +41,9 @@ class _StepListItemState extends State<StepListItem> {
     final viewModel = context.watch<ProjectViewModel>();
     final authViewModel = context.read<AuthViewModel>();
 
-    // Detectar orientação
     final orientation = MediaQuery.of(context).orientation;
     final isPortrait = orientation == Orientation.portrait;
 
-    // Definir tamanhos/espaçamentos condicionais
     final double progressBarWidth = isPortrait ? 60.0 : 80.0;
     final double percentageWidth = isPortrait ? 35.0 : 40.0;
     final double spacingBeforeProgress = isPortrait ? 8.0 : 16.0;
@@ -60,11 +55,10 @@ class _StepListItemState extends State<StepListItem> {
         widget.step.directTasks.any((task) => !task.isCompleted);
 
     return ExpansionTile(
-      key: PageStorageKey(widget.step.id), // Preserva estado na rotação
+      key: PageStorageKey(widget.step.id),
       shape: const Border(),
-      controller: _controller, // Mantido para controle do timer
+      controller: _controller,
       onExpansionChanged: (isExpanded) {
-        // Lógica do timer continua aqui
         if (widget.projectType == ProjectType.active && canHaveTimer) {
           viewModel.handleExpansionChange(
             itemId: widget.step.id,
@@ -87,14 +81,14 @@ class _StepListItemState extends State<StepListItem> {
               child: Text(
                 widget.step.title,
                 style: Theme.of(context).textTheme.titleSmall,
-                overflow: TextOverflow.ellipsis, // Evita quebra de linha
-                maxLines: 1, // Evita quebra de linha
+                overflow: TextOverflow.ellipsis,
+                maxLines: 1,
               ),
             ),
           ),
-          SizedBox(width: spacingBeforeProgress), // Espaçamento condicional
+          SizedBox(width: spacingBeforeProgress),
           SizedBox(
-            width: progressBarWidth, // Largura condicional
+            width: progressBarWidth,
             child: LinearProgressIndicator(
               value: widget.step.progress,
               backgroundColor:
@@ -103,16 +97,15 @@ class _StepListItemState extends State<StepListItem> {
               borderRadius: BorderRadius.circular(5),
             ),
           ),
-          SizedBox(width: spacingBeforePercentage), // Espaçamento condicional
+          SizedBox(width: spacingBeforePercentage),
           SizedBox(
-            width: percentageWidth, // Largura condicional
+            width: percentageWidth,
             child: Text(
               '${(widget.step.progress * 100).toStringAsFixed(0)}%',
               style: Theme.of(context).textTheme.labelSmall,
-              textAlign: TextAlign.end, // Alinha à direita
+              textAlign: TextAlign.end,
             ),
           ),
-          // CORRIGIDO: PopupMenuButton com IconButton como child
           PopupMenuButton<String>(
             tooltip: "Mais opções",
             onSelected: (String result) {
@@ -151,8 +144,7 @@ class _StepListItemState extends State<StepListItem> {
                     value: 'deselectAllDirect',
                     child: Text('Desmarcar todas'),
                   ),
-                if (widget.step.directTasks
-                    .isNotEmpty) // Só mostra se houver tarefas diretas
+                if (widget.step.directTasks.isNotEmpty)
                   const PopupMenuDivider(),
                 const PopupMenuItem<String>(
                   value: 'restore_sub_steps',
@@ -173,17 +165,15 @@ class _StepListItemState extends State<StepListItem> {
               iconSize: 20.0,
               padding: EdgeInsets.zero,
               constraints: const BoxConstraints(),
-              visualDensity: isPortrait
-                  ? VisualDensity.compact
-                  : VisualDensity.standard, // Aplica aqui
+              visualDensity:
+                  isPortrait ? VisualDensity.compact : VisualDensity.standard,
               tooltip: "Mais opções",
-              onPressed: null, // O PopupMenuButton cuida do toque
+              onPressed: null,
             ),
           ),
         ],
       ),
       children: [
-        // Filtra sub-etapas deletadas
         ...widget.step.subSteps
             .where((subStep) => subStep.deletedAt == null)
             .map((subStep) => SubStepListItem(

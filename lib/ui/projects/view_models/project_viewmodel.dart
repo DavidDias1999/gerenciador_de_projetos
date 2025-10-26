@@ -1,4 +1,4 @@
-import 'dart:async'; // **[ADICIONADO]**
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:gerenciador_de_projetos/domain/models/sub_step_model.dart'
     as domain;
@@ -6,24 +6,24 @@ import '../../../data/repositories/project_repository.dart';
 import '../../../domain/models/project_model.dart' as domain;
 import '../../../domain/models/step_model.dart' as domain;
 import '../../../domain/models/task_model.dart' as domain;
+import '../../../domain/models/project_complexity.dart' as domain;
 
 class ProjectViewModel extends ChangeNotifier {
   final ProjectRepository _repository;
-  StreamSubscription? _projectSubscription; // **[ADICIONADO]**
+  StreamSubscription? _projectSubscription;
 
   ProjectViewModel({required ProjectRepository repository})
       : _repository = repository {
-    // **[ADICIONADO]** Inicia a escuta assim que o ViewModel é criado
     _listenToProjects();
   }
 
-  bool _isLoading = true; // **[MODIFICADO]** Começa como true
+  bool _isLoading = true;
   bool get isLoading => _isLoading;
 
-  String? _error; // **[ADICIONADO]**
+  String? _error;
   String? get error => _error;
 
-  List<domain.Project> _allProjects = []; // Lista única para gerenciar
+  List<domain.Project> _allProjects = [];
 
   List<domain.Project> get activeProjects =>
       _allProjects.where((p) => !p.isCompleted).toList();
@@ -31,7 +31,6 @@ class ProjectViewModel extends ChangeNotifier {
   List<domain.Project> get completedProjects =>
       _allProjects.where((p) => p.isCompleted).toList();
 
-  // ... (O restante das suas variáveis de estado permanecem iguais)
   bool _isLoadingDeletedSteps = false;
   bool get isLoadingDeletedSteps => _isLoadingDeletedSteps;
   List<domain.Step> _deletedSteps = [];
@@ -50,7 +49,6 @@ class ProjectViewModel extends ChangeNotifier {
   final Set<String> _selectedSubStepsToRestore = {};
   Set<String> get selectedSubStepsToRestore => _selectedSubStepsToRestore;
 
-  // **[ADICIONADO]** Método para iniciar a escuta do Stream
   void _listenToProjects() {
     _projectSubscription = _repository.getProjectsStream().listen((projects) {
       _allProjects = projects;
@@ -65,15 +63,12 @@ class ProjectViewModel extends ChangeNotifier {
     });
   }
 
-  // **[ADICIONADO]** Cancela a inscrição ao fechar o ViewModel
   @override
   void dispose() {
     _projectSubscription?.cancel();
     super.dispose();
   }
 
-  // --- Lógica de Timer (Modificada para chamar updateProject) ---
-  // ... (NENHUMA MUDANÇA AQUI, seu código de timer já está correto)
   void handleExpansionChange({
     required String itemId,
     required bool isExpanded,
@@ -117,14 +112,11 @@ class ProjectViewModel extends ChangeNotifier {
 
     if (elapsedSeconds == 0) return;
 
-    // Encontra o projeto e o item (Step ou SubStep)
     for (var project in _allProjects) {
       dynamic itemToUpdate;
       try {
-        // Tenta encontrar como Step
         itemToUpdate = project.steps.firstWhere((s) => s.id == itemIdToStop);
       } catch (e) {
-        // Tenta encontrar como SubStep
         for (var step in project.steps) {
           try {
             itemToUpdate =
@@ -136,9 +128,9 @@ class ProjectViewModel extends ChangeNotifier {
 
       if (itemToUpdate != null) {
         itemToUpdate.durationInSeconds += elapsedSeconds;
-        // Salva o projeto inteiro
+
         await _repository.updateProject(project);
-        break; // Para o loop assim que o item for encontrado e salvo
+        break;
       }
     }
   }
@@ -152,36 +144,24 @@ class ProjectViewModel extends ChangeNotifier {
     _expandedItemId = null;
   }
 
-  // --- Lógica de CRUD (Modificada) ---
-
-  // **[REMOVIDO]** O método loadProjects() não é mais necessário.
-  /*
-   Future<void> loadProjects() async {
-     _isLoading = true;
-     notifyListeners();
-     _allProjects = await _repository.getProjects();
-     _isLoading = false;
-     notifyListeners();
-   }
-   */
-
-  Future<void> createNewProject(String projectName) async {
-    await _repository.createNewProject(projectName);
-    // **[REMOVIDO]** A linha 'await loadProjects()' foi removida.
-    // O Stream atualizará a UI automaticamente.
+  Future<void> createNewProject(
+      String projectName, double? squareMeters) async {
+    await _repository.createNewProject(projectName, squareMeters);
   }
 
-  Future<void> completeProject(String projectId) async {
+  Future<void> finalizeProject(
+      String projectId, domain.ProjectComplexity complexity) async {
     if (_expansionController != null) {
       _expansionController?.collapse();
     }
     await stopTimer();
-    await _repository.setProjectStatus(projectId, true);
-    // A atualização local é ótima para "UI otimista",
-    // mas o Stream vai confirmar essa mudança de qualquer forma.
+
     final project = _allProjects.firstWhere((p) => p.id == projectId);
     project.isCompleted = true;
+    project.complexity = complexity;
     notifyListeners();
+
+    await _repository.updateProject(project);
   }
 
   Future<void> activateProject(String projectId) async {
@@ -193,18 +173,9 @@ class ProjectViewModel extends ChangeNotifier {
 
   Future<void> deleteProject(String projectId) async {
     await _repository.deleteProject(projectId);
-    // A UI será atualizada pelo Stream, mas a remoção local é uma
-    // boa prática para "UI otimista".
     _allProjects.removeWhere((p) => p.id == projectId);
     notifyListeners();
   }
-
-  // --- Lógica de Tarefas (Modificada para chamar updateProject) ---
-  // ... (NENHUMA MUDANÇA AQUI)
-  // Seu código de "atualizar localmente e depois chamar updateProject"
-  // é o padrão perfeito para o Firestore.
-  // Quando 'updateProject' for chamado, o Stream será notificado
-  // e todos os outros usuários verão a mudança.
 
   Future<void> toggleTaskStatus({
     required domain.Project project,
@@ -216,7 +187,6 @@ class ProjectViewModel extends ChangeNotifier {
     domain.Task? targetTask;
     List<domain.Task>? parentTaskList;
 
-    // Lógica local para encontrar e atualizar a tarefa (igual a antes)
     for (final step in project.steps) {
       try {
         targetTask = step.directTasks.firstWhere((t) => t.id == taskId);
@@ -251,7 +221,6 @@ class ProjectViewModel extends ChangeNotifier {
       });
 
       notifyListeners();
-      // Salva o projeto inteiro no Firestore
       await _repository.updateProject(project);
     }
 
@@ -277,7 +246,7 @@ class ProjectViewModel extends ChangeNotifier {
       task.completedAt = DateTime.now();
     }
     notifyListeners();
-    await _repository.updateProject(project); // Salva o projeto inteiro
+    await _repository.updateProject(project);
     final progressAfter = project.progress;
     if (progressBefore < 1.0 && progressAfter == 1.0) {
       onProjectReached100(project);
@@ -296,7 +265,7 @@ class ProjectViewModel extends ChangeNotifier {
       task.completedAt = null;
     }
     notifyListeners();
-    await _repository.updateProject(project); // Salva o projeto inteiro
+    await _repository.updateProject(project);
   }
 
   Future<void> selectAllTasksInStep({
@@ -311,7 +280,7 @@ class ProjectViewModel extends ChangeNotifier {
       task.completedAt = DateTime.now();
     }
     notifyListeners();
-    await _repository.updateProject(project); // Salva o projeto inteiro
+    await _repository.updateProject(project);
   }
 
   Future<void> deselectAllTasksInStep(
@@ -323,22 +292,16 @@ class ProjectViewModel extends ChangeNotifier {
       task.completedAt = null;
     }
     notifyListeners();
-    await _repository.updateProject(project); // Salva o projeto inteiro
+    await _repository.updateProject(project);
   }
-
-  // --- Lógica de Soft Delete (Modificada) ---
-  // ... (NENHUMA MUDANÇA AQUI)
-  // Seu código de "soft delete" (definindo 'deletedAt') e "restore"
-  // (definindo 'deletedAt = null') já funciona perfeitamente com
-  // o método 'updateProject', que persistirá a mudança no Firestore.
 
   Future<void> softDeleteStep(String projectId, String stepId) async {
     final project = _allProjects.firstWhere((p) => p.id == projectId);
     final step = project.steps.firstWhere((s) => s.id == stepId);
-    // Define a data de exclusão em vez de remover da lista
+
     step.deletedAt = DateTime.now();
     notifyListeners();
-    await _repository.updateProject(project); // Salva o projeto inteiro
+    await _repository.updateProject(project);
   }
 
   Future<void> fetchDeletedSteps(String projectId) async {
@@ -347,7 +310,6 @@ class ProjectViewModel extends ChangeNotifier {
     _selectedStepsToRestore.clear();
     notifyListeners();
 
-    // Busca localmente no projeto já carregado
     final project = _allProjects.firstWhere((p) => p.id == projectId);
     _deletedSteps = project.steps.where((s) => s.deletedAt != null).toList();
 
@@ -367,24 +329,20 @@ class ProjectViewModel extends ChangeNotifier {
   Future<void> restoreSelectedSteps() async {
     if (_selectedStepsToRestore.isEmpty) return;
 
-    // Encontra o projeto (deve haver uma forma mais segura,
-    // mas assumindo que todos pertencem ao mesmo projeto)
     final project = _allProjects.firstWhere(
         (p) => p.steps.any((s) => s.id == _selectedStepsToRestore.first));
 
-    // Restaura localmente
     for (var step in project.steps) {
       if (_selectedStepsToRestore.contains(step.id)) {
         step.deletedAt = null;
       }
     }
 
-    await _repository.updateProject(project); // Salva o projeto inteiro
+    await _repository.updateProject(project);
 
     _selectedStepsToRestore.clear();
     _deletedSteps = [];
     notifyListeners();
-    // Não é preciso chamar loadProjects(), a UI já reflete a mudança
   }
 
   Future<void> softDeleteSubStep(String projectId, String subStepId) async {

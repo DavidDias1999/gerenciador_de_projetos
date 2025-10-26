@@ -20,19 +20,19 @@ class ProjectListItem extends StatelessWidget {
   Widget build(BuildContext context) {
     final viewModel = context.read<ProjectViewModel>();
 
+    final String title = project.projectName;
+
     return Card(
       clipBehavior: Clip.antiAlias,
       margin: const EdgeInsets.symmetric(vertical: 8.0),
       child: ExpansionTile(
-        // ADICIONADO: Preserva o estado de expansão na rotação
         key: PageStorageKey(project.id),
-        // ---------------
         shape: const Border(),
         title: Row(
           children: [
             Expanded(
               child: Text(
-                project.projectName,
+                title,
                 style: Theme.of(context).textTheme.bodyLarge,
                 overflow: TextOverflow.ellipsis,
               ),
@@ -59,7 +59,7 @@ class ProjectListItem extends StatelessWidget {
             PopupMenuButton<String>(
               onSelected: (String result) {
                 if (result == 'complete') {
-                  viewModel.completeProject(project.id);
+                  showMoveToCompletedDialog(context, project);
                 } else if (result == 'activate') {
                   viewModel.activateProject(project.id);
                 } else if (result == 'delete') {
@@ -95,7 +95,6 @@ class ProjectListItem extends StatelessWidget {
           ],
         ),
         children: project.steps
-            // Filtra etapas deletadas
             .where((step) => step.deletedAt == null)
             .map((step) => StepListItem(
                   project: project,

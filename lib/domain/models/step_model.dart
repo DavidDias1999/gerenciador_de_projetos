@@ -26,27 +26,21 @@ class Step {
 
   @JsonKey(includeFromJson: false, includeToJson: false)
   double get progress {
-    // MODIFICADO: Considera apenas subetapas ATIVAS (não deletadas)
     final activeSubSteps =
         subSteps.where((subStep) => subStep.deletedAt == null);
 
-    // Lista de todas as tarefas ATIVAS (diretas + das subetapas ativas)
     final allActiveTasks = [
       ...directTasks,
-      ...activeSubSteps
-          .expand((subStep) => subStep.tasks), // <-- Filtro aplicado aqui
+      ...activeSubSteps.expand((subStep) => subStep.tasks),
     ];
 
-    if (allActiveTasks.isEmpty)
-      return 0.0; // Se não houver tarefas ativas, progresso é 0
+    if (allActiveTasks.isEmpty) return 0.0;
 
-    // Calcula progresso baseado apenas nas tarefas ativas
     final completedActiveTasks =
         allActiveTasks.where((task) => task.isCompleted).length;
     return completedActiveTasks / allActiveTasks.length;
   }
 
-  // Métodos de serialização (inalterados)
   factory Step.fromJson(Map<String, dynamic> json) => _$StepFromJson(json);
   Map<String, dynamic> toJson() => _$StepToJson(this);
 }

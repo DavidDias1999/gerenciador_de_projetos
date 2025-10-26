@@ -3,9 +3,7 @@ import 'package:flutter/material.dart';
 
 import 'firebase_options.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'package:cloud_firestore/cloud_firestore.dart'; // ADICIONADO
-
-// import 'package:gerenciador_de_projetos/data/local/database.dart'; // REMOVIDO
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:gerenciador_de_projetos/data/repositories/auth_repository.dart';
 import 'package:gerenciador_de_projetos/data/repositories/project_repository.dart';
 
@@ -24,7 +22,6 @@ void main() async {
     options: DefaultFirebaseOptions.currentPlatform,
   );
 
-  // Habilita a persistência offline do Firestore
   final FirebaseFirestore firestore = FirebaseFirestore.instance;
   firestore.settings = const Settings(
     persistenceEnabled: true,
@@ -45,11 +42,10 @@ void main() async {
     });
   }
 
-  // Instanciações atualizadas
   final AuthRepository authRepository = AuthRepository();
   final ProjectService projectService = ProjectService(
     firestore: firestore,
-    auth: authRepository, // O Service precisa saber o usuário logado
+    auth: authRepository,
   );
   final ProjectRepository projectRepository =
       ProjectRepository(projectService: projectService);

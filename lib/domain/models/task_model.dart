@@ -3,7 +3,6 @@ import 'package:json_annotation/json_annotation.dart';
 
 part 'task_model.g.dart';
 
-// Helper para converter Timestamp do Firestore para DateTime e vice-versa
 class TimestampConverter implements JsonConverter<DateTime?, dynamic> {
   const TimestampConverter();
 
@@ -43,7 +42,6 @@ class Task {
     this.completedAt,
   });
 
-  // Métodos de serialização
   factory Task.fromJson(Map<String, dynamic> json) => _$TaskFromJson(json);
   Map<String, dynamic> toJson() => _$TaskToJson(this);
 }

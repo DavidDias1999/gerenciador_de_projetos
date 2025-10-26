@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:gerenciador_de_projetos/ui/auth/view_models/auth_viewmodel.dart';
-import 'package:gerenciador_de_projetos/ui/projects/view_models/project_viewmodel.dart'; // Importe o ViewModel
+import 'package:gerenciador_de_projetos/ui/projects/view_models/project_viewmodel.dart';
 import 'package:gerenciador_de_projetos/ui/settings/settings_screen.dart';
 import 'package:provider/provider.dart';
 

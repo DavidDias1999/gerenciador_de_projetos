@@ -6,14 +6,10 @@ import 'package:package_info_plus/package_info_plus.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:pub_semver/pub_semver.dart';
 
-// !! IMPORTANTE !!
-// Substitua com seu usuário e repositório do GitHub
 const String _githubUser = 'DavidDias1999';
 const String _githubRepo = 'gerenciador_de_projetos';
 
 Future<void> checkForUpdates(BuildContext context) async {
-  // Apenas executa a verificação em modo de release (quando compilado)
-  // e apenas para a plataforma Windows.
   if (!Platform.isWindows) {
     return;
   }
@@ -93,7 +89,6 @@ Future<void> _showUpdateDialog(
 
 Future<void> _downloadAndRunInstaller(BuildContext context, String url) async {
   try {
-    // Mostra um diálogo de progresso
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -122,17 +117,14 @@ Future<void> _downloadAndRunInstaller(BuildContext context, String url) async {
     await file.writeAsBytes(response.bodyBytes);
     debugPrint('Download completo. Salvo em: $filePath');
 
-    // Fecha o diálogo de progresso
     if (context.mounted) Navigator.of(context).pop();
 
-    // Executa o instalador em modo silencioso e fecha o app atual.
     await Process.run(filePath, ['/SILENT']);
     exit(0);
   } catch (e) {
     debugPrint('Erro no download ou execução do instalador: $e');
     if (context.mounted) {
-      Navigator.of(context)
-          .pop(); // Fecha o diálogo de progresso em caso de erro
+      Navigator.of(context).pop();
     }
   }
 }

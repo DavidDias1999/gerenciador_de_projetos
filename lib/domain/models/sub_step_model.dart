@@ -30,7 +30,6 @@ class SubStep {
     return completedTasks / tasks.length;
   }
 
-  // Métodos de serialização
   factory SubStep.fromJson(Map<String, dynamic> json) =>
       _$SubStepFromJson(json);
   Map<String, dynamic> toJson() => _$SubStepToJson(this);
