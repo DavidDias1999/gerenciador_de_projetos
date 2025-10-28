@@ -1,3 +1,4 @@
+import 'package:gerenciador_de_projetos/domain/models/task_model.dart';
 import 'package:json_annotation/json_annotation.dart';
 import 'step_model.dart';
 import 'project_complexity.dart';
@@ -16,6 +17,13 @@ class Project {
 
   ProjectComplexity? complexity;
 
+  @TimestampConverter()
+  DateTime? finalizedAt;
+
+  double? finalProgress;
+
+  int? finalTotalDurationInSeconds;
+
   Project({
     required this.id,
     required this.projectName,
@@ -24,6 +32,9 @@ class Project {
     required this.userId,
     this.squareMeters,
     this.complexity,
+    this.finalizedAt,
+    this.finalProgress,
+    this.finalTotalDurationInSeconds,
   });
 
   @JsonKey(includeFromJson: false, includeToJson: false)

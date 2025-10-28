@@ -159,6 +159,9 @@ class ProjectViewModel extends ChangeNotifier {
     final project = _allProjects.firstWhere((p) => p.id == projectId);
     project.isCompleted = true;
     project.complexity = complexity;
+    project.finalizedAt = DateTime.now();
+    project.finalProgress = project.progress;
+    project.finalTotalDurationInSeconds = project.totalDurationInSeconds;
     notifyListeners();
 
     await _repository.updateProject(project);
