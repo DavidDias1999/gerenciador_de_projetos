@@ -1,44 +1,78 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:gerenciador_de_projetos/domain/models/sub_step_model.dart'
+    as domain;
 import '../../../data/repositories/project_repository.dart';
 import '../../../domain/models/project_model.dart' as domain;
 import '../../../domain/models/step_model.dart' as domain;
 import '../../../domain/models/task_model.dart' as domain;
+import '../../../domain/models/project_complexity.dart' as domain;
 
 class ProjectViewModel extends ChangeNotifier {
   final ProjectRepository _repository;
+  StreamSubscription? _projectSubscription;
 
   ProjectViewModel({required ProjectRepository repository})
-      : _repository = repository;
+      : _repository = repository {
+    _listenToProjects();
+  }
 
-  bool _isLoading = false;
+  bool _isLoading = true;
   bool get isLoading => _isLoading;
 
-  List<domain.Project> _activeProjects = [];
-  List<domain.Project> get activeProjects => _activeProjects;
+  String? _error;
+  String? get error => _error;
 
-  List<domain.Project> _completedProjects = [];
-  List<domain.Project> get completedProjects => _completedProjects;
+  List<domain.Project> _allProjects = [];
+
+  List<domain.Project> get activeProjects =>
+      _allProjects.where((p) => !p.isCompleted).toList();
+
+  List<domain.Project> get completedProjects =>
+      _allProjects.where((p) => p.isCompleted).toList();
 
   bool _isLoadingDeletedSteps = false;
   bool get isLoadingDeletedSteps => _isLoadingDeletedSteps;
-
   List<domain.Step> _deletedSteps = [];
   List<domain.Step> get deletedSteps => _deletedSteps;
-
   final Set<String> _selectedStepsToRestore = {};
   Set<String> get selectedStepsToRestore => _selectedStepsToRestore;
-
   String? _activeTimerId;
   String? get activeTimerId => _activeTimerId;
   DateTime? _timerStartTime;
-
   String? _expandedItemId;
-  ExpansibleController? _expansionController;
+  dynamic _expansionController;
+  bool _isLoadingDeletedSubSteps = false;
+  bool get isLoadingDeletedSubSteps => _isLoadingDeletedSubSteps;
+  List<domain.SubStep> _deletedSubSteps = [];
+  List<domain.SubStep> get deletedSubSteps => _deletedSubSteps;
+  final Set<String> _selectedSubStepsToRestore = {};
+  Set<String> get selectedSubStepsToRestore => _selectedSubStepsToRestore;
+
+  void _listenToProjects() {
+    _projectSubscription = _repository.getProjectsStream().listen((projects) {
+      _allProjects = projects;
+      _isLoading = false;
+      _error = null;
+      notifyListeners();
+    }, onError: (e, stackTrace) {
+      debugPrint('Erro no stream de projetos: $e');
+      _error = 'Erro ao carregar projetos: $e';
+      _isLoading = false;
+      notifyListeners();
+    });
+  }
+
+  @override
+  void dispose() {
+    _projectSubscription?.cancel();
+    super.dispose();
+  }
 
   void handleExpansionChange({
     required String itemId,
     required bool isExpanded,
-    required ExpansibleController controller,
+    required dynamic controller,
   }) {
     if (_expandedItemId != null && _expandedItemId != itemId) {
       _expansionController?.collapse();
@@ -78,79 +112,71 @@ class ProjectViewModel extends ChangeNotifier {
 
     if (elapsedSeconds == 0) return;
 
-    for (var project in _activeProjects) {
+    for (var project in _allProjects) {
       dynamic itemToUpdate;
-      bool isSubStep = false;
       try {
         itemToUpdate = project.steps.firstWhere((s) => s.id == itemIdToStop);
       } catch (e) {
-        try {
-          itemToUpdate = project.steps
-              .expand((s) => s.subSteps)
-              .firstWhere((ss) => ss.id == itemIdToStop);
-          isSubStep = true;
-        } catch (e) {}
+        for (var step in project.steps) {
+          try {
+            itemToUpdate =
+                step.subSteps.firstWhere((ss) => ss.id == itemIdToStop);
+            if (itemToUpdate != null) break;
+          } catch (e) {}
+        }
       }
 
       if (itemToUpdate != null) {
         itemToUpdate.durationInSeconds += elapsedSeconds;
 
-        if (isSubStep) {
-          await _repository.updateSubStepDuration(
-              itemIdToStop, itemToUpdate.durationInSeconds);
-        } else {
-          await _repository.updateStepDuration(
-              itemIdToStop, itemToUpdate.durationInSeconds);
-        }
+        await _repository.updateProject(project);
         break;
       }
     }
   }
 
-  Future<void> loadProjects() async {
-    _isLoading = true;
-    notifyListeners();
-    final allProjects = await _repository.getProjects();
-    _activeProjects = allProjects.where((p) => !p.isCompleted).toList();
-    _completedProjects = allProjects.where((p) => p.isCompleted).toList();
-    _isLoading = false;
-    notifyListeners();
+  Future<void> stopTimerAndCollapse() async {
+    await stopTimer();
+    if (_expansionController != null) {
+      _expansionController?.collapse();
+      _expansionController = null;
+    }
+    _expandedItemId = null;
   }
 
-  Future<void> createNewProject(String projectName) async {
-    await _repository.createNewProject(projectName);
-    await loadProjects();
+  Future<void> createNewProject(
+      String projectName, double? squareMeters) async {
+    await _repository.createNewProject(projectName, squareMeters);
   }
 
-  Future<void> completeProject(String projectId) async {
+  Future<void> finalizeProject(
+      String projectId, domain.ProjectComplexity complexity) async {
     if (_expansionController != null) {
       _expansionController?.collapse();
     }
     await stopTimer();
 
-    await _repository.setProjectStatus(projectId, true);
-    await loadProjects();
+    final project = _allProjects.firstWhere((p) => p.id == projectId);
+    project.isCompleted = true;
+    project.complexity = complexity;
+    project.finalizedAt = DateTime.now();
+    project.finalProgress = project.progress;
+    project.finalTotalDurationInSeconds = project.totalDurationInSeconds;
+    notifyListeners();
+
+    await _repository.updateProject(project);
   }
 
   Future<void> activateProject(String projectId) async {
     await _repository.setProjectStatus(projectId, false);
-    await loadProjects();
+    final project = _allProjects.firstWhere((p) => p.id == projectId);
+    project.isCompleted = false;
+    notifyListeners();
   }
 
   Future<void> deleteProject(String projectId) async {
     await _repository.deleteProject(projectId);
-    await loadProjects();
-  }
-
-  Future<void> softDeleteStep(String projectId, String stepId) async {
-    await _repository.softDeleteStep(stepId);
-    domain.Project project;
-    try {
-      project = _activeProjects.firstWhere((p) => p.id == projectId);
-    } catch (e) {
-      project = _completedProjects.firstWhere((p) => p.id == projectId);
-    }
-    project.steps.removeWhere((step) => step.id == stepId);
+    _allProjects.removeWhere((p) => p.id == projectId);
     notifyListeners();
   }
 
@@ -158,12 +184,12 @@ class ProjectViewModel extends ChangeNotifier {
     required domain.Project project,
     required String taskId,
     required Function(domain.Project project) onProjectReached100,
-    required int currentUserId,
     required String currentUsername,
   }) async {
     final progressBefore = project.progress;
     domain.Task? targetTask;
     List<domain.Task>? parentTaskList;
+
     for (final step in project.steps) {
       try {
         targetTask = step.directTasks.firstWhere((t) => t.id == taskId);
@@ -182,6 +208,7 @@ class ProjectViewModel extends ChangeNotifier {
       }
       if (targetTask != null) break;
     }
+
     if (targetTask != null && parentTaskList != null) {
       targetTask.isCompleted = !targetTask.isCompleted;
       if (targetTask.isCompleted) {
@@ -195,10 +222,11 @@ class ProjectViewModel extends ChangeNotifier {
         if (a.isCompleted != b.isCompleted) return a.isCompleted ? 1 : -1;
         return a.orderIndex.compareTo(b.orderIndex);
       });
+
       notifyListeners();
-      await _repository.updateTask(
-          taskId, targetTask.isCompleted, currentUserId);
+      await _repository.updateProject(project);
     }
+
     final progressAfter = project.progress;
     if (progressBefore < 1.0 && progressAfter == 1.0) {
       onProjectReached100(project);
@@ -209,7 +237,6 @@ class ProjectViewModel extends ChangeNotifier {
     required domain.Project project,
     required String subStepId,
     required Function(domain.Project project) onProjectReached100,
-    required int userId,
     required String username,
   }) async {
     final progressBefore = project.progress;
@@ -222,7 +249,7 @@ class ProjectViewModel extends ChangeNotifier {
       task.completedAt = DateTime.now();
     }
     notifyListeners();
-    await _repository.selectAllTasksInSubStep(subStepId, userId);
+    await _repository.updateProject(project);
     final progressAfter = project.progress;
     if (progressBefore < 1.0 && progressAfter == 1.0) {
       onProjectReached100(project);
@@ -231,12 +258,7 @@ class ProjectViewModel extends ChangeNotifier {
 
   Future<void> deselectAllTasksInSubStep(
       String projectId, String subStepId) async {
-    domain.Project project;
-    try {
-      project = _activeProjects.firstWhere((p) => p.id == projectId);
-    } catch (e) {
-      project = _completedProjects.firstWhere((p) => p.id == projectId);
-    }
+    final project = _allProjects.firstWhere((p) => p.id == projectId);
     final subStep = project.steps
         .expand((s) => s.subSteps)
         .firstWhere((ss) => ss.id == subStepId);
@@ -246,13 +268,12 @@ class ProjectViewModel extends ChangeNotifier {
       task.completedAt = null;
     }
     notifyListeners();
-    await _repository.deselectAllTasksInSubStep(subStepId);
+    await _repository.updateProject(project);
   }
 
   Future<void> selectAllTasksInStep({
     required String stepId,
     required domain.Project project,
-    required int userId,
     required String username,
   }) async {
     final step = project.steps.firstWhere((s) => s.id == stepId);
@@ -262,7 +283,7 @@ class ProjectViewModel extends ChangeNotifier {
       task.completedAt = DateTime.now();
     }
     notifyListeners();
-    await _repository.selectAllTasksInStep(stepId, userId);
+    await _repository.updateProject(project);
   }
 
   Future<void> deselectAllTasksInStep(
@@ -274,7 +295,16 @@ class ProjectViewModel extends ChangeNotifier {
       task.completedAt = null;
     }
     notifyListeners();
-    await _repository.deselectAllTasksInStep(stepId);
+    await _repository.updateProject(project);
+  }
+
+  Future<void> softDeleteStep(String projectId, String stepId) async {
+    final project = _allProjects.firstWhere((p) => p.id == projectId);
+    final step = project.steps.firstWhere((s) => s.id == stepId);
+
+    step.deletedAt = DateTime.now();
+    notifyListeners();
+    await _repository.updateProject(project);
   }
 
   Future<void> fetchDeletedSteps(String projectId) async {
@@ -282,7 +312,10 @@ class ProjectViewModel extends ChangeNotifier {
     _deletedSteps = [];
     _selectedStepsToRestore.clear();
     notifyListeners();
-    _deletedSteps = await _repository.getDeletedStepsForProject(projectId);
+
+    final project = _allProjects.firstWhere((p) => p.id == projectId);
+    _deletedSteps = project.steps.where((s) => s.deletedAt != null).toList();
+
     _isLoadingDeletedSteps = false;
     notifyListeners();
   }
@@ -298,9 +331,81 @@ class ProjectViewModel extends ChangeNotifier {
 
   Future<void> restoreSelectedSteps() async {
     if (_selectedStepsToRestore.isEmpty) return;
-    await _repository.restoreSteps(_selectedStepsToRestore.toList());
+
+    final project = _allProjects.firstWhere(
+        (p) => p.steps.any((s) => s.id == _selectedStepsToRestore.first));
+
+    for (var step in project.steps) {
+      if (_selectedStepsToRestore.contains(step.id)) {
+        step.deletedAt = null;
+      }
+    }
+
+    await _repository.updateProject(project);
+
     _selectedStepsToRestore.clear();
     _deletedSteps = [];
-    await loadProjects();
+    notifyListeners();
+  }
+
+  Future<void> softDeleteSubStep(String projectId, String subStepId) async {
+    final project = _allProjects.firstWhere((p) => p.id == projectId);
+    for (var step in project.steps) {
+      for (var subStep in step.subSteps) {
+        if (subStep.id == subStepId) {
+          subStep.deletedAt = DateTime.now();
+          notifyListeners();
+          await _repository.updateProject(project);
+          return;
+        }
+      }
+    }
+  }
+
+  Future<void> fetchDeletedSubSteps(String projectId) async {
+    _isLoadingDeletedSubSteps = true;
+    _deletedSubSteps = [];
+    _selectedSubStepsToRestore.clear();
+    notifyListeners();
+
+    final project = _allProjects.firstWhere((p) => p.id == projectId);
+    _deletedSubSteps = project.steps
+        .expand((s) => s.subSteps)
+        .where((ss) => ss.deletedAt != null)
+        .toList();
+
+    _isLoadingDeletedSubSteps = false;
+    notifyListeners();
+  }
+
+  void toggleSubStepSelectionForRestore(String subStepId) {
+    if (_selectedSubStepsToRestore.contains(subStepId)) {
+      _selectedSubStepsToRestore.remove(subStepId);
+    } else {
+      _selectedSubStepsToRestore.add(subStepId);
+    }
+    notifyListeners();
+  }
+
+  Future<void> restoreSelectedSubSteps() async {
+    if (_selectedSubStepsToRestore.isEmpty) return;
+
+    final project = _allProjects.firstWhere((p) => p.steps
+        .expand((s) => s.subSteps)
+        .any((ss) => ss.id == _selectedSubStepsToRestore.first));
+
+    for (var step in project.steps) {
+      for (var subStep in step.subSteps) {
+        if (_selectedSubStepsToRestore.contains(subStep.id)) {
+          subStep.deletedAt = null;
+        }
+      }
+    }
+
+    await _repository.updateProject(project);
+
+    _selectedSubStepsToRestore.clear();
+    _deletedSubSteps = [];
+    notifyListeners();
   }
 }

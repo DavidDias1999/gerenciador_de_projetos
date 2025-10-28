@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:gerenciador_de_projetos/data/services/updater_service.dart';
+import 'package:gerenciador_de_projetos/ui/app/widgets/user_menu.dart';
 import 'package:provider/provider.dart';
 import '../../app/widgets/app.dart';
 import '../view_models/project_viewmodel.dart';
@@ -15,18 +16,44 @@ class ProjectListScreen extends StatefulWidget {
   State<ProjectListScreen> createState() => _ProjectListScreenState();
 }
 
-class _ProjectListScreenState extends State<ProjectListScreen> {
+class _ProjectListScreenState extends State<ProjectListScreen>
+    with WidgetsBindingObserver {
+  Size? _previousSize;
+
   @override
   void initState() {
     super.initState();
+
+    WidgetsBinding.instance.addObserver(this);
+
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      final viewModel = Provider.of<ProjectViewModel>(context, listen: false);
-      if (viewModel.activeProjects.isEmpty &&
-          viewModel.completedProjects.isEmpty) {
-        viewModel.loadProjects();
-      }
+      _previousSize = MediaQuery.of(context).size;
+
       checkForUpdates(context);
     });
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeMetrics() {
+    super.didChangeMetrics();
+
+    final newSize = MediaQuery.of(context).size;
+    if (_previousSize != null && _previousSize != newSize) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          context.read<ProjectViewModel>().stopTimerAndCollapse();
+        }
+      });
+      _previousSize = newSize;
+    } else {
+      _previousSize ??= newSize;
+    }
   }
 
   @override
@@ -36,11 +63,38 @@ class _ProjectListScreenState extends State<ProjectListScreen> {
         : 'Projetos Finalizados';
 
     return Scaffold(
-      appBar: AppBar(title: Text(title)),
+      appBar: AppBar(
+        title: Text(title),
+        actions: [
+          LayoutBuilder(
+            builder: (context, constraints) {
+              final bool isMobile = MediaQuery.of(context).size.width < 600;
+              if (isMobile) {
+                return const UserMenu();
+              }
+              return const SizedBox.shrink();
+            },
+          ),
+          const SizedBox(width: 8),
+        ],
+      ),
       body: Consumer<ProjectViewModel>(
         builder: (context, viewModel, child) {
           if (viewModel.isLoading) {
             return const Center(child: CircularProgressIndicator());
+          }
+
+          if (viewModel.error != null) {
+            return Center(
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Text(
+                  'Erro ao carregar dados: ${viewModel.error}',
+                  style: const TextStyle(color: Colors.red),
+                  textAlign: TextAlign.center,
+                ),
+              ),
+            );
           }
 
           final projects = widget.projectType == ProjectType.active

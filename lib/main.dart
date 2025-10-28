@@ -1,37 +1,33 @@
 import 'dart:io';
-
 import 'package:flutter/material.dart';
-import 'package:gerenciador_de_projetos/data/local/database.dart';
+
+import 'firebase_options.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:gerenciador_de_projetos/data/repositories/auth_repository.dart';
 import 'package:gerenciador_de_projetos/data/repositories/project_repository.dart';
 
 import 'package:gerenciador_de_projetos/data/services/project_service.dart';
-import 'package:gerenciador_de_projetos/data/services/session_service.dart';
 import 'package:gerenciador_de_projetos/ui/auth/view_models/auth_viewmodel.dart';
 import 'package:gerenciador_de_projetos/ui/auth/widgets/auth_gate.dart';
 import 'package:gerenciador_de_projetos/ui/projects/view_models/project_viewmodel.dart';
 import 'package:provider/provider.dart';
 import 'package:window_manager/window_manager.dart';
 import '/ui/core/themes/theme.dart';
-// import 'package:path/path.dart' as p;
-// import 'package:path_provider/path_provider.dart';
 
 void main() async {
-  // DELETAR O BANCO DE DADOS NO WINDOWS
-  // const bool DELETAR_BANCO_DE_DADOS_AO_INICIAR = true;
-  // if (DELETAR_BANCO_DE_DADOS_AO_INICIAR) {
-  //   final dbFolder = await getApplicationDocumentsDirectory();
-  //   final file = File(p.join(dbFolder.path, 'db.sqlite'));
-
-  //   if (await file.exists()) {
-  //     await file.delete();
-  //     print('====================================================');
-  //     print('BANCO DE DADOS ANTIGO DELETADO COM SUCESSO.');
-  //     print('====================================================');
-  //   }
-  // }
-
   WidgetsFlutterBinding.ensureInitialized();
+
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
+
+  final FirebaseFirestore firestore = FirebaseFirestore.instance;
+  firestore.settings = const Settings(
+    persistenceEnabled: true,
+    cacheSizeBytes: Settings.CACHE_SIZE_UNLIMITED,
+  );
+
   if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
     await windowManager.ensureInitialized();
     WindowOptions windowOptions = const WindowOptions(
@@ -46,11 +42,11 @@ void main() async {
     });
   }
 
-  final AppDatabase dataBase = AppDatabase();
-  final SessionService sessionService = SessionService();
-  final AuthRepository authRepository =
-      AuthRepository(database: dataBase, sessionService: sessionService);
-  final ProjectService projectService = ProjectService(database: dataBase);
+  final AuthRepository authRepository = AuthRepository();
+  final ProjectService projectService = ProjectService(
+    firestore: firestore,
+    auth: authRepository,
+  );
   final ProjectRepository projectRepository =
       ProjectRepository(projectService: projectService);
 

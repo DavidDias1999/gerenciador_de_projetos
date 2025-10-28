@@ -12,20 +12,47 @@ class RegisterScreen extends StatefulWidget {
 
 class _RegisterScreenState extends State<RegisterScreen> {
   final _formKey = GlobalKey<FormState>();
-  final _usernameController = TextEditingController();
+  final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
   bool _isLoading = false;
 
+  final _passwordFocusNode = FocusNode();
+  final _confirmPasswordFocusNode = FocusNode();
+
+  late AuthViewModel _authViewModel;
+
+  @override
+  void initState() {
+    super.initState();
+
+    _authViewModel = context.read<AuthViewModel>();
+    _authViewModel.addListener(_onAuthStateChanged);
+  }
+
+  void _onAuthStateChanged() {
+    if (_authViewModel.authState == AuthState.authenticated) {
+      if (Navigator.of(context).canPop()) {
+        Navigator.of(context).pop();
+      }
+    }
+  }
+
   @override
   void dispose() {
-    _usernameController.dispose();
+    _authViewModel.removeListener(_onAuthStateChanged);
+
+    _emailController.dispose();
     _passwordController.dispose();
     _confirmPasswordController.dispose();
+    _passwordFocusNode.dispose();
+    _confirmPasswordFocusNode.dispose();
     super.dispose();
   }
 
   Future<void> _register() async {
+    FocusScope.of(context).unfocus();
+
     if (!_formKey.currentState!.validate()) {
       return;
     }
@@ -34,28 +61,24 @@ class _RegisterScreenState extends State<RegisterScreen> {
       _isLoading = true;
     });
 
-    final authViewModel = context.read<AuthViewModel>();
-    final success = await authViewModel.register(
-      _usernameController.text,
+    final success = await _authViewModel.register(
+      _emailController.text,
       _passwordController.text,
     );
 
     if (!mounted) return;
 
-    if (success) {
-      Navigator.of(context).pop();
-    } else {
+    if (!success) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Este nome de usuário já está em uso.'),
+          content: Text('Erro ao registrar. O email pode já estar em uso.'),
           backgroundColor: Colors.red,
         ),
       );
+      setState(() {
+        _isLoading = false;
+      });
     }
-
-    setState(() {
-      _isLoading = false;
-    });
   }
 
   @override
@@ -87,25 +110,30 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     ),
                     const SizedBox(height: 24),
                     TextFormField(
-                      controller: _usernameController,
+                      controller: _emailController,
+                      keyboardType: TextInputType.emailAddress,
                       decoration: const InputDecoration(
-                        labelText: 'Usuário',
+                        labelText: 'Email',
                         border: OutlineInputBorder(),
-                        prefixIcon: Icon(Icons.person_outline),
+                        prefixIcon: Icon(Icons.email_outlined),
                       ),
                       validator: (value) {
                         if (value == null || value.isEmpty) {
                           return 'Campo obrigatório';
                         }
-                        if (value.length < 3) {
-                          return 'O usuário deve ter pelo menos 3 caracteres';
+                        if (!value.contains('@') || !value.contains('.')) {
+                          return 'Por favor, insira um email válido.';
                         }
                         return null;
+                      },
+                      onFieldSubmitted: (_) {
+                        FocusScope.of(context).requestFocus(_passwordFocusNode);
                       },
                     ),
                     const SizedBox(height: 16),
                     TextFormField(
                       controller: _passwordController,
+                      focusNode: _passwordFocusNode,
                       obscureText: true,
                       decoration: const InputDecoration(
                         labelText: 'Senha',
@@ -121,10 +149,15 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         }
                         return null;
                       },
+                      onFieldSubmitted: (_) {
+                        FocusScope.of(context)
+                            .requestFocus(_confirmPasswordFocusNode);
+                      },
                     ),
                     const SizedBox(height: 16),
                     TextFormField(
                       controller: _confirmPasswordController,
+                      focusNode: _confirmPasswordFocusNode,
                       obscureText: true,
                       decoration: const InputDecoration(
                         labelText: 'Confirmar Senha',
@@ -140,6 +173,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         }
                         return null;
                       },
+                      onFieldSubmitted: (_) => _register(),
                     ),
                     const SizedBox(height: 24),
                     _isLoading

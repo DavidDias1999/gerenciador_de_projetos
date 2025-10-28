@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:gerenciador_de_projetos/ui/app/widgets/user_menu.dart';
 import 'package:provider/provider.dart';
 import '../projects/view_models/project_viewmodel.dart';
 
@@ -19,7 +20,21 @@ class ReportsScreen extends StatelessWidget {
     final completedProjects = viewModel.completedProjects;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Relatório de Projetos Finalizados')),
+      appBar: AppBar(
+        title: const Text('Relatório de Projetos'),
+        actions: [
+          LayoutBuilder(
+            builder: (context, constraints) {
+              final bool isMobile = MediaQuery.of(context).size.width < 600;
+              if (isMobile) {
+                return const UserMenu();
+              }
+              return const SizedBox.shrink();
+            },
+          ),
+          const SizedBox(width: 8),
+        ],
+      ),
       body: completedProjects.isEmpty
           ? const Center(child: Text('Nenhum projeto finalizado para exibir.'))
           : ListView.builder(
@@ -27,6 +42,16 @@ class ReportsScreen extends StatelessWidget {
               itemCount: completedProjects.length,
               itemBuilder: (context, index) {
                 final project = completedProjects[index];
+
+                final time =
+                    'Tempo Total: ${_formatDuration(project.totalDurationInSeconds)}';
+                final m2 = project.squareMeters != null
+                    ? '\nMetragem: ${project.squareMeters!.toStringAsFixed(2)} m²'
+                    : '';
+                final complexity = project.complexity != null
+                    ? '\nComplexidade: ${project.complexity!.displayName}'
+                    : '\nComplexidade: N/A';
+
                 return Card(
                   margin: const EdgeInsets.only(bottom: 16),
                   child: ExpansionTile(
@@ -34,7 +59,8 @@ class ReportsScreen extends StatelessWidget {
                     title: Text(project.projectName,
                         style: Theme.of(context).textTheme.titleLarge),
                     subtitle: Text(
-                        'Tempo Total: ${_formatDuration(project.totalDurationInSeconds)}'),
+                      '$time$m2$complexity',
+                    ),
                     children: project.steps.map((step) {
                       final totalStepDuration = step.durationInSeconds +
                           step.subSteps.fold<int>(
