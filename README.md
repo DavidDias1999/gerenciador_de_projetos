@@ -147,7 +147,3 @@ Para rodar o projeto localmente para desenvolvimento ou de forma independente.
     ```
 
 ---
-
-
-
-
