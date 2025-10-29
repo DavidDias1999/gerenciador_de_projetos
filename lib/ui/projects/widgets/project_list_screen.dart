@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:gerenciador_de_projetos/data/services/updater_service.dart';
 import 'package:gerenciador_de_projetos/ui/app/widgets/user_menu.dart';
 import 'package:provider/provider.dart';
 import '../../app/widgets/app.dart';
@@ -28,8 +27,6 @@ class _ProjectListScreenState extends State<ProjectListScreen>
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _previousSize = MediaQuery.of(context).size;
-
-      checkForUpdates(context);
     });
   }
 

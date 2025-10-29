@@ -12,7 +12,7 @@ import 'package:gerenciador_de_projetos/ui/auth/view_models/auth_viewmodel.dart'
 import 'package:gerenciador_de_projetos/ui/auth/widgets/auth_gate.dart';
 import 'package:gerenciador_de_projetos/ui/projects/view_models/project_viewmodel.dart';
 import 'package:provider/provider.dart';
-import 'package:window_manager/window_manager.dart';
+
 import '/ui/core/themes/theme.dart';
 
 void main() async {
@@ -27,20 +27,6 @@ void main() async {
     persistenceEnabled: true,
     cacheSizeBytes: Settings.CACHE_SIZE_UNLIMITED,
   );
-
-  if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
-    await windowManager.ensureInitialized();
-    WindowOptions windowOptions = const WindowOptions(
-      size: Size(800, 900),
-      minimumSize: Size(600, 500),
-      center: true,
-      title: 'Gerenciador de Projetos',
-    );
-    windowManager.waitUntilReadyToShow(windowOptions, () async {
-      await windowManager.show();
-      await windowManager.focus();
-    });
-  }
 
   final AuthRepository authRepository = AuthRepository();
   final ProjectService projectService = ProjectService(
