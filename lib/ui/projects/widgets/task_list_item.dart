@@ -27,8 +27,24 @@ class TaskListItem extends StatelessWidget {
         value: task.isCompleted,
         onChanged: (bool? value) {
           final currentUser = authViewModel.currentUser;
+          final isAdmin = authViewModel.isAdmin;
+
           if (currentUser != null) {
             final completionUsername = currentUser.name ?? currentUser.email;
+
+            if (task.isCompleted &&
+                !isAdmin &&
+                task.completedByUsername != completionUsername) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text(
+                      'Acesso negado. Você só pode desmarcar tarefas que você mesmo concluiu.'),
+                  backgroundColor: Colors.red,
+                ),
+              );
+              return; // Aborta a ação
+            }
+
             viewModel.toggleTaskStatus(
               project: project,
               taskId: task.id,

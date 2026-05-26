@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../domain/models/project_model.dart' as domain;
 import '../../app/widgets/app.dart';
+import '../../auth/view_models/auth_viewmodel.dart';
 import '../view_models/project_viewmodel.dart';
 import 'project_dialogs.dart';
 import 'step_list_item.dart';
@@ -19,6 +20,8 @@ class ProjectListItemMobile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final viewModel = context.watch<ProjectViewModel>();
+    final authViewModel = context.read<AuthViewModel>();
+    final isAdmin = authViewModel.isAdmin;
     final String title = project.projectName;
 
     return Card(
@@ -55,42 +58,43 @@ class ProjectListItemMobile extends StatelessWidget {
                 style: Theme.of(context).textTheme.labelSmall,
               ),
             ),
-            PopupMenuButton<String>(
-              onSelected: (String result) {
-                if (result == 'complete') {
-                  showMoveToCompletedDialog(context, project);
-                } else if (result == 'activate') {
-                  viewModel.activateProject(project.id);
-                } else if (result == 'delete') {
-                  showDeleteConfirmationDialog(context, project);
-                } else if (result == 'restore_steps') {
-                  showRestoreStepsDialog(context, project);
-                }
-              },
-              itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
-                if (projectType == ProjectType.active)
+            if (isAdmin)
+              PopupMenuButton<String>(
+                onSelected: (String result) {
+                  if (result == 'complete') {
+                    showMoveToCompletedDialog(context, project);
+                  } else if (result == 'activate') {
+                    viewModel.activateProject(project.id);
+                  } else if (result == 'delete') {
+                    showDeleteConfirmationDialog(context, project);
+                  } else if (result == 'restore_steps') {
+                    showRestoreStepsDialog(context, project);
+                  }
+                },
+                itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
+                  if (projectType == ProjectType.active)
+                    const PopupMenuItem<String>(
+                      value: 'complete',
+                      child: Text('Finalizar projeto'),
+                    ),
+                  if (projectType == ProjectType.completed)
+                    const PopupMenuItem<String>(
+                      value: 'activate',
+                      child: Text('Ativar projeto'),
+                    ),
                   const PopupMenuItem<String>(
-                    value: 'complete',
-                    child: Text('Finalizar projeto'),
+                    value: 'restore_steps',
+                    child: Text('Restaurar etapas'),
                   ),
-                if (projectType == ProjectType.completed)
                   const PopupMenuItem<String>(
-                    value: 'activate',
-                    child: Text('Ativar projeto'),
+                    value: 'delete',
+                    child: Text(
+                      'Deletar projeto',
+                      style: TextStyle(color: Colors.red),
+                    ),
                   ),
-                const PopupMenuItem<String>(
-                  value: 'restore_steps',
-                  child: Text('Restaurar etapas'),
-                ),
-                const PopupMenuItem<String>(
-                  value: 'delete',
-                  child: Text(
-                    'Deletar projeto',
-                    style: TextStyle(color: Colors.red),
-                  ),
-                ),
-              ],
-            ),
+                ],
+              ),
           ],
         ),
         children: project.steps
@@ -121,6 +125,8 @@ class ProjectListItemDesktop extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final viewModel = context.read<ProjectViewModel>();
+    final authViewModel = context.read<AuthViewModel>();
+    final isAdmin = authViewModel.isAdmin;
     final String title = project.projectName;
 
     return Card(
@@ -170,42 +176,44 @@ class ProjectListItemDesktop extends StatelessWidget {
                   textAlign: TextAlign.end,
                 ),
               ),
-              PopupMenuButton<String>(
-                onSelected: (String result) {
-                  if (result == 'complete') {
-                    showMoveToCompletedDialog(context, project);
-                  } else if (result == 'activate') {
-                    viewModel.activateProject(project.id);
-                  } else if (result == 'delete') {
-                    showDeleteConfirmationDialog(context, project);
-                  } else if (result == 'restore_steps') {
-                    showRestoreStepsDialog(context, project);
-                  }
-                },
-                itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
-                  if (projectType == ProjectType.active)
+              if (isAdmin)
+                PopupMenuButton<String>(
+                  onSelected: (String result) {
+                    if (result == 'complete') {
+                      showMoveToCompletedDialog(context, project);
+                    } else if (result == 'activate') {
+                      viewModel.activateProject(project.id);
+                    } else if (result == 'delete') {
+                      showDeleteConfirmationDialog(context, project);
+                    } else if (result == 'restore_steps') {
+                      showRestoreStepsDialog(context, project);
+                    }
+                  },
+                  itemBuilder: (BuildContext context) =>
+                      <PopupMenuEntry<String>>[
+                    if (projectType == ProjectType.active)
+                      const PopupMenuItem<String>(
+                        value: 'complete',
+                        child: Text('Finalizar projeto'),
+                      ),
+                    if (projectType == ProjectType.completed)
+                      const PopupMenuItem<String>(
+                        value: 'activate',
+                        child: Text('Ativar projeto'),
+                      ),
                     const PopupMenuItem<String>(
-                      value: 'complete',
-                      child: Text('Finalizar projeto'),
+                      value: 'restore_steps',
+                      child: Text('Restaurar etapas'),
                     ),
-                  if (projectType == ProjectType.completed)
                     const PopupMenuItem<String>(
-                      value: 'activate',
-                      child: Text('Ativar projeto'),
+                      value: 'delete',
+                      child: Text(
+                        'Deletar projeto',
+                        style: TextStyle(color: Colors.red),
+                      ),
                     ),
-                  const PopupMenuItem<String>(
-                    value: 'restore_steps',
-                    child: Text('Restaurar etapas'),
-                  ),
-                  const PopupMenuItem<String>(
-                    value: 'delete',
-                    child: Text(
-                      'Deletar projeto',
-                      style: TextStyle(color: Colors.red),
-                    ),
-                  ),
-                ],
-              ),
+                  ],
+                ),
             ],
           ),
         ),

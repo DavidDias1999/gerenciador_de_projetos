@@ -37,6 +37,7 @@ class _SubStepListItemState extends State<SubStepListItem> {
   Widget build(BuildContext context) {
     final viewModel = context.watch<ProjectViewModel>();
     final authViewModel = context.read<AuthViewModel>();
+    final isAdmin = authViewModel.isAdmin;
 
     final orientation = MediaQuery.of(context).orientation;
     final isPortrait = orientation == Orientation.portrait;
@@ -46,10 +47,10 @@ class _SubStepListItemState extends State<SubStepListItem> {
     final double spacingBeforeProgress = isPortrait ? 8.0 : 16.0;
     final double spacingBeforePercentage = isPortrait ? 4.0 : 8.0;
 
-    final bool allTasksCompleted = widget.subStep.tasks.isNotEmpty &&
-        widget.subStep.tasks.every((task) => task.isCompleted);
     final bool anyTasksIncomplete =
         widget.subStep.tasks.any((task) => !task.isCompleted);
+    final bool anyTasksCompleted =
+        widget.subStep.tasks.any((task) => task.isCompleted);
 
     return Padding(
       padding: EdgeInsets.fromLTRB(
@@ -123,7 +124,11 @@ class _SubStepListItemState extends State<SubStepListItem> {
                   );
                 } else if (result == 'deselectAll') {
                   viewModel.deselectAllTasksInSubStep(
-                      widget.project.id, widget.subStep.id);
+                    projectId: widget.project.id,
+                    subStepId: widget.subStep.id,
+                    isAdmin: isAdmin,
+                    currentUsername: completionUsername,
+                  );
                 } else if (result == 'deleteSubStep') {
                   showDeleteSubStepConfirmationDialog(
                       context, widget.project, widget.subStep);
@@ -133,16 +138,17 @@ class _SubStepListItemState extends State<SubStepListItem> {
                 if (anyTasksIncomplete)
                   const PopupMenuItem(
                       value: 'selectAll', child: Text('Selecionar todas')),
-                if (allTasksCompleted)
+                if (anyTasksCompleted)
                   const PopupMenuItem(
                       value: 'deselectAll', child: Text('Desmarcar todas')),
-                const PopupMenuItem<String>(
-                  value: 'deleteSubStep',
-                  child: Text(
-                    'Deletar Subetapa',
-                    style: TextStyle(color: Colors.red),
+                if (isAdmin)
+                  const PopupMenuItem<String>(
+                    value: 'deleteSubStep',
+                    child: Text(
+                      'Deletar Subetapa',
+                      style: TextStyle(color: Colors.red),
+                    ),
                   ),
-                ),
               ],
               child: IconButton(
                 icon: const Icon(Icons.more_vert),

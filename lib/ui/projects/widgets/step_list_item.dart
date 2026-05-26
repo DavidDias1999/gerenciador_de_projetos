@@ -40,6 +40,7 @@ class _StepListItemState extends State<StepListItem> {
   Widget build(BuildContext context) {
     final viewModel = context.watch<ProjectViewModel>();
     final authViewModel = context.read<AuthViewModel>();
+    final isAdmin = authViewModel.isAdmin;
 
     final orientation = MediaQuery.of(context).orientation;
     final isPortrait = orientation == Orientation.portrait;
@@ -49,10 +50,13 @@ class _StepListItemState extends State<StepListItem> {
     final double spacingBeforeProgress = isPortrait ? 8.0 : 16.0;
     final double spacingBeforePercentage = isPortrait ? 4.0 : 8.0;
 
-    final bool allDirectTasksCompleted = widget.step.directTasks.isNotEmpty &&
-        widget.step.directTasks.every((task) => task.isCompleted);
     final bool anyDirectTasksIncomplete =
         widget.step.directTasks.any((task) => !task.isCompleted);
+
+    final bool anyDirectTasksCompleted =
+        widget.step.directTasks.any((task) => task.isCompleted);
+
+    final bool showMenu = isAdmin || widget.step.directTasks.isNotEmpty;
 
     return ExpansionTile(
       key: ValueKey('${widget.step.id}_${viewModel.collapseTrigger}'),
@@ -106,71 +110,79 @@ class _StepListItemState extends State<StepListItem> {
               textAlign: TextAlign.end,
             ),
           ),
-          PopupMenuButton<String>(
-            tooltip: "Mais opções",
-            onSelected: (String result) {
-              final currentUser = authViewModel.currentUser;
-              if (currentUser == null) return;
-              final completionUsername = currentUser.name ?? currentUser.email;
-
-              if (result == 'deleteStep') {
-                showDeleteStepConfirmationDialog(
-                    context, widget.project, widget.step);
-              }
-              if (result == 'selectAllDirect') {
-                viewModel.selectAllTasksInStep(
-                  stepId: widget.step.id,
-                  project: widget.project,
-                  username: completionUsername,
-                );
-              }
-              if (result == 'deselectAllDirect') {
-                viewModel.deselectAllTasksInStep(
-                    widget.step.id, widget.project);
-              }
-              if (result == 'restore_sub_steps') {
-                showRestoreSubStepsDialog(context, widget.project);
-              }
-            },
-            itemBuilder: (BuildContext context) {
-              return [
-                if (anyDirectTasksIncomplete)
-                  const PopupMenuItem<String>(
-                    value: 'selectAllDirect',
-                    child: Text('Selecionar todas'),
-                  ),
-                if (allDirectTasksCompleted)
-                  const PopupMenuItem<String>(
-                    value: 'deselectAllDirect',
-                    child: Text('Desmarcar todas'),
-                  ),
-                if (widget.step.directTasks.isNotEmpty)
-                  const PopupMenuDivider(),
-                const PopupMenuItem<String>(
-                  value: 'restore_sub_steps',
-                  child: Text('Restaurar Subetapas'),
-                ),
-                const PopupMenuDivider(),
-                const PopupMenuItem<String>(
-                  value: 'deleteStep',
-                  child: Text(
-                    'Deletar etapa',
-                    style: TextStyle(color: Colors.red),
-                  ),
-                ),
-              ];
-            },
-            child: IconButton(
-              icon: const Icon(Icons.more_vert),
-              iconSize: 20.0,
-              padding: EdgeInsets.zero,
-              constraints: const BoxConstraints(),
-              visualDensity:
-                  isPortrait ? VisualDensity.compact : VisualDensity.standard,
+          if (showMenu)
+            PopupMenuButton<String>(
               tooltip: "Mais opções",
-              onPressed: null,
+              onSelected: (String result) {
+                final currentUser = authViewModel.currentUser;
+                if (currentUser == null) return;
+                final completionUsername =
+                    currentUser.name ?? currentUser.email;
+
+                if (result == 'deleteStep') {
+                  showDeleteStepConfirmationDialog(
+                      context, widget.project, widget.step);
+                }
+                if (result == 'selectAllDirect') {
+                  viewModel.selectAllTasksInStep(
+                    stepId: widget.step.id,
+                    project: widget.project,
+                    username: completionUsername,
+                  );
+                }
+                if (result == 'deselectAllDirect') {
+                  viewModel.deselectAllTasksInStep(
+                    stepId: widget.step.id,
+                    project: widget.project,
+                    isAdmin: isAdmin,
+                    currentUsername: completionUsername,
+                  );
+                }
+                if (result == 'restore_sub_steps') {
+                  showRestoreSubStepsDialog(context, widget.project);
+                }
+              },
+              itemBuilder: (BuildContext context) {
+                return [
+                  if (anyDirectTasksIncomplete)
+                    const PopupMenuItem<String>(
+                      value: 'selectAllDirect',
+                      child: Text('Selecionar todas'),
+                    ),
+                  if (anyDirectTasksCompleted)
+                    const PopupMenuItem<String>(
+                      value: 'deselectAllDirect',
+                      child: Text('Desmarcar todas'),
+                    ),
+                  if (isAdmin && widget.step.directTasks.isNotEmpty)
+                    const PopupMenuDivider(),
+                  if (isAdmin)
+                    const PopupMenuItem<String>(
+                      value: 'restore_sub_steps',
+                      child: Text('Restaurar Subetapas'),
+                    ),
+                  if (isAdmin) const PopupMenuDivider(),
+                  if (isAdmin)
+                    const PopupMenuItem<String>(
+                      value: 'deleteStep',
+                      child: Text(
+                        'Deletar etapa',
+                        style: TextStyle(color: Colors.red),
+                      ),
+                    ),
+                ];
+              },
+              child: IconButton(
+                icon: const Icon(Icons.more_vert),
+                iconSize: 20.0,
+                padding: EdgeInsets.zero,
+                constraints: const BoxConstraints(),
+                visualDensity:
+                    isPortrait ? VisualDensity.compact : VisualDensity.standard,
+                tooltip: "Mais opções",
+                onPressed: null,
+              ),
             ),
-          ),
         ],
       ),
       children: [

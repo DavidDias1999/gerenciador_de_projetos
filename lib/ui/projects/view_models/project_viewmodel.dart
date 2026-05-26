@@ -303,32 +303,54 @@ class ProjectViewModel extends ChangeNotifier {
     final subStep = project.steps
         .expand((s) => s.subSteps)
         .firstWhere((ss) => ss.id == subStepId);
+
+    bool hasChanges = false;
     for (var task in subStep.tasks) {
-      task.isCompleted = true;
-      task.completedByUsername = username;
-      task.completedAt = DateTime.now();
+      if (!task.isCompleted) {
+        task.isCompleted = true;
+        task.completedByUsername = username;
+        task.completedAt = DateTime.now();
+        hasChanges = true;
+      }
     }
-    notifyListeners();
-    await _repository.updateProject(project);
-    final progressAfter = project.progress;
-    if (progressBefore < 1.0 && progressAfter == 1.0) {
-      onProjectReached100(project);
+
+    if (hasChanges) {
+      notifyListeners();
+      await _repository.updateProject(project);
+      final progressAfter = project.progress;
+      if (progressBefore < 1.0 && progressAfter == 1.0) {
+        onProjectReached100(project);
+      }
     }
   }
 
-  Future<void> deselectAllTasksInSubStep(
-      String projectId, String subStepId) async {
+  Future<void> deselectAllTasksInSubStep({
+    required String projectId,
+    required String subStepId,
+    required bool isAdmin,
+    required String currentUsername,
+  }) async {
     final project = _allProjects.firstWhere((p) => p.id == projectId);
     final subStep = project.steps
         .expand((s) => s.subSteps)
         .firstWhere((ss) => ss.id == subStepId);
+
+    bool hasChanges = false;
     for (var task in subStep.tasks) {
-      task.isCompleted = false;
-      task.completedByUsername = null;
-      task.completedAt = null;
+      if (task.isCompleted) {
+        if (isAdmin || task.completedByUsername == currentUsername) {
+          task.isCompleted = false;
+          task.completedByUsername = null;
+          task.completedAt = null;
+          hasChanges = true;
+        }
+      }
     }
-    notifyListeners();
-    await _repository.updateProject(project);
+
+    if (hasChanges) {
+      notifyListeners();
+      await _repository.updateProject(project);
+    }
   }
 
   Future<void> selectAllTasksInStep({
@@ -337,25 +359,47 @@ class ProjectViewModel extends ChangeNotifier {
     required String username,
   }) async {
     final step = project.steps.firstWhere((s) => s.id == stepId);
+
+    bool hasChanges = false;
     for (var task in step.directTasks) {
-      task.isCompleted = true;
-      task.completedByUsername = username;
-      task.completedAt = DateTime.now();
+      if (!task.isCompleted) {
+        task.isCompleted = true;
+        task.completedByUsername = username;
+        task.completedAt = DateTime.now();
+        hasChanges = true;
+      }
     }
-    notifyListeners();
-    await _repository.updateProject(project);
+
+    if (hasChanges) {
+      notifyListeners();
+      await _repository.updateProject(project);
+    }
   }
 
-  Future<void> deselectAllTasksInStep(
-      String stepId, domain.Project project) async {
+  Future<void> deselectAllTasksInStep({
+    required String stepId,
+    required domain.Project project,
+    required bool isAdmin,
+    required String currentUsername,
+  }) async {
     final step = project.steps.firstWhere((s) => s.id == stepId);
+
+    bool hasChanges = false;
     for (var task in step.directTasks) {
-      task.isCompleted = false;
-      task.completedByUsername = null;
-      task.completedAt = null;
+      if (task.isCompleted) {
+        if (isAdmin || task.completedByUsername == currentUsername) {
+          task.isCompleted = false;
+          task.completedByUsername = null;
+          task.completedAt = null;
+          hasChanges = true;
+        }
+      }
     }
-    notifyListeners();
-    await _repository.updateProject(project);
+
+    if (hasChanges) {
+      notifyListeners();
+      await _repository.updateProject(project);
+    }
   }
 
   Future<void> softDeleteStep(String projectId, String stepId) async {
