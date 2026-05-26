@@ -11,6 +11,7 @@ import 'package:gerenciador_de_projetos/data/services/project_service.dart';
 import 'package:gerenciador_de_projetos/ui/auth/view_models/auth_viewmodel.dart';
 import 'package:gerenciador_de_projetos/ui/auth/widgets/auth_gate.dart';
 import 'package:gerenciador_de_projetos/ui/projects/view_models/project_viewmodel.dart';
+import 'package:gerenciador_de_projetos/ui/core/themes/theme_viewmodel.dart';
 import 'package:provider/provider.dart';
 
 import '/ui/core/themes/theme.dart';
@@ -28,7 +29,7 @@ void main() async {
     cacheSizeBytes: Settings.CACHE_SIZE_UNLIMITED,
   );
 
-  final AuthRepository authRepository = AuthRepository();
+  final AuthRepository authRepository = AuthRepository(firestore: firestore);
   final ProjectService projectService = ProjectService(
     firestore: firestore,
     auth: authRepository,
@@ -39,6 +40,9 @@ void main() async {
   runApp(
     MultiProvider(
       providers: [
+        ChangeNotifierProvider(
+          create: (context) => ThemeViewModel()..loadTheme(),
+        ),
         ChangeNotifierProvider(
           create: (context) => AuthViewModel(repository: authRepository),
         ),
@@ -61,7 +65,7 @@ class MyApp extends StatelessWidget {
       title: 'Gerenciador de Projetos',
       theme: AppTheme.lightTheme,
       darkTheme: AppTheme.darkTheme,
-      themeMode: ThemeMode.system,
+      themeMode: themeViewModel.themeMode,
       home: const AuthGate(),
     );
   }

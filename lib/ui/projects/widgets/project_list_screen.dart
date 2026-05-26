@@ -3,6 +3,7 @@ import 'package:gerenciador_de_projetos/ui/app/widgets/user_menu.dart';
 import 'package:provider/provider.dart';
 import '../../app/widgets/app.dart';
 import '../view_models/project_viewmodel.dart';
+import '../../auth/view_models/auth_viewmodel.dart';
 import 'project_dialogs.dart';
 import 'project_list_item.dart';
 
@@ -55,6 +56,7 @@ class _ProjectListScreenState extends State<ProjectListScreen>
 
   @override
   Widget build(BuildContext context) {
+    final isAdmin = context.watch<AuthViewModel>().isAdmin;
     final title = widget.projectType == ProjectType.active
         ? 'Projetos Ativos'
         : 'Projetos Finalizados';
@@ -119,7 +121,7 @@ class _ProjectListScreenState extends State<ProjectListScreen>
           );
         },
       ),
-      floatingActionButton: widget.projectType == ProjectType.active
+      floatingActionButton: widget.projectType == ProjectType.active && isAdmin
           ? FloatingActionButton(
               onPressed: () => showCreateProjectDialog(context),
               child: const Icon(Icons.add),

@@ -13,15 +13,29 @@ class ProjectViewModel extends ChangeNotifier {
   StreamSubscription? _projectSubscription;
 
   ProjectViewModel({required ProjectRepository repository})
-      : _repository = repository {
-    _listenToProjects();
-  }
+      : _repository = repository;
 
   bool _isLoading = true;
   bool get isLoading => _isLoading;
 
   String? _error;
   String? get error => _error;
+
+  void loadProjects() {
+    if (_projectSubscription != null) return;
+    _isLoading = true;
+    _error = null;
+    notifyListeners();
+    _listenToProjects();
+  }
+
+  void clear() {
+    _projectSubscription?.cancel();
+    _projectSubscription = null;
+    _allProjects = [];
+    _error = null;
+    notifyListeners();
+  }
 
   List<domain.Project> _allProjects = [];
 
