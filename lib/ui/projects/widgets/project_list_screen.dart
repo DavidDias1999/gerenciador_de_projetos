@@ -23,9 +23,7 @@ class _ProjectListScreenState extends State<ProjectListScreen>
   @override
   void initState() {
     super.initState();
-
     WidgetsBinding.instance.addObserver(this);
-
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _previousSize = MediaQuery.of(context).size;
     });
@@ -45,7 +43,8 @@ class _ProjectListScreenState extends State<ProjectListScreen>
     if (_previousSize != null && _previousSize != newSize) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) {
-          context.read<ProjectViewModel>().stopTimerAndCollapse();
+          // Minimiza tudo se a tela for redimensionada para evitar bugs
+          context.read<ProjectViewModel>().collapseAll();
         }
       });
       _previousSize = newSize;
@@ -108,15 +107,66 @@ class _ProjectListScreenState extends State<ProjectListScreen>
             );
           }
 
-          return ListView.builder(
-            padding: const EdgeInsets.all(8),
-            itemCount: projects.length,
-            itemBuilder: (context, index) {
-              final project = projects[index];
-              return ProjectListItem(
-                project: project,
-                projectType: widget.projectType,
-              );
+          return LayoutBuilder(
+            builder: (context, constraints) {
+              // Master-Detail ativo acima de 1000px
+              if (constraints.maxWidth >= 1000) {
+                final selectedProject = viewModel.selectedProjectId != null
+                    ? projects.cast<dynamic>().firstWhere(
+                        (p) => p.id == viewModel.selectedProjectId,
+                        orElse: () => null)
+                    : null;
+
+                return Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    SizedBox(
+                      width: constraints.maxWidth *
+                          0.35, // 35% de largura para lista (Ocupando 40% ou menos)
+                      child: ListView.builder(
+                        padding: const EdgeInsets.all(8),
+                        itemCount: projects.length,
+                        itemBuilder: (context, index) {
+                          return ProjectListItemDesktop(
+                            project: projects[index],
+                            projectType: widget.projectType,
+                            isSelected: viewModel.selectedProjectId ==
+                                projects[index].id,
+                          );
+                        },
+                      ),
+                    ),
+                    const VerticalDivider(width: 1, thickness: 1),
+                    Expanded(
+                      child: selectedProject == null
+                          ? Center(
+                              child: Text(
+                                'Selecione um projeto na lista à esquerda.',
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .titleMedium
+                                    ?.copyWith(color: Colors.grey),
+                              ),
+                            )
+                          : ProjectDetailsPanel(
+                              project: selectedProject,
+                              projectType: widget.projectType,
+                            ),
+                    ),
+                  ],
+                );
+              } else {
+                return ListView.builder(
+                  padding: const EdgeInsets.all(8),
+                  itemCount: projects.length,
+                  itemBuilder: (context, index) {
+                    return ProjectListItemMobile(
+                      project: projects[index],
+                      projectType: widget.projectType,
+                    );
+                  },
+                );
+              }
             },
           );
         },

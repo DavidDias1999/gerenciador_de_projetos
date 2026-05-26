@@ -41,10 +41,12 @@ class _AppGDPState extends State<AppGDP> with WidgetsBindingObserver {
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (!mounted) return;
     final authViewModel = context.read<AuthViewModel>();
-    
+
     if (state == AppLifecycleState.resumed) {
       authViewModel.updatePresence(true);
-    } else if (state == AppLifecycleState.paused || state == AppLifecycleState.detached || state == AppLifecycleState.inactive) {
+    } else if (state == AppLifecycleState.paused ||
+        state == AppLifecycleState.detached ||
+        state == AppLifecycleState.inactive) {
       authViewModel.updatePresence(false);
     }
   }
@@ -112,7 +114,6 @@ class _AppGDPState extends State<AppGDP> with WidgetsBindingObserver {
         ),
     ];
 
-    // Segurança para evitar crash se o _selectedIndex estiver fora dos limites (ex: após mudar de permissão)
     if (_selectedIndex >= screens.length) {
       _selectedIndex = 0;
     }
@@ -126,15 +127,18 @@ class _AppGDPState extends State<AppGDP> with WidgetsBindingObserver {
             body: screens[_selectedIndex],
             bottomNavigationBar: bottomNavItems.length > 1
                 ? BottomNavigationBar(
+                    type: BottomNavigationBarType.fixed,
                     items: bottomNavItems,
                     currentIndex: _selectedIndex,
                     onTap: (int index) {
+                      // Minimiza tudo ao trocar de tab
+                      context.read<ProjectViewModel>().collapseAll();
                       setState(() {
                         _selectedIndex = index;
                       });
                     },
                   )
-                : null, // Se só tem 1 item (colab), esconde a navbar inteira para ganhar espaço
+                : null,
           );
         } else {
           return Scaffold(
@@ -145,6 +149,8 @@ class _AppGDPState extends State<AppGDP> with WidgetsBindingObserver {
                   child: NavigationRail(
                     selectedIndex: _selectedIndex,
                     onDestinationSelected: (int index) {
+                      // Minimiza tudo ao trocar de tab
+                      context.read<ProjectViewModel>().collapseAll();
                       setState(() {
                         _selectedIndex = index;
                       });

@@ -26,14 +26,14 @@ class StepListItem extends StatefulWidget {
 }
 
 class _StepListItemState extends State<StepListItem> {
-  late final ExpansibleController _controller;
+  late final ExpansionTileController _controller;
 
   bool get canHaveTimer => widget.step.directTasks.isNotEmpty;
 
   @override
   void initState() {
     super.initState();
-    _controller = ExpansibleController();
+    _controller = ExpansionTileController();
   }
 
   @override
@@ -55,7 +55,7 @@ class _StepListItemState extends State<StepListItem> {
         widget.step.directTasks.any((task) => !task.isCompleted);
 
     return ExpansionTile(
-      key: PageStorageKey(widget.step.id),
+      key: ValueKey('${widget.step.id}_${viewModel.collapseTrigger}'),
       shape: const Border(),
       controller: _controller,
       onExpansionChanged: (isExpanded) {

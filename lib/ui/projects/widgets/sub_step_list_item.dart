@@ -25,12 +25,12 @@ class SubStepListItem extends StatefulWidget {
 }
 
 class _SubStepListItemState extends State<SubStepListItem> {
-  late final ExpansibleController _controller;
+  late final ExpansionTileController _controller;
 
   @override
   void initState() {
     super.initState();
-    _controller = ExpansibleController();
+    _controller = ExpansionTileController();
   }
 
   @override
@@ -55,7 +55,7 @@ class _SubStepListItemState extends State<SubStepListItem> {
       padding: EdgeInsets.fromLTRB(
           isPortrait ? 24.0 : 32, 0, isPortrait ? 8.0 : 16, 0),
       child: ExpansionTile(
-        key: PageStorageKey(widget.subStep.id),
+        key: ValueKey('${widget.subStep.id}_${viewModel.collapseTrigger}'),
         shape: const Border(),
         controller: _controller,
         onExpansionChanged: (isExpanded) {
