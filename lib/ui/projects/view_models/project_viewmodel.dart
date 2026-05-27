@@ -189,8 +189,17 @@ class ProjectViewModel extends ChangeNotifier {
   }
 
   Future<void> createNewProject(
-      String projectName, double? squareMeters) async {
-    await _repository.createNewProject(projectName, squareMeters);
+      String projectName, double? squareMeters, DateTime deadline) async {
+    await _repository.createNewProject(projectName, squareMeters, deadline);
+  }
+
+  // NOVO MÉTODO QUE ESTAVA FALTANDO
+  Future<void> updateProjectDeadline(
+      String projectId, DateTime newDeadline) async {
+    final project = _allProjects.firstWhere((p) => p.id == projectId);
+    project.deadline = newDeadline;
+    notifyListeners();
+    await _repository.updateProject(project);
   }
 
   Future<void> finalizeProject(

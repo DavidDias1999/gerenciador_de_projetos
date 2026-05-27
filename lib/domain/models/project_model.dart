@@ -18,6 +18,9 @@ class Project {
   ProjectComplexity? complexity;
 
   @TimestampConverter()
+  DateTime? deadline; // O campo que estava faltando
+
+  @TimestampConverter()
   DateTime? finalizedAt;
 
   double? finalProgress;
@@ -32,6 +35,7 @@ class Project {
     required this.userId,
     this.squareMeters,
     this.complexity,
+    this.deadline,
     this.finalizedAt,
     this.finalProgress,
     this.finalTotalDurationInSeconds,

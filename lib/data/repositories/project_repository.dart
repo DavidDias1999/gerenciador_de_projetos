@@ -10,8 +10,9 @@ class ProjectRepository {
   Stream<List<Project>> getProjectsStream() =>
       _projectService.getProjectsStream();
 
-  Future<void> createNewProject(String projectName, double? squareMeters) =>
-      _projectService.createNewProject(projectName, squareMeters);
+  Future<void> createNewProject(
+          String projectName, double? squareMeters, DateTime deadline) =>
+      _projectService.createNewProject(projectName, squareMeters, deadline);
 
   Future<void> setProjectStatus(String projectId, bool isCompleted) =>
       _projectService.setProjectStatus(projectId, isCompleted);

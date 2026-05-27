@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../domain/models/project_model.dart' as domain;
+import '../../core/formatters/date_formatter.dart'; // IMPORT ATUALIZADO
 import '../../app/widgets/app.dart';
 import '../../auth/view_models/auth_viewmodel.dart';
 import '../view_models/project_viewmodel.dart';
@@ -65,6 +66,8 @@ class ProjectListItemMobile extends StatelessWidget {
                     showMoveToCompletedDialog(context, project);
                   } else if (result == 'activate') {
                     viewModel.activateProject(project.id);
+                  } else if (result == 'edit_deadline') {
+                    showEditDeadlineDialog(context, project);
                   } else if (result == 'delete') {
                     showDeleteConfirmationDialog(context, project);
                   } else if (result == 'restore_steps') {
@@ -81,6 +84,11 @@ class ProjectListItemMobile extends StatelessWidget {
                     const PopupMenuItem<String>(
                       value: 'activate',
                       child: Text('Ativar projeto'),
+                    ),
+                  if (projectType == ProjectType.active)
+                    const PopupMenuItem<String>(
+                      value: 'edit_deadline',
+                      child: Text('Editar prazo'),
                     ),
                   const PopupMenuItem<String>(
                     value: 'restore_steps',
@@ -183,6 +191,8 @@ class ProjectListItemDesktop extends StatelessWidget {
                       showMoveToCompletedDialog(context, project);
                     } else if (result == 'activate') {
                       viewModel.activateProject(project.id);
+                    } else if (result == 'edit_deadline') {
+                      showEditDeadlineDialog(context, project);
                     } else if (result == 'delete') {
                       showDeleteConfirmationDialog(context, project);
                     } else if (result == 'restore_steps') {
@@ -200,6 +210,11 @@ class ProjectListItemDesktop extends StatelessWidget {
                       const PopupMenuItem<String>(
                         value: 'activate',
                         child: Text('Ativar projeto'),
+                      ),
+                    if (projectType == ProjectType.active)
+                      const PopupMenuItem<String>(
+                        value: 'edit_deadline',
+                        child: Text('Editar prazo'),
                       ),
                     const PopupMenuItem<String>(
                       value: 'restore_steps',
@@ -237,6 +252,15 @@ class ProjectDetailsPanel extends StatelessWidget {
     final activeSteps =
         project.steps.where((step) => step.deletedAt == null).toList();
 
+    bool isOverdue = false;
+    if (project.deadline != null && !project.isCompleted) {
+      final now = DateTime.now();
+      final today = DateTime(now.year, now.month, now.day);
+      final deadlineDate = DateTime(project.deadline!.year,
+          project.deadline!.month, project.deadline!.day);
+      isOverdue = deadlineDate.isBefore(today);
+    }
+
     return Card(
       margin: const EdgeInsets.fromLTRB(16, 8, 8, 8),
       elevation: 0,
@@ -255,8 +279,50 @@ class ProjectDetailsPanel extends StatelessWidget {
                   child: Text(
                     project.projectName,
                     style: Theme.of(context).textTheme.headlineSmall,
+                    overflow: TextOverflow.ellipsis,
                   ),
                 ),
+                if (project.deadline != null)
+                  Container(
+                    margin: const EdgeInsets.symmetric(horizontal: 16),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    decoration: BoxDecoration(
+                      color: isOverdue
+                          ? Colors.red.shade100
+                          : Colors.blue.shade100,
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(
+                        color: isOverdue
+                            ? Colors.red.shade300
+                            : Colors.blue.shade300,
+                      ),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          isOverdue
+                              ? Icons.warning_amber_rounded
+                              : Icons.calendar_today,
+                          size: 16,
+                          color: isOverdue
+                              ? Colors.red.shade900
+                              : Colors.blue.shade900,
+                        ),
+                        const SizedBox(width: 6),
+                        Text(
+                          'Prazo: ${formatDate(project.deadline!)}',
+                          style: TextStyle(
+                            color: isOverdue
+                                ? Colors.red.shade900
+                                : Colors.blue.shade900,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
                 Text(
                   '${(project.progress * 100).toStringAsFixed(0)}% Concluído',
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(
