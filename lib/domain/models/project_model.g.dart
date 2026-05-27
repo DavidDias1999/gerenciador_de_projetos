@@ -14,6 +14,10 @@ Project _$ProjectFromJson(Map<String, dynamic> json) => Project(
           .toList(),
       isCompleted: json['isCompleted'] as bool,
       userId: json['userId'] as String,
+      assignedUserIds: (json['assignedUserIds'] as List<dynamic>?)
+              ?.map((e) => e as String)
+              .toList() ??
+          [],
       squareMeters: (json['squareMeters'] as num?)?.toDouble(),
       complexity:
           $enumDecodeNullable(_$ProjectComplexityEnumMap, json['complexity']),
@@ -36,6 +40,7 @@ Map<String, dynamic> _$ProjectToJson(Project instance) => <String, dynamic>{
       'finalizedAt': const TimestampConverter().toJson(instance.finalizedAt),
       'finalProgress': instance.finalProgress,
       'finalTotalDurationInSeconds': instance.finalTotalDurationInSeconds,
+      'assignedUserIds': instance.assignedUserIds,
     };
 
 const _$ProjectComplexityEnumMap = {

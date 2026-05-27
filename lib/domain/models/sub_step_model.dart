@@ -11,6 +11,8 @@ class SubStep {
   List<Task> tasks;
   int durationInSeconds;
 
+  List<String> assignedUserIds;
+
   @TimestampConverter()
   DateTime? deletedAt;
 
@@ -20,6 +22,7 @@ class SubStep {
     required this.orderIndex,
     required this.tasks,
     required this.durationInSeconds,
+    required this.assignedUserIds,
     this.deletedAt,
   });
 

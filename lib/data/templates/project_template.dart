@@ -37,6 +37,7 @@ Future<List<Step>> createDefaultSteps() async {
           orderIndex: i,
           tasks: tasks,
           durationInSeconds: 0,
+          assignedUserIds: [],
         ));
       }
     } else if (stepJson['tasks'] != null) {
@@ -58,6 +59,7 @@ Future<List<Step>> createDefaultSteps() async {
       subSteps: subSteps,
       directTasks: directTasks,
       durationInSeconds: 0,
+      assignedUserIds: [], // Inicialização na Etapa
     );
   }).toList();
 

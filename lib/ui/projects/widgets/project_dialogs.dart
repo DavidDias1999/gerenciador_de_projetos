@@ -4,8 +4,10 @@ import 'package:provider/provider.dart';
 import '../../../domain/models/project_model.dart' as domain;
 import '../../../domain/models/step_model.dart' as domain;
 import '../../../domain/models/sub_step_model.dart' as domain;
+import '../../../domain/models/user_model.dart' as user_domain;
 import '../../../domain/models/project_complexity.dart';
-import '../../core/formatters/date_formatter.dart'; // IMPORT ATUALIZADO
+import '../../core/formatters/date_formatter.dart';
+import '../../auth/view_models/auth_viewmodel.dart';
 import '../view_models/project_viewmodel.dart';
 import 'restore_steps_dialog.dart';
 import 'restore_sub_steps_dialog.dart';
@@ -183,6 +185,88 @@ void showEditDeadlineDialog(BuildContext context, domain.Project project) {
         ),
       ],
     ),
+  );
+}
+
+void showAssignUsersDialog(
+  BuildContext context, {
+  required String title,
+  required List<String> currentAssignedIds,
+  required Function(List<String>) onSave,
+}) {
+  final authViewModel = Provider.of<AuthViewModel>(context, listen: false);
+  List<String> selectedIds = List.from(currentAssignedIds);
+
+  showDialog(
+    context: context,
+    builder: (dialogContext) {
+      return StatefulBuilder(
+        builder: (context, setState) {
+          return AlertDialog(
+            title: Text(title),
+            content: SizedBox(
+              width: 350,
+              height: 400,
+              child: StreamBuilder<List<user_domain.User>>(
+                stream: authViewModel.getAuthorizedUsers(),
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return const Center(child: CircularProgressIndicator());
+                  }
+                  final users = snapshot.data ?? [];
+                  if (users.isEmpty) {
+                    return const Center(
+                        child:
+                            Text('Nenhum usuário ativo encontrado na equipe.'));
+                  }
+
+                  return ListView.builder(
+                    itemCount: users.length,
+                    itemBuilder: (context, index) {
+                      final user = users[index];
+                      final isSelected = selectedIds.contains(user.id);
+                      return CheckboxListTile(
+                        title: Text(user.name ?? user.email),
+                        subtitle: Text(
+                          user.role == user_domain.UserRole.admin
+                              ? 'Administrador'
+                              : 'Colaborador',
+                          style: TextStyle(
+                              color: Theme.of(context).colorScheme.primary),
+                        ),
+                        value: isSelected,
+                        onChanged: (bool? checked) {
+                          setState(() {
+                            if (checked == true) {
+                              selectedIds.add(user.id);
+                            } else {
+                              selectedIds.remove(user.id);
+                            }
+                          });
+                        },
+                      );
+                    },
+                  );
+                },
+              ),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(dialogContext).pop(),
+                child: const Text('Cancelar'),
+              ),
+              ElevatedButton(
+                onPressed: () {
+                  onSave(selectedIds);
+                  Navigator.of(dialogContext).pop();
+                },
+                child: const Text('Salvar Atribuições'),
+              ),
+            ],
+          );
+        },
+      );
+    },
   );
 }
 

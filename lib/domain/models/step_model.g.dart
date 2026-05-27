@@ -15,6 +15,10 @@ Step _$StepFromJson(Map<String, dynamic> json) => Step(
       directTasks: (json['directTasks'] as List<dynamic>)
           .map((e) => Task.fromJson(e as Map<String, dynamic>))
           .toList(),
+      assignedUserIds: (json['assignedUserIds'] as List<dynamic>?)
+              ?.map((e) => e as String)
+              .toList() ??
+          [],
       deletedAt: const TimestampConverter().fromJson(json['deletedAt']),
       durationInSeconds: (json['durationInSeconds'] as num).toInt(),
     );
@@ -24,6 +28,7 @@ Map<String, dynamic> _$StepToJson(Step instance) => <String, dynamic>{
       'title': instance.title,
       'directTasks': instance.directTasks.map((e) => e.toJson()).toList(),
       'subSteps': instance.subSteps.map((e) => e.toJson()).toList(),
+      'assignedUserIds': instance.assignedUserIds,
       'deletedAt': const TimestampConverter().toJson(instance.deletedAt),
       'durationInSeconds': instance.durationInSeconds,
     };

@@ -193,13 +193,44 @@ class ProjectViewModel extends ChangeNotifier {
     await _repository.createNewProject(projectName, squareMeters, deadline);
   }
 
-  // NOVO MÉTODO QUE ESTAVA FALTANDO
   Future<void> updateProjectDeadline(
       String projectId, DateTime newDeadline) async {
     final project = _allProjects.firstWhere((p) => p.id == projectId);
     project.deadline = newDeadline;
     notifyListeners();
     await _repository.updateProject(project);
+  }
+
+  Future<void> assignUsersToProject(
+      String projectId, List<String> userIds) async {
+    final project = _allProjects.firstWhere((p) => p.id == projectId);
+    project.assignedUserIds = userIds;
+    notifyListeners();
+    await _repository.updateProject(project);
+  }
+
+  Future<void> assignUsersToStep(
+      String projectId, String stepId, List<String> userIds) async {
+    final project = _allProjects.firstWhere((p) => p.id == projectId);
+    final step = project.steps.firstWhere((s) => s.id == stepId);
+    step.assignedUserIds = userIds;
+    notifyListeners();
+    await _repository.updateProject(project);
+  }
+
+  Future<void> assignUsersToSubStep(
+      String projectId, String subStepId, List<String> userIds) async {
+    final project = _allProjects.firstWhere((p) => p.id == projectId);
+    for (var step in project.steps) {
+      for (var subStep in step.subSteps) {
+        if (subStep.id == subStepId) {
+          subStep.assignedUserIds = userIds;
+          notifyListeners();
+          await _repository.updateProject(project);
+          return;
+        }
+      }
+    }
   }
 
   Future<void> finalizeProject(

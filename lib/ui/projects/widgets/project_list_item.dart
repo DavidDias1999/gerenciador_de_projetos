@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../domain/models/project_model.dart' as domain;
-import '../../core/formatters/date_formatter.dart'; // IMPORT ATUALIZADO
+import '../../core/formatters/date_formatter.dart';
+import '../../core/themes/color_utils.dart';
 import '../../app/widgets/app.dart';
 import '../../auth/view_models/auth_viewmodel.dart';
 import '../view_models/project_viewmodel.dart';
@@ -23,7 +24,19 @@ class ProjectListItemMobile extends StatelessWidget {
     final viewModel = context.watch<ProjectViewModel>();
     final authViewModel = context.read<AuthViewModel>();
     final isAdmin = authViewModel.isAdmin;
+    final currentUser = authViewModel.currentUser;
+
     final String title = project.projectName;
+
+    final bool isProjectAssigned =
+        currentUser != null && project.assignedUserIds.contains(currentUser.id);
+    final bool isAnyStepAssigned = currentUser != null &&
+        project.steps.any((s) => s.assignedUserIds.contains(currentUser.id));
+    final bool isAnySubStepAssigned = currentUser != null &&
+        project.steps.any((s) => s.subSteps
+            .any((sub) => sub.assignedUserIds.contains(currentUser.id)));
+    final bool isAssignedToMe =
+        isProjectAssigned || isAnyStepAssigned || isAnySubStepAssigned;
 
     return Card(
       clipBehavior: Clip.antiAlias,
@@ -31,79 +44,116 @@ class ProjectListItemMobile extends StatelessWidget {
       child: ExpansionTile(
         key: ValueKey('${project.id}_${viewModel.collapseTrigger}'),
         shape: const Border(),
-        title: Row(
-          children: [
-            Expanded(
-              child: Text(
-                title,
-                style: Theme.of(context).textTheme.bodyLarge,
-                overflow: TextOverflow.ellipsis,
-              ),
-            ),
-            const SizedBox(width: 16),
-            SizedBox(
-              width: 90,
-              child: LinearProgressIndicator(
-                value: project.progress,
-                backgroundColor:
-                    Theme.of(context).colorScheme.surfaceContainerHighest,
-                minHeight: 8,
-                borderRadius: BorderRadius.circular(5),
-              ),
-            ),
-            const SizedBox(width: 8),
-            SizedBox(
-              width: 40,
-              child: Text(
-                '${(project.progress * 100).toStringAsFixed(0)}%',
-                style: Theme.of(context).textTheme.labelSmall,
-              ),
-            ),
-            if (isAdmin)
-              PopupMenuButton<String>(
-                onSelected: (String result) {
-                  if (result == 'complete') {
-                    showMoveToCompletedDialog(context, project);
-                  } else if (result == 'activate') {
-                    viewModel.activateProject(project.id);
-                  } else if (result == 'edit_deadline') {
-                    showEditDeadlineDialog(context, project);
-                  } else if (result == 'delete') {
-                    showDeleteConfirmationDialog(context, project);
-                  } else if (result == 'restore_steps') {
-                    showRestoreStepsDialog(context, project);
-                  }
-                },
-                itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
-                  if (projectType == ProjectType.active)
-                    const PopupMenuItem<String>(
-                      value: 'complete',
-                      child: Text('Finalizar projeto'),
-                    ),
-                  if (projectType == ProjectType.completed)
-                    const PopupMenuItem<String>(
-                      value: 'activate',
-                      child: Text('Ativar projeto'),
-                    ),
-                  if (projectType == ProjectType.active)
-                    const PopupMenuItem<String>(
-                      value: 'edit_deadline',
-                      child: Text('Editar prazo'),
-                    ),
-                  const PopupMenuItem<String>(
-                    value: 'restore_steps',
-                    child: Text('Restaurar etapas'),
+        tilePadding:
+            const EdgeInsets.only(left: 8.0, right: 8.0), // Aproxima o chevron
+        title: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 8.0),
+          decoration: BoxDecoration(
+            color: isAssignedToMe
+                ? Colors.blue.withOpacity(0.15)
+                : Colors.transparent,
+            borderRadius: BorderRadius.circular(8.0),
+          ),
+          child: Row(
+            children: [
+              if (project.deadline != null && projectType == ProjectType.active)
+                Container(
+                  width: 12,
+                  height: 12,
+                  margin: const EdgeInsets.only(right: 8),
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: getDeadlineColor(project.deadline),
                   ),
-                  const PopupMenuItem<String>(
-                    value: 'delete',
-                    child: Text(
-                      'Deletar projeto',
-                      style: TextStyle(color: Colors.red),
-                    ),
-                  ),
-                ],
+                ),
+              Expanded(
+                child: Text(
+                  title,
+                  style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                      fontWeight:
+                          isAssignedToMe ? FontWeight.bold : FontWeight.normal),
+                  overflow: TextOverflow.ellipsis,
+                ),
               ),
-          ],
+              const SizedBox(width: 16),
+              SizedBox(
+                width: 90,
+                child: LinearProgressIndicator(
+                  value: project.progress,
+                  backgroundColor:
+                      Theme.of(context).colorScheme.surfaceContainerHighest,
+                  minHeight: 8,
+                  borderRadius: BorderRadius.circular(5),
+                ),
+              ),
+              const SizedBox(width: 8),
+              SizedBox(
+                width: 40,
+                child: Text(
+                  '${(project.progress * 100).toStringAsFixed(0)}%',
+                  style: Theme.of(context).textTheme.labelSmall,
+                ),
+              ),
+              if (isAdmin)
+                PopupMenuButton<String>(
+                  onSelected: (String result) {
+                    if (result == 'complete') {
+                      showMoveToCompletedDialog(context, project);
+                    } else if (result == 'activate') {
+                      viewModel.activateProject(project.id);
+                    } else if (result == 'edit_deadline') {
+                      showEditDeadlineDialog(context, project);
+                    } else if (result == 'assign_project') {
+                      showAssignUsersDialog(
+                        context,
+                        title: 'Atribuir a: $title',
+                        currentAssignedIds: project.assignedUserIds,
+                        onSave: (userIds) {
+                          viewModel.assignUsersToProject(project.id, userIds);
+                        },
+                      );
+                    } else if (result == 'delete') {
+                      showDeleteConfirmationDialog(context, project);
+                    } else if (result == 'restore_steps') {
+                      showRestoreStepsDialog(context, project);
+                    }
+                  },
+                  itemBuilder: (BuildContext context) =>
+                      <PopupMenuEntry<String>>[
+                    if (projectType == ProjectType.active)
+                      const PopupMenuItem<String>(
+                        value: 'complete',
+                        child: Text('Finalizar projeto'),
+                      ),
+                    if (projectType == ProjectType.completed)
+                      const PopupMenuItem<String>(
+                        value: 'activate',
+                        child: Text('Ativar projeto'),
+                      ),
+                    if (projectType == ProjectType.active)
+                      const PopupMenuItem<String>(
+                        value: 'edit_deadline',
+                        child: Text('Editar prazo'),
+                      ),
+                    const PopupMenuItem<String>(
+                      value: 'assign_project',
+                      child: Text('Atribuir Colaborador(es)'),
+                    ),
+                    const PopupMenuItem<String>(
+                      value: 'restore_steps',
+                      child: Text('Restaurar etapas'),
+                    ),
+                    const PopupMenuItem<String>(
+                      value: 'delete',
+                      child: Text(
+                        'Deletar projeto',
+                        style: TextStyle(color: Colors.red),
+                      ),
+                    ),
+                  ],
+                ),
+            ],
+          ),
         ),
         children: project.steps
             .where((step) => step.deletedAt == null)
@@ -135,14 +185,28 @@ class ProjectListItemDesktop extends StatelessWidget {
     final viewModel = context.read<ProjectViewModel>();
     final authViewModel = context.read<AuthViewModel>();
     final isAdmin = authViewModel.isAdmin;
+    final currentUser = authViewModel.currentUser;
+
     final String title = project.projectName;
+
+    final bool isProjectAssigned =
+        currentUser != null && project.assignedUserIds.contains(currentUser.id);
+    final bool isAnyStepAssigned = currentUser != null &&
+        project.steps.any((s) => s.assignedUserIds.contains(currentUser.id));
+    final bool isAnySubStepAssigned = currentUser != null &&
+        project.steps.any((s) => s.subSteps
+            .any((sub) => sub.assignedUserIds.contains(currentUser.id)));
+    final bool isAssignedToMe =
+        isProjectAssigned || isAnyStepAssigned || isAnySubStepAssigned;
 
     return Card(
       clipBehavior: Clip.antiAlias,
       margin: const EdgeInsets.symmetric(vertical: 4.0),
       color: isSelected
           ? Theme.of(context).colorScheme.primaryContainer.withOpacity(0.5)
-          : null,
+          : isAssignedToMe
+              ? Colors.blue.withOpacity(0.15)
+              : null,
       shape: RoundedRectangleBorder(
         side: isSelected
             ? BorderSide(color: Theme.of(context).colorScheme.primary, width: 2)
@@ -155,12 +219,23 @@ class ProjectListItemDesktop extends StatelessWidget {
           padding: const EdgeInsets.all(12.0),
           child: Row(
             children: [
+              if (project.deadline != null && projectType == ProjectType.active)
+                Container(
+                  width: 12,
+                  height: 12,
+                  margin: const EdgeInsets.only(right: 8),
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: getDeadlineColor(project.deadline),
+                  ),
+                ),
               Expanded(
                 child: Text(
                   title,
                   style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                      fontWeight:
-                          isSelected ? FontWeight.bold : FontWeight.normal),
+                      fontWeight: isSelected || isAssignedToMe
+                          ? FontWeight.bold
+                          : FontWeight.normal),
                   overflow: TextOverflow.ellipsis,
                 ),
               ),
@@ -193,6 +268,15 @@ class ProjectListItemDesktop extends StatelessWidget {
                       viewModel.activateProject(project.id);
                     } else if (result == 'edit_deadline') {
                       showEditDeadlineDialog(context, project);
+                    } else if (result == 'assign_project') {
+                      showAssignUsersDialog(
+                        context,
+                        title: 'Atribuir a: $title',
+                        currentAssignedIds: project.assignedUserIds,
+                        onSave: (userIds) {
+                          viewModel.assignUsersToProject(project.id, userIds);
+                        },
+                      );
                     } else if (result == 'delete') {
                       showDeleteConfirmationDialog(context, project);
                     } else if (result == 'restore_steps') {
@@ -216,6 +300,10 @@ class ProjectListItemDesktop extends StatelessWidget {
                         value: 'edit_deadline',
                         child: Text('Editar prazo'),
                       ),
+                    const PopupMenuItem<String>(
+                      value: 'assign_project',
+                      child: Text('Atribuir Colaborador(es)'),
+                    ),
                     const PopupMenuItem<String>(
                       value: 'restore_steps',
                       child: Text('Restaurar etapas'),
@@ -288,14 +376,13 @@ class ProjectDetailsPanel extends StatelessWidget {
                     padding:
                         const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                     decoration: BoxDecoration(
-                      color: isOverdue
-                          ? Colors.red.shade100
-                          : Colors.blue.shade100,
+                      color:
+                          getDeadlineColor(project.deadline).withOpacity(0.2),
                       borderRadius: BorderRadius.circular(16),
                       border: Border.all(
-                        color: isOverdue
-                            ? Colors.red.shade300
-                            : Colors.blue.shade300,
+                        color:
+                            getDeadlineColor(project.deadline).withOpacity(0.8),
+                        width: 1.5,
                       ),
                     ),
                     child: Row(
@@ -306,17 +393,13 @@ class ProjectDetailsPanel extends StatelessWidget {
                               ? Icons.warning_amber_rounded
                               : Icons.calendar_today,
                           size: 16,
-                          color: isOverdue
-                              ? Colors.red.shade900
-                              : Colors.blue.shade900,
+                          color: getDeadlineColor(project.deadline),
                         ),
                         const SizedBox(width: 6),
                         Text(
                           'Prazo: ${formatDate(project.deadline!)}',
                           style: TextStyle(
-                            color: isOverdue
-                                ? Colors.red.shade900
-                                : Colors.blue.shade900,
+                            color: getDeadlineColor(project.deadline),
                             fontWeight: FontWeight.bold,
                           ),
                         ),

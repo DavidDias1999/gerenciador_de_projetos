@@ -55,6 +55,7 @@ class ProjectService {
       squareMeters: squareMeters,
       deadline: deadline,
       complexity: null,
+      assignedUserIds: [],
     );
 
     await _projectsCollection.doc(newProjectId).set(newProject.toJson());

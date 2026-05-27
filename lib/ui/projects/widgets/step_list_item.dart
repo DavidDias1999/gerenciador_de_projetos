@@ -41,6 +41,7 @@ class _StepListItemState extends State<StepListItem> {
     final viewModel = context.watch<ProjectViewModel>();
     final authViewModel = context.read<AuthViewModel>();
     final isAdmin = authViewModel.isAdmin;
+    final currentUser = authViewModel.currentUser;
 
     final orientation = MediaQuery.of(context).orientation;
     final isPortrait = orientation == Orientation.portrait;
@@ -52,16 +53,23 @@ class _StepListItemState extends State<StepListItem> {
 
     final bool anyDirectTasksIncomplete =
         widget.step.directTasks.any((task) => !task.isCompleted);
-
     final bool anyDirectTasksCompleted =
         widget.step.directTasks.any((task) => task.isCompleted);
 
     final bool showMenu = isAdmin || widget.step.directTasks.isNotEmpty;
 
+    final bool isStepAssigned = currentUser != null &&
+        widget.step.assignedUserIds.contains(currentUser.id);
+    final bool isAnySubStepAssigned = currentUser != null &&
+        widget.step.subSteps
+            .any((sub) => sub.assignedUserIds.contains(currentUser.id));
+    final bool isAssignedToMe = isStepAssigned || isAnySubStepAssigned;
+
     return ExpansionTile(
       key: ValueKey('${widget.step.id}_${viewModel.collapseTrigger}'),
       shape: const Border(),
       controller: _controller,
+      tilePadding: const EdgeInsets.only(left: 8.0, right: 8.0),
       onExpansionChanged: (isExpanded) {
         if (widget.projectType == ProjectType.active && canHaveTimer) {
           viewModel.handleExpansionChange(
@@ -71,119 +79,142 @@ class _StepListItemState extends State<StepListItem> {
           );
         }
       },
-      title: Row(
-        children: [
-          if (viewModel.activeTimerId == widget.step.id)
-            Padding(
-              padding: const EdgeInsets.only(right: 8.0),
-              child: Icon(Icons.timer_outlined,
-                  size: 20, color: Theme.of(context).colorScheme.primary),
-            ),
-          Expanded(
-            child: Padding(
-              padding: EdgeInsets.only(left: isPortrait ? 8.0 : 16.0),
+      title: Container(
+        padding: EdgeInsets.symmetric(
+            horizontal: isPortrait ? 8.0 : 12.0, vertical: 8.0),
+        decoration: BoxDecoration(
+          color: isAssignedToMe
+              ? Colors.blue.withOpacity(0.15)
+              : Colors.transparent,
+          borderRadius: BorderRadius.circular(8.0),
+        ),
+        child: Row(
+          children: [
+            if (viewModel.activeTimerId == widget.step.id)
+              Padding(
+                padding: const EdgeInsets.only(right: 8.0),
+                child: Icon(Icons.timer_outlined,
+                    size: 20, color: Theme.of(context).colorScheme.primary),
+              ),
+            Expanded(
               child: Text(
                 widget.step.title,
-                style: Theme.of(context).textTheme.titleSmall,
+                style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                    fontWeight:
+                        isAssignedToMe ? FontWeight.bold : FontWeight.normal),
                 overflow: TextOverflow.ellipsis,
                 maxLines: 1,
               ),
             ),
-          ),
-          SizedBox(width: spacingBeforeProgress),
-          SizedBox(
-            width: progressBarWidth,
-            child: LinearProgressIndicator(
-              value: widget.step.progress,
-              backgroundColor:
-                  Theme.of(context).colorScheme.surfaceContainerHighest,
-              minHeight: 8,
-              borderRadius: BorderRadius.circular(5),
-            ),
-          ),
-          SizedBox(width: spacingBeforePercentage),
-          SizedBox(
-            width: percentageWidth,
-            child: Text(
-              '${(widget.step.progress * 100).toStringAsFixed(0)}%',
-              style: Theme.of(context).textTheme.labelSmall,
-              textAlign: TextAlign.end,
-            ),
-          ),
-          if (showMenu)
-            PopupMenuButton<String>(
-              tooltip: "Mais opções",
-              onSelected: (String result) {
-                final currentUser = authViewModel.currentUser;
-                if (currentUser == null) return;
-                final completionUsername =
-                    currentUser.name ?? currentUser.email;
-
-                if (result == 'deleteStep') {
-                  showDeleteStepConfirmationDialog(
-                      context, widget.project, widget.step);
-                }
-                if (result == 'selectAllDirect') {
-                  viewModel.selectAllTasksInStep(
-                    stepId: widget.step.id,
-                    project: widget.project,
-                    username: completionUsername,
-                  );
-                }
-                if (result == 'deselectAllDirect') {
-                  viewModel.deselectAllTasksInStep(
-                    stepId: widget.step.id,
-                    project: widget.project,
-                    isAdmin: isAdmin,
-                    currentUsername: completionUsername,
-                  );
-                }
-                if (result == 'restore_sub_steps') {
-                  showRestoreSubStepsDialog(context, widget.project);
-                }
-              },
-              itemBuilder: (BuildContext context) {
-                return [
-                  if (anyDirectTasksIncomplete)
-                    const PopupMenuItem<String>(
-                      value: 'selectAllDirect',
-                      child: Text('Selecionar todas'),
-                    ),
-                  if (anyDirectTasksCompleted)
-                    const PopupMenuItem<String>(
-                      value: 'deselectAllDirect',
-                      child: Text('Desmarcar todas'),
-                    ),
-                  if (isAdmin && widget.step.directTasks.isNotEmpty)
-                    const PopupMenuDivider(),
-                  if (isAdmin)
-                    const PopupMenuItem<String>(
-                      value: 'restore_sub_steps',
-                      child: Text('Restaurar Subetapas'),
-                    ),
-                  if (isAdmin) const PopupMenuDivider(),
-                  if (isAdmin)
-                    const PopupMenuItem<String>(
-                      value: 'deleteStep',
-                      child: Text(
-                        'Deletar etapa',
-                        style: TextStyle(color: Colors.red),
-                      ),
-                    ),
-                ];
-              },
-              child: IconButton(
-                icon: const Icon(Icons.more_vert),
-                iconSize: 20.0,
-                padding: EdgeInsets.zero,
-                constraints: const BoxConstraints(),
-                visualDensity:
-                    isPortrait ? VisualDensity.compact : VisualDensity.standard,
-                tooltip: "Mais opções",
-                onPressed: null,
+            SizedBox(width: spacingBeforeProgress),
+            SizedBox(
+              width: progressBarWidth,
+              child: LinearProgressIndicator(
+                value: widget.step.progress,
+                backgroundColor:
+                    Theme.of(context).colorScheme.surfaceContainerHighest,
+                minHeight: 8,
+                borderRadius: BorderRadius.circular(5),
               ),
             ),
-        ],
+            SizedBox(width: spacingBeforePercentage),
+            SizedBox(
+              width: percentageWidth,
+              child: Text(
+                '${(widget.step.progress * 100).toStringAsFixed(0)}%',
+                style: Theme.of(context).textTheme.labelSmall,
+                textAlign: TextAlign.end,
+              ),
+            ),
+            if (showMenu)
+              PopupMenuButton<String>(
+                tooltip: "Mais opções",
+                onSelected: (String result) {
+                  final user = authViewModel.currentUser;
+                  if (user == null) return;
+                  final completionUsername = user.name ?? user.email;
+
+                  if (result == 'assign_step') {
+                    showAssignUsersDialog(
+                      context,
+                      title: 'Atribuir a Etapa: ${widget.step.title}',
+                      currentAssignedIds: widget.step.assignedUserIds,
+                      onSave: (userIds) {
+                        viewModel.assignUsersToStep(
+                            widget.project.id, widget.step.id, userIds);
+                      },
+                    );
+                  }
+                  if (result == 'deleteStep') {
+                    showDeleteStepConfirmationDialog(
+                        context, widget.project, widget.step);
+                  }
+                  if (result == 'selectAllDirect') {
+                    viewModel.selectAllTasksInStep(
+                      stepId: widget.step.id,
+                      project: widget.project,
+                      username: completionUsername,
+                    );
+                  }
+                  if (result == 'deselectAllDirect') {
+                    viewModel.deselectAllTasksInStep(
+                      stepId: widget.step.id,
+                      project: widget.project,
+                      isAdmin: isAdmin,
+                      currentUsername: completionUsername,
+                    );
+                  }
+                  if (result == 'restore_sub_steps') {
+                    showRestoreSubStepsDialog(context, widget.project);
+                  }
+                },
+                itemBuilder: (BuildContext context) {
+                  return [
+                    if (anyDirectTasksIncomplete)
+                      const PopupMenuItem<String>(
+                        value: 'selectAllDirect',
+                        child: Text('Selecionar todas'),
+                      ),
+                    if (anyDirectTasksCompleted)
+                      const PopupMenuItem<String>(
+                        value: 'deselectAllDirect',
+                        child: Text('Desmarcar todas'),
+                      ),
+                    if (isAdmin) const PopupMenuDivider(),
+                    if (isAdmin)
+                      const PopupMenuItem<String>(
+                        value: 'assign_step',
+                        child: Text('Atribuir Colaborador(es)'),
+                      ),
+                    if (isAdmin)
+                      const PopupMenuItem<String>(
+                        value: 'restore_sub_steps',
+                        child: Text('Restaurar Subetapas'),
+                      ),
+                    if (isAdmin)
+                      const PopupMenuItem<String>(
+                        value: 'deleteStep',
+                        child: Text(
+                          'Deletar etapa',
+                          style: TextStyle(color: Colors.red),
+                        ),
+                      ),
+                  ];
+                },
+                child: IconButton(
+                  icon: const Icon(Icons.more_vert),
+                  iconSize: 20.0,
+                  padding: EdgeInsets.zero,
+                  constraints: const BoxConstraints(),
+                  visualDensity: isPortrait
+                      ? VisualDensity.compact
+                      : VisualDensity.standard,
+                  tooltip: "Mais opções",
+                  onPressed: null,
+                ),
+              ),
+          ],
+        ),
       ),
       children: [
         ...widget.step.subSteps
