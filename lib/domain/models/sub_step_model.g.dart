@@ -7,13 +7,14 @@ part of 'sub_step_model.dart';
 // **************************************************************************
 
 SubStep _$SubStepFromJson(Map<String, dynamic> json) => SubStep(
-      id: json['id'] as String,
-      title: json['title'] as String,
-      orderIndex: (json['orderIndex'] as num).toInt(),
-      tasks: (json['tasks'] as List<dynamic>)
-          .map((e) => Task.fromJson(e as Map<String, dynamic>))
-          .toList(),
-      durationInSeconds: (json['durationInSeconds'] as num).toInt(),
+      id: json['id'] as String? ?? '',
+      title: json['title'] as String? ?? '',
+      orderIndex: (json['orderIndex'] as num?)?.toInt() ?? 0,
+      tasks: (json['tasks'] as List<dynamic>?)
+              ?.map((e) => Task.fromJson(e as Map<String, dynamic>))
+              .toList() ??
+          [],
+      durationInSeconds: (json['durationInSeconds'] as num?)?.toInt() ?? 0,
       assignedUserIds: (json['assignedUserIds'] as List<dynamic>?)
               ?.map((e) => e as String)
               .toList() ??

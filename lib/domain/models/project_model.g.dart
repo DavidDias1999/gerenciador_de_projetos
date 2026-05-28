@@ -7,13 +7,14 @@ part of 'project_model.dart';
 // **************************************************************************
 
 Project _$ProjectFromJson(Map<String, dynamic> json) => Project(
-      id: json['id'] as String,
-      projectName: json['projectName'] as String,
-      steps: (json['steps'] as List<dynamic>)
-          .map((e) => Step.fromJson(e as Map<String, dynamic>))
-          .toList(),
-      isCompleted: json['isCompleted'] as bool,
-      userId: json['userId'] as String,
+      id: json['id'] as String? ?? '',
+      projectName: json['projectName'] as String? ?? 'Sem nome',
+      steps: (json['steps'] as List<dynamic>?)
+              ?.map((e) => Step.fromJson(e as Map<String, dynamic>))
+              .toList() ??
+          [],
+      isCompleted: json['isCompleted'] as bool? ?? false,
+      userId: json['userId'] as String? ?? '',
       assignedUserIds: (json['assignedUserIds'] as List<dynamic>?)
               ?.map((e) => e as String)
               .toList() ??

@@ -22,6 +22,9 @@ class Project {
   @TimestampConverter()
   DateTime? finalizedAt;
 
+  @TimestampConverter()
+  DateTime? createdAt;
+
   double? finalProgress;
   int? finalTotalDurationInSeconds;
 
@@ -38,6 +41,7 @@ class Project {
     this.complexity,
     this.deadline,
     this.finalizedAt,
+    this.createdAt,
     this.finalProgress,
     this.finalTotalDurationInSeconds,
   });

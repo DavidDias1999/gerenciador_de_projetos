@@ -160,10 +160,15 @@ class AuthRepository {
   Stream<List<User>> getAuthorizedUsers() {
     return _firestore
         .collection('users')
-        .where('isAuthorized', isEqualTo: true)
         .snapshots()
         .map((snapshot) {
-      return snapshot.docs.map((doc) => User.fromJson(doc.data())).toList();
+      return snapshot.docs
+          .map((doc) => User.fromJson(doc.data()))
+          // Garante que o admin primário apareça, mesmo se estiver sem a flag isAuthorized no BD (legado)
+          .where((user) => user.isAuthorized || user.role == UserRole.admin)
+          // Também podemos filtrar por isActive caso existam deletados sem isAuthorized=false
+          .where((user) => user.isActive)
+          .toList();
     });
   }
 
