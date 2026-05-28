@@ -7,16 +7,22 @@ part of 'project_model.dart';
 // **************************************************************************
 
 Project _$ProjectFromJson(Map<String, dynamic> json) => Project(
-      id: json['id'] as String,
-      projectName: json['projectName'] as String,
-      steps: (json['steps'] as List<dynamic>)
-          .map((e) => Step.fromJson(e as Map<String, dynamic>))
-          .toList(),
-      isCompleted: json['isCompleted'] as bool,
-      userId: json['userId'] as String,
+      id: json['id'] as String? ?? '',
+      projectName: json['projectName'] as String? ?? 'Sem nome',
+      steps: (json['steps'] as List<dynamic>?)
+              ?.map((e) => Step.fromJson(e as Map<String, dynamic>))
+              .toList() ??
+          [],
+      isCompleted: json['isCompleted'] as bool? ?? false,
+      userId: json['userId'] as String? ?? '',
+      assignedUserIds: (json['assignedUserIds'] as List<dynamic>?)
+              ?.map((e) => e as String)
+              .toList() ??
+          [],
       squareMeters: (json['squareMeters'] as num?)?.toDouble(),
       complexity:
           $enumDecodeNullable(_$ProjectComplexityEnumMap, json['complexity']),
+      deadline: const TimestampConverter().fromJson(json['deadline']),
       finalizedAt: const TimestampConverter().fromJson(json['finalizedAt']),
       finalProgress: (json['finalProgress'] as num?)?.toDouble(),
       finalTotalDurationInSeconds:
@@ -31,9 +37,11 @@ Map<String, dynamic> _$ProjectToJson(Project instance) => <String, dynamic>{
       'userId': instance.userId,
       'squareMeters': instance.squareMeters,
       'complexity': _$ProjectComplexityEnumMap[instance.complexity],
+      'deadline': const TimestampConverter().toJson(instance.deadline),
       'finalizedAt': const TimestampConverter().toJson(instance.finalizedAt),
       'finalProgress': instance.finalProgress,
       'finalTotalDurationInSeconds': instance.finalTotalDurationInSeconds,
+      'assignedUserIds': instance.assignedUserIds,
     };
 
 const _$ProjectComplexityEnumMap = {

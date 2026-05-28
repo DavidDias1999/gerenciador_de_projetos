@@ -7,16 +7,22 @@ part of 'step_model.dart';
 // **************************************************************************
 
 Step _$StepFromJson(Map<String, dynamic> json) => Step(
-      id: json['id'] as String,
-      title: json['title'] as String,
-      subSteps: (json['subSteps'] as List<dynamic>)
-          .map((e) => SubStep.fromJson(e as Map<String, dynamic>))
-          .toList(),
-      directTasks: (json['directTasks'] as List<dynamic>)
-          .map((e) => Task.fromJson(e as Map<String, dynamic>))
-          .toList(),
+      id: json['id'] as String? ?? '',
+      title: json['title'] as String? ?? '',
+      subSteps: (json['subSteps'] as List<dynamic>?)
+              ?.map((e) => SubStep.fromJson(e as Map<String, dynamic>))
+              .toList() ??
+          [],
+      directTasks: (json['directTasks'] as List<dynamic>?)
+              ?.map((e) => Task.fromJson(e as Map<String, dynamic>))
+              .toList() ??
+          [],
+      assignedUserIds: (json['assignedUserIds'] as List<dynamic>?)
+              ?.map((e) => e as String)
+              .toList() ??
+          [],
       deletedAt: const TimestampConverter().fromJson(json['deletedAt']),
-      durationInSeconds: (json['durationInSeconds'] as num).toInt(),
+      durationInSeconds: (json['durationInSeconds'] as num?)?.toInt() ?? 0,
     );
 
 Map<String, dynamic> _$StepToJson(Step instance) => <String, dynamic>{
@@ -24,6 +30,7 @@ Map<String, dynamic> _$StepToJson(Step instance) => <String, dynamic>{
       'title': instance.title,
       'directTasks': instance.directTasks.map((e) => e.toJson()).toList(),
       'subSteps': instance.subSteps.map((e) => e.toJson()).toList(),
+      'assignedUserIds': instance.assignedUserIds,
       'deletedAt': const TimestampConverter().toJson(instance.deletedAt),
       'durationInSeconds': instance.durationInSeconds,
     };

@@ -4,15 +4,41 @@ import 'package:provider/provider.dart';
 import '../../../domain/models/project_model.dart' as domain;
 import '../../../domain/models/step_model.dart' as domain;
 import '../../../domain/models/sub_step_model.dart' as domain;
+import '../../../domain/models/user_model.dart' as user_domain;
 import '../../../domain/models/project_complexity.dart';
+import '../../core/formatters/date_formatter.dart';
+import '../../auth/view_models/auth_viewmodel.dart';
 import '../view_models/project_viewmodel.dart';
 import 'restore_steps_dialog.dart';
 import 'restore_sub_steps_dialog.dart';
+
+Future<void> _pickDate(
+    BuildContext context, TextEditingController controller) async {
+  final initialDate = parseDate(controller.text) ?? DateTime.now();
+  final picked = await showDatePicker(
+    context: context,
+    initialDate: initialDate,
+    firstDate: DateTime(2000),
+    lastDate: DateTime(2100),
+    builder: (context, child) {
+      return Theme(
+        data: Theme.of(context).copyWith(
+          colorScheme: Theme.of(context).colorScheme,
+        ),
+        child: child!,
+      );
+    },
+  );
+  if (picked != null) {
+    controller.text = formatDate(picked);
+  }
+}
 
 void showCreateProjectDialog(BuildContext context) {
   final viewModel = Provider.of<ProjectViewModel>(context, listen: false);
   final projectNameController = TextEditingController();
   final squareMetersController = TextEditingController();
+  final deadlineController = TextEditingController();
   final formKey = GlobalKey<FormState>();
 
   showDialog(
@@ -21,36 +47,121 @@ void showCreateProjectDialog(BuildContext context) {
       title: const Text('Novo Projeto'),
       content: Form(
         key: formKey,
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextFormField(
+                autofocus: true,
+                controller: projectNameController,
+                decoration: const InputDecoration(labelText: 'Nome do Projeto'),
+                validator: (value) =>
+                    value == null || value.isEmpty ? 'Campo obrigatório' : null,
+              ),
+              const SizedBox(height: 16),
+              TextFormField(
+                controller: deadlineController,
+                decoration: InputDecoration(
+                  labelText: 'Prazo de entrega (dd/mm/aaaa)',
+                  suffixIcon: IconButton(
+                    icon: const Icon(Icons.calendar_today),
+                    onPressed: () => _pickDate(context, deadlineController),
+                  ),
+                ),
+                keyboardType: TextInputType.datetime,
+                inputFormatters: [DateInputFormatter()],
+                validator: (value) {
+                  if (value == null || value.isEmpty)
+                    return 'Campo obrigatório';
+                  if (parseDate(value) == null) return 'Data inválida';
+                  return null;
+                },
+              ),
+              const SizedBox(height: 16),
+              TextFormField(
+                controller: squareMetersController,
+                decoration: const InputDecoration(
+                  labelText: 'Metragem (m²)',
+                  suffixText: 'm²',
+                ),
+                keyboardType:
+                    const TextInputType.numberWithOptions(decimal: true),
+                inputFormatters: [
+                  FilteringTextInputFormatter.allow(RegExp(r'^\d*[,.]?\d*')),
+                ],
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return null;
+                  }
+                  final formattedValue = value.replaceAll(',', '.');
+                  if (double.tryParse(formattedValue) == null) {
+                    return 'Número inválido';
+                  }
+                  return null;
+                },
+              ),
+            ],
+          ),
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: const Text('Cancelar'),
+        ),
+        ElevatedButton(
+          onPressed: () {
+            if (formKey.currentState!.validate()) {
+              final m2Text = squareMetersController.text.replaceAll(',', '.');
+              final squareMeters = double.tryParse(m2Text);
+              final deadline = parseDate(deadlineController.text)!;
+
+              viewModel.createNewProject(
+                projectNameController.text,
+                squareMeters,
+                deadline,
+              );
+              Navigator.of(context).pop();
+            }
+          },
+          child: const Text('Salvar'),
+        ),
+      ],
+    ),
+  );
+}
+
+void showEditDeadlineDialog(BuildContext context, domain.Project project) {
+  final viewModel = Provider.of<ProjectViewModel>(context, listen: false);
+  final deadlineController = TextEditingController(
+    text: project.deadline != null ? formatDate(project.deadline!) : '',
+  );
+  final formKey = GlobalKey<FormState>();
+
+  showDialog(
+    context: context,
+    builder: (context) => AlertDialog(
+      title: const Text('Editar Prazo'),
+      content: Form(
+        key: formKey,
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             TextFormField(
               autofocus: true,
-              controller: projectNameController,
-              decoration: const InputDecoration(labelText: 'Nome do Projeto'),
-              validator: (value) =>
-                  value == null || value.isEmpty ? 'Campo obrigatório' : null,
-            ),
-            const SizedBox(height: 16),
-            TextFormField(
-              controller: squareMetersController,
-              decoration: const InputDecoration(
-                labelText: 'Metragem (m²)',
-                suffixText: 'm²',
+              controller: deadlineController,
+              decoration: InputDecoration(
+                labelText: 'Novo prazo de entrega (dd/mm/aaaa)',
+                suffixIcon: IconButton(
+                  icon: const Icon(Icons.calendar_today),
+                  onPressed: () => _pickDate(context, deadlineController),
+                ),
               ),
-              keyboardType:
-                  const TextInputType.numberWithOptions(decimal: true),
-              inputFormatters: [
-                FilteringTextInputFormatter.allow(RegExp(r'^\d*[,.]?\d*')),
-              ],
+              keyboardType: TextInputType.datetime,
+              inputFormatters: [DateInputFormatter()],
               validator: (value) {
-                if (value == null || value.isEmpty) {
-                  return null;
-                }
-                final formattedValue = value.replaceAll(',', '.');
-                if (double.tryParse(formattedValue) == null) {
-                  return 'Número inválido';
-                }
+                if (value == null || value.isEmpty) return 'Campo obrigatório';
+                if (parseDate(value) == null) return 'Data inválida';
                 return null;
               },
             ),
@@ -65,13 +176,8 @@ void showCreateProjectDialog(BuildContext context) {
         ElevatedButton(
           onPressed: () {
             if (formKey.currentState!.validate()) {
-              final m2Text = squareMetersController.text.replaceAll(',', '.');
-              final squareMeters = double.tryParse(m2Text);
-
-              viewModel.createNewProject(
-                projectNameController.text,
-                squareMeters,
-              );
+              final newDeadline = parseDate(deadlineController.text)!;
+              viewModel.updateProjectDeadline(project.id, newDeadline);
               Navigator.of(context).pop();
             }
           },
@@ -79,6 +185,88 @@ void showCreateProjectDialog(BuildContext context) {
         ),
       ],
     ),
+  );
+}
+
+void showAssignUsersDialog(
+  BuildContext context, {
+  required String title,
+  required List<String> currentAssignedIds,
+  required Function(List<String>) onSave,
+}) {
+  final authViewModel = Provider.of<AuthViewModel>(context, listen: false);
+  List<String> selectedIds = List.from(currentAssignedIds);
+
+  showDialog(
+    context: context,
+    builder: (dialogContext) {
+      return StatefulBuilder(
+        builder: (context, setState) {
+          return AlertDialog(
+            title: Text(title),
+            content: SizedBox(
+              width: 350,
+              height: 400,
+              child: StreamBuilder<List<user_domain.User>>(
+                stream: authViewModel.getAuthorizedUsers(),
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return const Center(child: CircularProgressIndicator());
+                  }
+                  final users = snapshot.data ?? [];
+                  if (users.isEmpty) {
+                    return const Center(
+                        child:
+                            Text('Nenhum usuário ativo encontrado na equipe.'));
+                  }
+
+                  return ListView.builder(
+                    itemCount: users.length,
+                    itemBuilder: (context, index) {
+                      final user = users[index];
+                      final isSelected = selectedIds.contains(user.id);
+                      return CheckboxListTile(
+                        title: Text(user.name ?? user.email),
+                        subtitle: Text(
+                          user.role == user_domain.UserRole.admin
+                              ? 'Administrador'
+                              : 'Colaborador',
+                          style: TextStyle(
+                              color: Theme.of(context).colorScheme.primary),
+                        ),
+                        value: isSelected,
+                        onChanged: (bool? checked) {
+                          setState(() {
+                            if (checked == true) {
+                              selectedIds.add(user.id);
+                            } else {
+                              selectedIds.remove(user.id);
+                            }
+                          });
+                        },
+                      );
+                    },
+                  );
+                },
+              ),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(dialogContext).pop(),
+                child: const Text('Cancelar'),
+              ),
+              ElevatedButton(
+                onPressed: () {
+                  onSave(selectedIds);
+                  Navigator.of(dialogContext).pop();
+                },
+                child: const Text('Salvar Atribuições'),
+              ),
+            ],
+          );
+        },
+      );
+    },
   );
 }
 

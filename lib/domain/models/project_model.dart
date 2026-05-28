@@ -14,15 +14,21 @@ class Project {
   String userId;
 
   double? squareMeters;
-
   ProjectComplexity? complexity;
+
+  @TimestampConverter()
+  DateTime? deadline;
 
   @TimestampConverter()
   DateTime? finalizedAt;
 
-  double? finalProgress;
+  @TimestampConverter()
+  DateTime? createdAt;
 
+  double? finalProgress;
   int? finalTotalDurationInSeconds;
+
+  List<String> assignedUserIds;
 
   Project({
     required this.id,
@@ -30,9 +36,12 @@ class Project {
     required this.steps,
     required this.isCompleted,
     required this.userId,
+    required this.assignedUserIds,
     this.squareMeters,
     this.complexity,
+    this.deadline,
     this.finalizedAt,
+    this.createdAt,
     this.finalProgress,
     this.finalTotalDurationInSeconds,
   });

@@ -1,26 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../auth/view_models/auth_viewmodel.dart';
-import '../core/themes/theme_viewmodel.dart';
+import '../view_models/auth_viewmodel.dart';
 
-class SettingsScreen extends StatefulWidget {
-  const SettingsScreen({super.key});
+class CompleteProfileScreen extends StatefulWidget {
+  const CompleteProfileScreen({super.key});
 
   @override
-  State<SettingsScreen> createState() => _SettingsScreenState();
+  State<CompleteProfileScreen> createState() => _CompleteProfileScreenState();
 }
 
-class _SettingsScreenState extends State<SettingsScreen> {
+class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
   final _formKey = GlobalKey<FormState>();
-  late final TextEditingController _nameController;
+  final _nameController = TextEditingController();
   bool _isLoading = false;
-
-  @override
-  void initState() {
-    super.initState();
-    final currentName = context.read<AuthViewModel>().currentUser?.name ?? '';
-    _nameController = TextEditingController(text: currentName);
-  }
 
   @override
   void dispose() {
@@ -28,7 +20,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     super.dispose();
   }
 
-  Future<void> _saveSettings() async {
+  Future<void> _saveName() async {
     if (!_formKey.currentState!.validate()) {
       return;
     }
@@ -40,27 +32,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
     final authViewModel = context.read<AuthViewModel>();
     try {
       await authViewModel.updateDisplayName(_nameController.text);
-
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Nome atualizado com sucesso!'),
-            backgroundColor: Colors.green,
-          ),
-        );
-        Navigator.of(context).pop();
-      }
+      // O AuthGate automaticamente redirecionará graças ao stream.
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Erro ao atualizar o nome: $e'),
+            content: Text('Erro ao salvar o nome: $e'),
             backgroundColor: Colors.red,
           ),
         );
-      }
-    } finally {
-      if (mounted) {
         setState(() {
           _isLoading = false;
         });
@@ -72,7 +52,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Configurações'),
+        title: const Text('Complete seu Perfil'),
       ),
       body: Center(
         child: ConstrainedBox(
@@ -85,6 +65,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
+                  const Text(
+                    'Bem-vindo! Por favor, insira o seu nome para continuar.',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(fontSize: 16),
+                  ),
+                  const SizedBox(height: 24),
                   TextFormField(
                     controller: _nameController,
                     decoration: const InputDecoration(
@@ -93,37 +79,21 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       prefixIcon: Icon(Icons.badge_outlined),
                     ),
                     validator: (value) {
-                      if (value == null || value.isEmpty) {
+                      if (value == null || value.trim().isEmpty) {
                         return 'Por favor, insira um nome.';
                       }
                       return null;
                     },
                   ),
                   const SizedBox(height: 24),
-                  Consumer<ThemeViewModel>(
-                    builder: (context, themeViewModel, child) {
-                      final isDark = themeViewModel.themeMode == ThemeMode.dark;
-                      return SwitchListTile(
-                        title: const Text('Modo Escuro'),
-                        value: isDark,
-                        onChanged: (value) {
-                          themeViewModel.toggleTheme(value);
-                        },
-                        secondary: Icon(
-                          isDark ? Icons.dark_mode : Icons.light_mode,
-                        ),
-                      );
-                    },
-                  ),
-                  const SizedBox(height: 24),
                   _isLoading
                       ? const Center(child: CircularProgressIndicator())
                       : ElevatedButton(
-                          onPressed: _saveSettings,
+                          onPressed: _saveName,
                           style: ElevatedButton.styleFrom(
                             padding: const EdgeInsets.symmetric(vertical: 16),
                           ),
-                          child: const Text('Salvar Alterações'),
+                          child: const Text('Salvar e Continuar'),
                         ),
                 ],
               ),

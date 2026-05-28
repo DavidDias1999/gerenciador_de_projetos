@@ -39,7 +39,7 @@ class ProjectService {
   }
 
   Future<void> createNewProject(
-      String projectName, double? squareMeters) async {
+      String projectName, double? squareMeters, DateTime deadline) async {
     final creatorId = _userId;
     if (creatorId == null) throw Exception('Usuário não autenticado.');
 
@@ -53,7 +53,9 @@ class ProjectService {
       isCompleted: false,
       userId: creatorId,
       squareMeters: squareMeters,
+      deadline: deadline,
       complexity: null,
+      assignedUserIds: [],
     );
 
     await _projectsCollection.doc(newProjectId).set(newProject.toJson());
