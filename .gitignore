@@ -49,8 +49,10 @@ app.*.map.json
 assets/project_template_copy.json
 lib/data/local/database.g.dart
 
-# Firebase credentials
+# Configurações do Firebase
+# Configurações sensíveis do Firebase
 lib/firebase_options.dart
+lib/firebase_options_test.dart
 
-# Firebase CLI cache
+# Cache do Firebase Hosting
 .firebase/

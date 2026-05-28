@@ -60,6 +60,9 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // CORREÇÃO: Instanciando o themeViewModel para a propriedade themeMode
+    final themeViewModel = context.watch<ThemeViewModel>();
+
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'Gerenciador de Projetos',
